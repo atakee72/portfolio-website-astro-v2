@@ -1,0 +1,26 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import Header from '@/components/Header.astro';
+import About from '@/components/About.astro';
+import Work from '@/components/Work.astro';
+import Blog from '@/components/Blog.astro';
+import Testimonials from '@/components/Testimonials.astro';
+import Footer from '@/components/Footer.astro';
+import { getAllBlogPosts, getAllTestimonials } from '@/lib/content';
+
+const posts = await getAllBlogPosts();
+const testimonials = await getAllTestimonials();
+---
+
+<BaseLayout>
+  <div class="bg-gradient-radial from-white to-gray dark:from-secondary dark:to-secondary/20">
+    <Navbar />
+    <Header />
+    <About />
+    <Work />
+    <Blog posts={posts} />
+    <Testimonials testimonials={testimonials} />
+    <Footer />
+  </div>
+</BaseLayout>

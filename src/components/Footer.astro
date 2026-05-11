@@ -1,0 +1,33 @@
+---
+import AppWrap from './AppWrap.astro';
+---
+
+<AppWrap id="contact">
+  <section class="text-white mt-28 w-full h-screen flex flex-col items-center justify-center">
+    <h2 class="head-text text-lg font-semibold uppercase">
+      Contact info:
+    </h2>
+
+    <div class="w-60 flex justify-evenly items-center flex-wrap m-16">
+      <div class="min-w-minWidth flex flex-row justify-start items-center m-4 p-4 rounded-10 cursor-pointer bg-fef4f5">
+        <a
+          href="mailto:atakee@gmail.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="p-text"
+        >
+          atakee@gmail.com
+        </a>
+      </div>
+      <div class="app__footer-card">
+        <a href="tel:+493088694300" class="p-text">
+          +49 (30) 88694300
+        </a>
+      </div>
+      <p>12049 Berlin, Germany</p>
+    </div>
+    <p class="absolute mt-[600px] font-semibold">
+      Developed by Ercan. All rights reserved.
+    </p>
+  </section>
+</AppWrap>

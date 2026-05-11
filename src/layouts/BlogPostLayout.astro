@@ -1,0 +1,80 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { title, description, author, mainImage, publishedAt, categories } = post.data;
+---
+
+<BaseLayout title={title} description={description}>
+  <Navbar />
+  <article class="min-h-screen py-20 px-4 bg-gradient-radial from-white to-gray dark:from-secondary dark:to-secondary/20">
+    <div class="max-w-4xl mx-auto">
+      <header class="mb-8">
+        <a
+          href="/#blog"
+          class="inline-block mb-6 text-secondary dark:text-yellow hover:underline"
+        >
+          ← Back to Blog
+        </a>
+
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-black dark:text-white">
+          {title}
+        </h1>
+
+        <div class="flex flex-wrap items-center gap-4 text-sm text-gray dark:text-lightGray mb-6">
+          {author.image && (
+            <img
+              src={author.image}
+              alt={author.name}
+              class="w-12 h-12 rounded-full object-cover"
+            />
+          )}
+          <div>
+            <p class="font-semibold text-black dark:text-white">{author.name}</p>
+            <time datetime={publishedAt.toISOString()}>
+              {publishedAt.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </time>
+          </div>
+        </div>
+
+        {categories.length > 0 && (
+          <div class="flex flex-wrap gap-2 mb-6">
+            {categories.map((category) => (
+              <span class="px-3 py-1 bg-secondary/10 dark:bg-yellow/10 text-secondary dark:text-yellow rounded-full text-sm">
+                {category}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {mainImage && (
+          <img
+            src={mainImage.src}
+            alt={mainImage.alt}
+            class="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
+          />
+        )}
+      </header>
+
+      <div class="prose prose-lg dark:prose-invert max-w-none
+        prose-headings:text-black dark:prose-headings:text-white
+        prose-p:text-gray dark:prose-p:text-lightGray
+        prose-a:text-secondary dark:prose-a:text-yellow
+        prose-strong:text-black dark:prose-strong:text-white
+        prose-code:text-secondary dark:prose-code:text-yellow
+        prose-pre:bg-black/5 dark:prose-pre:bg-white/5">
+        <slot />
+      </div>
+    </div>
+  </article>
+</BaseLayout>

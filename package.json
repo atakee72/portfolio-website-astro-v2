@@ -1,0 +1,39 @@
+{
+  "name": "portfolio-astro",
+  "type": "module",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint src --ext .js,.ts,.astro,.svelte",
+    "type-check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.8",
+    "@astrojs/sitemap": "3.6.0",
+    "@astrojs/svelte": "^7.2.5",
+    "@astrojs/tailwind": "^6.0.2",
+    "astro": "^5.15.1",
+    "clsx": "^2.1.1",
+    "sharp": "^0.33.2",
+    "svelte": "^5.55.5",
+    "tailwind-merge": "^2.5.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.5",
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/node": "^20.17.9",
+    "@typescript-eslint/parser": "^8.59.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-plugin-astro": "^1.2.4",
+    "eslint-plugin-svelte": "^2.46.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "testimonials": [
+    {
+      "name": "John Smith",
+      "company": "Tech Corp",
+      "message": "Outstanding work! The attention to detail and performance optimization exceeded our expectations.",
+      "image": "/assets/graduate.jpg",
+      "rating": 5
+    },
+    {
+      "name": "Sarah Johnson",
+      "company": "StartupXYZ",
+      "message": "Professional, reliable, and delivers high-quality code. Highly recommended!",
+      "rating": 5
+    },
+    {
+      "name": "Michael Chen",
+      "company": "Digital Agency",
+      "message": "Transformed our website into a blazing-fast experience. Great communication throughout the project.",
+      "image": "/assets/graduate.jpg",
+      "rating": 5
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+---
+import ThemeToggleBtn from './ThemeToggleBtn.svelte';
+import MobileMenuBtn from './MobileMenuBtn.svelte';
+
+const navItems = ['home', 'about', 'work', 'blog', 'testimonials', 'contact'];
+---
+
+<nav class="flex w-full h-[112px] md:h-28 justify-between items-center px-8 py-4 bg-white/20 backdrop-blur-sm border border-white/18 fixed z-20">
+  <div class="flex justify-start items-center font-extrabold text-5xl xxs:text-6xl text-secondary dark:text-white">
+    <a class="group" href="#">
+      <span>Ercan</span>
+      <span class="group-hover:text-white dark:group-hover:text-secondary">
+        .
+      </span>
+    </a>
+  </div>
+
+  <div class="hidden lg:flex justify-end items-baseline flex-1">
+    <ThemeToggleBtn client:only="svelte" />
+    <ul class="flex justify-end items-center">
+      {navItems.map((item) => (
+        <li class="my-0 mx-4 flex-col group">
+          <div class="w-2 h-2 bg-transparent rounded-full mx-auto mb-1 group-hover:bg-white transition-all ease-in-out" />
+          <a
+            href={`#${item}`}
+            class="text-lg uppercase flex-col font-semibold p-1 transition-all ease-in-out text-secondary dark:text-white"
+          >
+            {item}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <div>
+    <MobileMenuBtn client:only="svelte" />
+  </div>
+</nav>
