@@ -8,32 +8,40 @@ interface Props {
 }
 
 const { post, class: className } = Astro.props;
-const { title, mainImage, categories } = post.data;
+const { title, description, publishedAt, categories } = post.data;
+
+function fmtDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
 ---
 
-<div class={cn(
-  "container text-white/90 bg-white/20 backdrop-blur-sm p-4 rounded-xl duration-300 ease-in-out shadow-md hover:shadow-lg h-auto hover:translate-y-[-3px] transition-transform flex flex-col mx-auto mb-8 overflow-auto",
-  className
-)}>
-  <a href={`/blog/${post.slug}`}>
-    <div class="flex flex-col items-center justify-center m-auto h-auto bg-gradient-to-br from-gray/80 to-lightGray/80 backdrop-blur-sm rounded-xl p-6">
-      <h3 class="mx-1 my-2 w-full text-center text-2xl">{title}</h3>
+<article class={cn('group block border border-ink-3 bg-ink-2 transition-colors hover:bg-[#1e1e22]', className)}>
+  <a href={`/blog/${post.slug}`} class="block p-6">
+    <div class="flex justify-between mb-4" aria-hidden="true">
+      {Array.from({ length: 8 }).map(() => (
+        <i class="block w-5 h-2 bg-ink"></i>
+      ))}
+    </div>
 
-      <div class="relative w-full aspect-[3/2] my-3">
-        {categories.length > 0 && (
-          <div class="absolute font-semibold text-xs text-white/90 px-4 py-0 right-2 top-2 rounded-lg z-10">
-            {categories[0]}
-          </div>
-        )}
-        <img
-          src={mainImage.src}
-          alt={mainImage.alt}
-          class="w-full h-full object-cover rounded-xl"
-        />
-      </div>
-      <div class="w-2/3 h-1/5 mx-auto text-center border-white/90 hover:bg-secondary/70 border-2 mt-3 rounded-xl group-hover:bg-secondary/80 p-1">
-        Read more
-      </div>
+    {categories?.[0] && (
+      <span class="block text-[10px] text-phosphor tracking-[0.18em] uppercase mb-3">
+        {categories[0]}
+      </span>
+    )}
+
+    <h3 class="font-display font-bold text-[22px] leading-[1.2] text-paper-hi tracking-[-0.02em] m-0">
+      {title}
+    </h3>
+
+    {description && (
+      <p class="text-[13px] text-paper-2 mt-3 leading-[1.6] line-clamp-3">
+        {description}
+      </p>
+    )}
+
+    <div class="mt-5 pt-3 border-t border-dashed border-ink-3 flex justify-between text-[10px] tracking-[0.12em] text-mute-2">
+      <span>{fmtDate(publishedAt)}</span>
+      <span class="text-phosphor uppercase">read →</span>
     </div>
   </a>
-</div>
+</article>
