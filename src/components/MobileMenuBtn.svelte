@@ -1,24 +1,33 @@
 <script lang="ts">
   import ThemeToggleBtn from './ThemeToggleBtn.svelte';
 
-  const navItems = ['home', 'about', 'work', 'blog', 'testimonials', 'contact'];
+  // Mirrors the hero navItems array in Header.astro.
+  // Anchors per audit finding C in the redesign plan.
+  const navItems: { label: string; href: string }[] = [
+    { label: 'home', href: '#home' },
+    { label: 'sheet', href: '#sheet' },
+    { label: 'journal', href: '#blog' },
+    { label: 'rolls', href: '#' },
+    { label: 'paints', href: '#' },
+    { label: 'reach', href: 'mailto:atakee@gmail.com' },
+  ];
 
   let isOpen = $state(false);
 </script>
 
-<div class="lg:hidden w-9 h-9 rounded-full relative flex justify-center items-center bg-secondary cursor-pointer">
+<div class="lg:hidden relative">
   {#if !isOpen}
     <button
       type="button"
       onclick={() => (isOpen = true)}
       aria-label="Open menu"
-      class="w-full h-full flex justify-center items-center"
+      class="w-8 h-8 flex justify-center items-center border border-ink-3 bg-ink text-paper hover:text-phosphor transition-colors"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
         fill="currentColor"
-        class="w-10 h-10 text-white"
+        class="w-4 h-4"
         aria-hidden="true"
       >
         <path
@@ -30,45 +39,53 @@
     </button>
   {:else}
     <div
-      class="lg:hidden fixed top-0 bottom-0 right-0 z-50 p-4 w-4/5 h-screen flex justify-end items-end flex-col bg-gray-500/25 backdrop-blur-sm border border-white/18 transition-all duration-75 ease-in-out"
+      class="fixed inset-0 z-modal bg-ink-2 border border-ink-3 flex flex-col p-6 font-mono text-paper"
     >
-      <button
-        type="button"
-        onclick={() => (isOpen = false)}
-        aria-label="Close menu"
-        class="w-9 h-9 rounded-full relative flex justify-center items-center bg-secondary cursor-pointer m-4"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          class="w-10 h-10 text-white"
-          aria-hidden="true"
+      <div class="flex justify-between items-center mb-8">
+        <span class="text-[10px] text-mute-2 tracking-[0.18em] uppercase">
+          ~/menu
+        </span>
+        <button
+          type="button"
+          onclick={() => (isOpen = false)}
+          aria-label="Close menu"
+          class="w-8 h-8 flex justify-center items-center border border-ink-3 bg-ink text-paper hover:text-safelight transition-colors"
         >
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-          ></path>
-        </svg>
-      </button>
-      <div class="m-0 p-0 h-full w-full flex justify-start items-start flex-col">
-        <ul>
-          {#each navItems as item}
-            <li class="m-4 flex justify-center items-center group">
-              <a
-                href={`#${item}`}
-                class="text-secondary dark:text-white text-lg uppercase font-bold transition-all ease-in-out"
-                onclick={() => (isOpen = false)}
-              >
-                {item}
-              </a>
-              <div
-                class="ml-5 w-2 h-2 bg-transparent rounded-full mx-auto mb-1 group-hover:bg-white transition-all ease-in-out"
-              ></div>
-            </li>
-          {/each}
-        </ul>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="w-4 h-4"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <ul class="flex-1 flex flex-col gap-3 list-none p-0 m-0">
+        {#each navItems as item, i}
+          <li class="flex items-baseline gap-3 text-[18px] tracking-[0.14em] uppercase">
+            <span class="text-safelight text-[12px]">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <a
+              href={item.href}
+              class="text-paper hover:text-phosphor transition-colors"
+              onclick={() => (isOpen = false)}
+            >
+              {item.label}
+            </a>
+          </li>
+        {/each}
+      </ul>
+
+      <div class="mt-6 pt-4 border-t border-ink-3 flex justify-between items-center">
+        <span class="text-[10px] text-mute-2 tracking-[0.16em]">THEME</span>
         <ThemeToggleBtn />
       </div>
     </div>

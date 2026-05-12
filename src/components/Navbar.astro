@@ -1,38 +1,35 @@
 ---
-import ThemeToggleBtn from './ThemeToggleBtn.svelte';
+import LiveClock from './LiveClock.svelte';
 import MobileMenuBtn from './MobileMenuBtn.svelte';
 
-const navItems = ['home', 'about', 'work', 'blog', 'testimonials', 'contact'];
+const cmd = './develop --contact-sheet 2026';
 ---
 
-<nav class="flex w-full h-[112px] md:h-28 justify-between items-center px-8 py-4 bg-white/20 backdrop-blur-sm border border-white/18 fixed z-20">
-  <div class="flex justify-start items-center font-extrabold text-5xl xxs:text-6xl text-secondary dark:text-white">
-    <a class="group" href="#">
-      <span>Ercan</span>
-      <span class="group-hover:text-white dark:group-hover:text-secondary">
-        .
-      </span>
-    </a>
-  </div>
+<nav
+  class="
+    sticky top-0 z-chrome flex items-center gap-2
+    bg-ink-2 border border-ink-3
+    px-3.5 py-2.5
+    text-[11px] tracking-[0.04em] font-mono
+  "
+  aria-label="Site status"
+>
+  <span class="w-2 h-2 bg-phosphor rounded-full" aria-hidden="true"></span>
+  <span class="text-phosphor">ercan@darkroom</span>
+  <span class="text-mute">:</span>
+  <span class="text-mute-2">~/portfolio</span>
+  <span class="text-mute">$</span>
+  <span class="text-paper hidden sm:inline">{cmd}</span>
 
-  <div class="hidden lg:flex justify-end items-baseline flex-1">
-    <ThemeToggleBtn client:only="svelte" />
-    <ul class="flex justify-end items-center">
-      {navItems.map((item) => (
-        <li class="my-0 mx-4 flex-col group">
-          <div class="w-2 h-2 bg-transparent rounded-full mx-auto mb-1 group-hover:bg-white transition-all ease-in-out" />
-          <a
-            href={`#${item}`}
-            class="text-lg uppercase flex-col font-semibold p-1 transition-all ease-in-out text-secondary dark:text-white"
-          >
-            {item}
-          </a>
-        </li>
-      ))}
-    </ul>
-  </div>
+  <span class="flex-1"></span>
 
-  <div>
+  <span class="text-mute-2 tracking-[0.12em] hidden lg:inline">
+    BERLIN · 12049
+  </span>
+  <LiveClock client:idle class="text-mute-2 tracking-[0.12em] hidden md:inline" />
+  <span class="text-safelight font-bold tracking-[0.16em]">● REC</span>
+
+  <div class="lg:hidden">
     <MobileMenuBtn client:only="svelte" />
   </div>
 </nav>
