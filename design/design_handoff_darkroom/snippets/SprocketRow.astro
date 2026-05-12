@@ -1,0 +1,11 @@
+---
+/**
+ * SprocketRow — decorative strip used above and below the contact
+ * sheet. Pure CSS, marked aria-hidden because it carries no information.
+ */
+const cells = Array.from({ length: 18 });
+---
+
+<div class="sprocket-row max-w-[1320px] mx-auto" aria-hidden="true">
+  {cells.map(() => <i></i>)}
+</div>

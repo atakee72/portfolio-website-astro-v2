@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1320" />
+<title>Darkroom — preview</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  html, body { margin: 0; padding: 0; background: #050505; }
+  body {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    color: #e8e5dd;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .toc {
+    max-width: 1320px; margin: 0 auto; padding: 28px 36px 8px;
+    color: #9a9a92;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    display: flex; flex-wrap: wrap; gap: 24px; align-items: baseline;
+  }
+  .toc b { color: #d4ff3a; font-weight: 400; letter-spacing: 0.22em; }
+  .toc a { color: #c2bfb6; text-decoration: none; }
+  .toc a:hover { color: #ff3b30; }
+
+  .label {
+    max-width: 1320px; margin: 48px auto 14px; padding: 0 36px;
+    color: #ff3b30;
+    font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+    display: flex; gap: 18px; align-items: baseline;
+  }
+  .label em {
+    color: #c2bfb6; font-style: normal; letter-spacing: 0.14em;
+    font-size: 11px;
+  }
+  .label hr {
+    flex: 1; border: 0; border-top: 1px dashed #2a2a28;
+    align-self: center;
+  }
+
+  /* Each artboard renders inside a fixed-size container so reviewers
+     can size the browser to compare against the live build. */
+  .artboard {
+    width: 1320px; margin: 0 auto;
+    position: relative;
+    background: #0d0d0c;
+    border: 1px solid #2a2a28;
+  }
+  #stage-hero,
+  #stage-frame,
+  #stage-blog {
+    width: 1320px;
+  }
+  #stage-hero    { min-height: 1700px; }
+  #stage-frame   { min-height: 1080px; }
+  #stage-blog    { min-height: 2200px; }
+  #stage-lens    { min-height: 2000px; }
+  #stage-roll    { min-height: 1700px; }
+
+  /* Mobile artboard rendered at 390px wide, centered in the 1320 column. */
+  .mobile-wrap {
+    width: 1320px; margin: 0 auto;
+    background: #050505;
+    display: flex; justify-content: center; padding: 24px 0;
+  }
+  #stage-mobile {
+    width: 390px; min-height: 1900px;
+    background: #0d0d0c; border: 1px solid #2a2a28;
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+<div class="toc">
+  <b>DARKROOM PREVIEW</b>
+  <a href="#hero">01 · Homepage</a>
+  <a href="#frame">02 · Enlarged frame</a>
+  <a href="#blog">03 · Blog post</a>
+  <a href="#mobile">04 · Mobile</a>
+  <a href="#lens">05 · /lens</a>
+  <a href="#roll">06 · /lens/[roll]</a>
+</div>
+
+<div class="label" id="hero">
+  <span>01</span><em>HOMEPAGE · 1320 × 1700</em><hr/><span>HERO + CONTACT SHEET + EXIF + FOOTER</span>
+</div>
+<div class="artboard"><div id="stage-hero"></div></div>
+
+<div class="label" id="frame">
+  <span>02</span><em>ENLARGED FRAME · 1320 × 1080</em><hr/><span>CLICK INTERACTION FROM THE 3×3 GRID</span>
+</div>
+<div class="artboard"><div id="stage-frame"></div></div>
+
+<div class="label" id="blog">
+  <span>03</span><em>BLOG POST · 1320 × 2200</em><hr/><span>ARTICLE TYPOGRAPHY (MDX RENDERING)</span>
+</div>
+<div class="artboard"><div id="stage-blog"></div></div>
+
+<div class="label" id="mobile">
+  <span>04</span><em>MOBILE · 390 × 1900</em><hr/><span>RESPONSIVE COLLAPSE</span>
+</div>
+<div class="mobile-wrap"><div id="stage-mobile"></div></div>
+
+<div class="label" id="lens">
+  <span>05</span><em>/LENS · 1320 × 2000</em><hr/><span>ROLLS INDEX · THEMATIC GALLERIES</span>
+</div>
+<div class="artboard"><div id="stage-lens"></div></div>
+
+<div class="label" id="roll">
+  <span>06</span><em>/LENS/[ROLL] · 1320 × 1700</em><hr/><span>ONE ROLL · BIG CONTACT SHEET + EXIF + NOTES</span>
+</div>
+<div class="artboard"><div id="stage-roll"></div></div>
+
+<div style="height: 60px;"></div>
+
+<script type="text/babel" src="darkroom.jsx"></script>
+<script type="text/babel" src="darkroom-screens.jsx"></script>
+<script type="text/babel" data-presets="react">
+(function () {
+  ReactDOM.createRoot(document.getElementById('stage-hero'))
+    .render(<window.DarkroomArtboard />);
+  ReactDOM.createRoot(document.getElementById('stage-frame'))
+    .render(<window.DarkroomEnlargedFrame />);
+  ReactDOM.createRoot(document.getElementById('stage-blog'))
+    .render(<window.DarkroomBlogPost />);
+  ReactDOM.createRoot(document.getElementById('stage-mobile'))
+    .render(<window.DarkroomMobile />);
+  ReactDOM.createRoot(document.getElementById('stage-lens'))
+    .render(<window.DarkroomLensIndex />);
+  ReactDOM.createRoot(document.getElementById('stage-roll'))
+    .render(<window.DarkroomLensRoll />);
+})();
+</script>
+</body>
+</html>

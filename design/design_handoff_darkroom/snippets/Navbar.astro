@@ -1,0 +1,43 @@
+---
+/**
+ * Navbar — Darkroom redesign.
+ * Renders a terminal-style status bar. Replaces the old white/20 glass nav.
+ *
+ * The clock is a Svelte island so the time stays live without a full
+ * Astro re-render. Mobile menu trigger stays on the right end so touch
+ * users can still reach it.
+ */
+import LiveClock from './LiveClock.svelte';
+import MobileMenuBtn from './MobileMenuBtn.svelte';
+
+const cmd = './develop --contact-sheet 2026';
+---
+
+<nav
+  class="
+    sticky top-0 z-chrome flex items-center gap-2
+    bg-ink-2 border border-ink-3
+    px-3.5 py-2.5
+    text-[11px] tracking-[0.04em] font-mono
+  "
+  aria-label="Site status"
+>
+  <span class="w-2 h-2 bg-phosphor rounded-full" aria-hidden="true"></span>
+  <span class="text-phosphor">ercan@darkroom</span>
+  <span class="text-mute">:</span>
+  <span class="text-mute-2">~/portfolio</span>
+  <span class="text-mute">$</span>
+  <span class="text-paper hidden sm:inline">{cmd}</span>
+
+  <span class="flex-1"></span>
+
+  <span class="text-mute-2 tracking-[0.12em] hidden lg:inline">
+    BERLIN · 12049
+  </span>
+  <LiveClock client:idle class="text-mute-2 tracking-[0.12em] hidden md:inline" />
+  <span class="text-safelight font-bold tracking-[0.16em]">● REC</span>
+
+  <div class="lg:hidden">
+    <MobileMenuBtn client:only="svelte" />
+  </div>
+</nav>

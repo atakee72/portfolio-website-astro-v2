@@ -1,0 +1,61 @@
+---
+/**
+ * Header — Darkroom redesign.
+ * Replaces the old hero (wordmark + indigo sphere + accordion).
+ * Now: a two-column hero — wordmark + section nav on the left, a live
+ * terminal feed on the right. The sphere is gone. The 3x3 contact
+ * sheet sits below this component (see ContactSheet.astro).
+ */
+import AppWrap from './AppWrap.astro';
+import TerminalFeed from './TerminalFeed.astro';
+import ContactSheet from './ContactSheet.astro';
+import SprocketRow from './SprocketRow.astro';
+
+const heroMeta = 'ROLL 12 · F/2.8 · 1/250 · ISO 400';
+const heroLines = ['ercan', 'atak'];
+const tagline = '// dev · photog · painter';
+const intro = `I keep three darkrooms: one for software, one for film, one for paint.
+Below is the latest contact sheet — frames as they came back, unranked. Click any
+cell to enlarge.`;
+
+const navItems = ['home', 'sheet', 'journal', 'rolls', 'paints', 'reach'];
+---
+
+<AppWrap id="home" className="!min-h-0 block">
+  <section class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8 px-9 pt-9 pb-7 max-w-[1320px] mx-auto">
+    <div>
+      <p class="text-[11px] text-mute-2 tracking-[0.16em] mb-5.5">{heroMeta}</p>
+
+      <h1 class="m-0 flex flex-col leading-[0.88] font-display font-bold text-paper-hi text-[clamp(72px,12vw,124px)] tracking-[-0.04em]">
+        {heroLines.map((line) => <span>{line}</span>)}
+      </h1>
+
+      <p class="font-mono text-[13px] text-phosphor tracking-[0.08em] mt-4">
+        {tagline}
+      </p>
+
+      <p class="max-w-[500px] text-[13px] text-paper-2 mt-6 leading-[1.6]">
+        {intro}
+      </p>
+
+      <ul class="flex flex-wrap gap-4 list-none p-0 mt-7 text-[12px] tracking-[0.14em] uppercase text-paper">
+        {navItems.map((n, i) => (
+          <li>
+            <a href={`#${n}`}>
+              <em class="not-italic text-safelight text-[10px] mr-1.5">
+                {String(i + 1).padStart(2, '0')}
+              </em>
+              {n}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <TerminalFeed />
+  </section>
+
+  <SprocketRow />
+  <ContactSheet />
+  <SprocketRow />
+</AppWrap>

@@ -21,20 +21,28 @@ const {
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <ViewTransitions />
   </head>
   <body>
     <slot />
     <script is:inline>
-      // Dark mode initialization (prevent flash)
+      // Dark mode initialization (prevent flash). Darkroom redesign defaults
+      // to dark; only an explicit user choice or an explicit system pref for
+      // light flips to light.
       const theme = (() => {
         if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
           return localStorage.getItem('theme');
         }
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          return 'dark';
+        if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+          return 'light';
         }
-        return 'light';
+        return 'dark';
       })();
 
       if (theme === 'dark') {

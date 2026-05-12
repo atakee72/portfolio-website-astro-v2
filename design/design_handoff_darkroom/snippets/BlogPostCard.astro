@@ -1,0 +1,57 @@
+---
+/**
+ * BlogPostCard — Darkroom redesign.
+ * Replaces the prior white/20 glass card with a film-negative look:
+ * sprocket band on top, category tag, Space Grotesk title, mono
+ * excerpt, dashed-rule footer with date + read time.
+ */
+import { cn } from '@/lib/utils';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  class?: string;
+}
+
+const { post, class: className } = Astro.props;
+const { title, description, pubDate, readingTime, categories } = post.data as any;
+
+function fmtDate(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+---
+
+<article class={cn('group block border border-ink-3 bg-ink-2 transition-colors hover:bg-[#1e1e22]', className)}>
+  <a href={`/blog/${post.slug}`} class="block p-6">
+    {/* sprocket band */}
+    <div class="flex justify-between mb-4" aria-hidden="true">
+      {Array.from({ length: 8 }).map(() => (
+        <i class="block w-5 h-2 bg-ink"></i>
+      ))}
+    </div>
+
+    {categories?.[0] && (
+      <span class="block text-[10px] text-phosphor tracking-[0.18em] uppercase mb-3">
+        {categories[0]}
+      </span>
+    )}
+
+    <h3 class="font-display font-bold text-[22px] leading-[1.2] text-paper-hi tracking-[-0.02em] m-0">
+      {title}
+    </h3>
+
+    {description && (
+      <p class="text-[13px] text-paper-2 mt-3 leading-[1.6] line-clamp-3">
+        {description}
+      </p>
+    )}
+
+    <div class="mt-5 pt-3 border-t border-dashed border-ink-3 flex justify-between text-[10px] tracking-[0.12em] text-mute-2">
+      <span>
+        {pubDate ? fmtDate(pubDate) : ''}
+        {readingTime ? ` · ${readingTime}` : ''}
+      </span>
+      <span class="text-phosphor uppercase">read →</span>
+    </div>
+  </a>
+</article>
