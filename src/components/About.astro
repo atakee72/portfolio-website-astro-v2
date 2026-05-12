@@ -2,8 +2,31 @@
 import AppWrap from './AppWrap.astro';
 ---
 
-<AppWrap id="about">
-  <section class="mt-28 w-full min-h-screen">
-    {/* Add your about content here */}
+<AppWrap id="about" className="!min-h-0 block">
+  <section
+    class="
+      px-4 py-6 md:px-6 md:py-7 lg:px-9 lg:py-9
+      max-w-[1320px] mx-auto
+    "
+  >
+    <h2 class="m-0 text-[13px] text-mute-2 tracking-[0.18em] uppercase mb-4">
+      // ABOUT
+    </h2>
+
+    <aside class="bg-ink-2 border border-ink-3 px-4 py-3.5 max-w-[760px]">
+      <div class="text-[10px] text-mute-2 tracking-[0.18em] pb-2.5 mb-3 border-b border-ink-3 uppercase">
+        ~/about
+      </div>
+
+      <pre class="m-0 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono"><span class="text-safelight">$</span> whoami
+ercan atak — full-stack, half-painter,
+            born Istanbul, in Berlin since 2014,
+            Kreuzberg 12049
+
+<span class="text-safelight">$</span> contact
+atakee@gmail.com · +49 (30) 88694300
+
+<span class="text-safelight">$</span> <span class="darkroom-caret"></span></pre>
+    </aside>
   </section>
 </AppWrap>
