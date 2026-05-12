@@ -1,0 +1,9 @@
+---
+// Decorative film-sprocket strip used above and below the contact sheet.
+// Hidden below 640px per design spec § Responsive behaviour.
+const cells = Array.from({ length: 18 });
+---
+
+<div class="sprocket-row max-w-[1320px] mx-auto hidden sm:flex" aria-hidden="true">
+  {cells.map(() => <i></i>)}
+</div>
