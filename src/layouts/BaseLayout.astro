@@ -1,5 +1,6 @@
 ---
 import { ViewTransitions } from 'astro:transitions';
+import ReticleCursor from '../components/ReticleCursor.svelte';
 import '../styles/globals.css';
 
 interface Props {
@@ -30,6 +31,7 @@ const {
     <ViewTransitions />
   </head>
   <body>
+    <ReticleCursor client:only="svelte" />
     <slot />
     <script is:inline>
       // Dark mode initialization (prevent flash). Darkroom redesign defaults
