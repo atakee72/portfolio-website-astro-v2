@@ -1,7 +1,6 @@
 ---
 import { cn } from '@/lib/utils';
 import SocialMedia from './SocialMedia.astro';
-import NavigationDots from './NavigationDots.astro';
 
 interface Props {
   id: string;
@@ -19,5 +18,4 @@ const { id, className } = Astro.props;
   <div class="flex flex-1 justify-center items-center">
     <slot />
   </div>
-  <NavigationDots active={id} />
 </div>
