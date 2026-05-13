@@ -74,6 +74,14 @@ import EnlargedFrame from './EnlargedFrame.astro';
     const openModal = (modal: HTMLElement, trigger: HTMLElement) => {
       lastTrigger = trigger;
       activeModal = modal;
+      // Move to body so inerting siblings doesn't inert the modal itself.
+      // `inert` cascades to descendants; the modal renders inside
+      // `<section id="sheet">` which is inside `#home`, a direct body child.
+      // Without this move, inerting `#home` blocks pointer events on the
+      // modal too — only ESC (document-level keydown) would still work.
+      if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+      }
       modal.removeAttribute('hidden');
       // Force layout so the transition runs from the hidden state.
       void modal.offsetWidth;
