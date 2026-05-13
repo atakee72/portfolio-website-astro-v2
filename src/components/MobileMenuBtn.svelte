@@ -1,6 +1,4 @@
 <script lang="ts">
-  import ThemeToggleBtn from './ThemeToggleBtn.svelte';
-
   // Mirrors the hero navItems array in Header.astro.
   // Anchors per audit finding C in the redesign plan.
   const navItems: { label: string; href: string }[] = [
@@ -83,11 +81,6 @@
           </li>
         {/each}
       </ul>
-
-      <div class="mt-6 pt-4 border-t border-ink-3 flex justify-between items-center">
-        <span class="text-[10px] text-mute-2 tracking-[0.16em]">THEME</span>
-        <ThemeToggleBtn />
-      </div>
     </div>
   {/if}
 </div>
