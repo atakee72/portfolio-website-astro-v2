@@ -1,5 +1,6 @@
 ---
 import { contactSheet, photoBg, paintBg } from '@/data/contactSheet';
+import EnlargedFrame from './EnlargedFrame.astro';
 ---
 
 <section
@@ -9,39 +10,87 @@ import { contactSheet, photoBg, paintBg } from '@/data/contactSheet';
     bg-ink-2 p-2.5 border border-ink-3 max-w-[1320px] mx-auto
   "
 >
-  {contactSheet.map((f, i) => (
-    <article
-      class="
-        relative aspect-[4/3] border border-ink-3 overflow-hidden
-        transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)]
-        hover:scale-[1.02] focus-within:scale-[1.02]
-      "
-      style={f.k === 'photo' ? photoBg(f.tone) : f.k === 'paint' ? paintBg(f.tone) : undefined}
-    >
-      <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
-        {String(i + 1).padStart(2, '0')}A
-      </span>
-
-      <span
-        class:list={[
-          'absolute top-1.5 right-1.5 text-[9px] tracking-[0.14em] px-1.5 py-0.5 bg-black/50 border',
-          f.k === 'paint' ? 'text-safelight border-safelight'
-            : f.k === 'code' ? 'text-phosphor border-phosphor'
-            : 'text-paper border-paper',
-        ]}
+  {contactSheet.map((f, i) => {
+    const isVisual = f.k === 'photo' || f.k === 'paint';
+    const dialogId = `frame-${i + 1}`;
+    const Tag = isVisual ? 'button' : 'article';
+    return (
+      <Tag
+        {...(isVisual ? { type: 'button', 'data-enlarge-target': dialogId } : {})}
+        class={
+          'relative aspect-[4/3] border border-ink-3 overflow-hidden text-left appearance-none ' +
+          'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] ' +
+          'hover:scale-[1.02] focus-within:scale-[1.02] focus-visible:scale-[1.02]'
+        }
+        style={f.k === 'photo' ? photoBg(f.tone) : f.k === 'paint' ? paintBg(f.tone) : undefined}
       >
-        {f.tag}
-      </span>
-
-      {f.k === 'code' ? (
-        <div class="absolute inset-0 bg-[#0a0a09] pt-6 px-3.5 pb-3.5">
-          <pre class="m-0 text-[11px] text-phosphor leading-[1.5] whitespace-pre-wrap">{f.text}</pre>
-        </div>
-      ) : (
-        <span class="absolute left-2 bottom-2 text-[10px] tracking-[0.16em] text-paper">
-          {f.label}
+        <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
+          {String(i + 1).padStart(2, '0')}A
         </span>
-      )}
-    </article>
-  ))}
+
+        <span
+          class:list={[
+            'absolute top-1.5 right-1.5 text-[9px] tracking-[0.14em] px-1.5 py-0.5 bg-black/50 border',
+            f.k === 'paint' ? 'text-safelight border-safelight'
+              : f.k === 'code' ? 'text-phosphor border-phosphor'
+              : 'text-paper border-paper',
+          ]}
+        >
+          {f.tag}
+        </span>
+
+        {f.k === 'code' ? (
+          <div class="absolute inset-0 bg-[#0a0a09] pt-6 px-3.5 pb-3.5">
+            <pre class="m-0 text-[11px] text-phosphor leading-[1.5] whitespace-pre-wrap">{f.text}</pre>
+          </div>
+        ) : (
+          <span class="absolute left-2 bottom-2 text-[10px] tracking-[0.16em] text-paper">
+            {f.label}
+          </span>
+        )}
+      </Tag>
+    );
+  })}
+
+  {contactSheet.map((f, i) =>
+    f.k === 'photo' || f.k === 'paint' ? (
+      <EnlargedFrame id={`frame-${i + 1}`} frame={f} />
+    ) : null,
+  )}
 </section>
+
+<script>
+  // Global wire-up via event delegation on `document`. Survives Astro
+  // view transitions because `document` persists across navigations.
+  // The flag prevents duplicate listeners if the script re-executes.
+  if (!(window as unknown as { __enlargeWired?: boolean }).__enlargeWired) {
+    (window as unknown as { __enlargeWired?: boolean }).__enlargeWired = true;
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as Element | null;
+      if (!target) return;
+
+      const trigger = target.closest('[data-enlarge-target]') as HTMLElement | null;
+      if (trigger) {
+        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+        const id = trigger.getAttribute('data-enlarge-target');
+        if (id) {
+          const dialog = document.getElementById(id) as HTMLDialogElement | null;
+          dialog?.showModal();
+        }
+        return;
+      }
+
+      const closeBtn = target.closest('[data-close]') as HTMLElement | null;
+      if (closeBtn) {
+        const dialog = closeBtn.closest('dialog.enlarged-frame') as HTMLDialogElement | null;
+        dialog?.close();
+        return;
+      }
+
+      if (target instanceof HTMLDialogElement && target.classList.contains('enlarged-frame')) {
+        target.close();
+      }
+    });
+  }
+</script>

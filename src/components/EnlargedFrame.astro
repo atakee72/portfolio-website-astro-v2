@@ -1,0 +1,108 @@
+---
+import type { Frame } from '@/data/contactSheet';
+import { photoBg, paintBg } from '@/data/contactSheet';
+
+interface Props {
+  id: string;
+  frame: Extract<Frame, { k: 'photo' | 'paint' }>;
+}
+
+const { id, frame } = Astro.props;
+const bg = frame.k === 'photo' ? photoBg(frame.tone) : paintBg(frame.tone);
+---
+
+<dialog id={id} class="enlarged-frame" aria-label={frame.label}>
+  <button
+    type="button"
+    data-close
+    aria-label="Close enlarged view"
+    class="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      class="w-4 h-4"
+      aria-hidden="true"
+    >
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+      ></path>
+    </svg>
+  </button>
+
+  <div class="frame" style={bg}>
+    <span
+      class:list={[
+        'absolute top-3 left-3 text-[11px] tracking-[0.14em] px-2 py-1 bg-black/50 border',
+        frame.k === 'paint'
+          ? 'text-safelight border-safelight'
+          : 'text-paper border-paper',
+      ]}
+    >
+      {frame.tag}
+    </span>
+    <span class="absolute left-3 bottom-3 text-[12px] tracking-[0.16em] text-paper">
+      {frame.label}
+    </span>
+  </div>
+</dialog>
+
+<style>
+  dialog.enlarged-frame {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(90vw, 1100px);
+    height: auto;
+    max-height: 86vh;
+    aspect-ratio: 4 / 3;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: inherit;
+    overflow: visible;
+
+    opacity: 0;
+    transform: scale(0.96);
+    transition:
+      opacity 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      overlay 220ms cubic-bezier(0.2, 0.8, 0.2, 1) allow-discrete,
+      display 220ms allow-discrete;
+  }
+
+  dialog.enlarged-frame[open] {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  @starting-style {
+    dialog.enlarged-frame[open] {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  dialog.enlarged-frame::backdrop {
+    background-color: rgba(13, 13, 12, 0.88);
+    transition:
+      background-color 220ms cubic-bezier(0.2, 0.8, 0.2, 1) allow-discrete;
+  }
+
+  @starting-style {
+    dialog.enlarged-frame[open]::backdrop {
+      background-color: rgba(13, 13, 12, 0);
+    }
+  }
+
+  dialog.enlarged-frame .frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #2a2a28;
+    overflow: hidden;
+  }
+</style>
