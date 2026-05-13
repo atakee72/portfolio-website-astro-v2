@@ -12,10 +12,5 @@ const shortDate = (d: Date) => d.toISOString().slice(0, 10);
   </div>
 
   <pre class="m-0 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono"><span class="text-safelight">$</span> cat ~/blog/*.mdx | head
-{posts.map((p) => (<Fragment><span class="text-phosphor">▸ {shortDate(p.data.publishedAt)}</span>{'  ' + p.data.title + '\n'}</Fragment>))}<span class="text-safelight">$</span> whoami
-ercan — full-stack, half-painter,
-        based in Kreuzberg
-<span class="text-safelight">$</span> uptime
-Berlin, since 2014 — load avg 0.7
-<span class="text-safelight">$</span> <span class="darkroom-caret"></span></pre>
+{posts.map((p) => (<Fragment><span class="text-phosphor">▸ {shortDate(p.data.publishedAt)}</span>{'  ' + p.data.title + '\n'}</Fragment>))}<span class="text-safelight">$</span> <span class="darkroom-caret"></span></pre>
 </aside>

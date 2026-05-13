@@ -53,7 +53,7 @@
     height: 14px;
     background: theme('colors.phosphor');
     vertical-align: -2px;
-    animation: darkBlink 1s steps(2) infinite;
+    animation: darkBlink 1s steps(1, end) infinite;
   }
 
   .sprocket-row {
@@ -64,26 +64,17 @@
   }
 
   /* When the ReticleCursor island is mounted it adds .darkroom-cursor
-     to <html>; hide the native cursor everywhere except over interactive
-     elements (where users need the click affordance). */
+     to <html>; hide the native cursor everywhere. The reticle itself
+     turns phosphor + thicker over interactive elements. */
   .darkroom-cursor,
   .darkroom-cursor * {
     cursor: none;
   }
-  .darkroom-cursor a,
-  .darkroom-cursor button,
-  .darkroom-cursor [role='button'],
-  .darkroom-cursor input,
-  .darkroom-cursor textarea,
-  .darkroom-cursor select,
-  .darkroom-cursor summary {
-    cursor: pointer;
-  }
-  .darkroom-cursor input[type='text'],
-  .darkroom-cursor input[type='email'],
-  .darkroom-cursor textarea {
-    cursor: text;
-  }
+}
+
+@keyframes darkBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

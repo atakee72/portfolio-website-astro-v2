@@ -1,6 +1,5 @@
 ---
 import { cn } from '@/lib/utils';
-import SocialMedia from './SocialMedia.astro';
 
 interface Props {
   id: string;
@@ -10,12 +9,6 @@ interface Props {
 const { id, className } = Astro.props;
 ---
 
-<div
-  id={id}
-  class={cn('relative min-h-screen flex flex-row items-center', className)}
->
-  <SocialMedia />
-  <div class="flex flex-1 justify-center items-center">
-    <slot />
-  </div>
+<div id={id} class={cn('relative', className)}>
+  <slot />
 </div>

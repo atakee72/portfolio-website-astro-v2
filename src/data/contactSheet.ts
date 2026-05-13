@@ -37,7 +37,7 @@ const PHOTO: Record<string, string> = {
 };
 
 const PAINT: Record<string, string> = {
-  c: 'radial-gradient(60% 50% at 50% 60%, #c8332a 0%, #5a1814 60%, #1a0807 100%)',
+  c: 'radial-gradient(60% 50% at 50% 60%, oklch(0.45 0.18 25) 0%, #5a1814 60%, #1a0807 100%)',
   f: 'linear-gradient(160deg, #c4a76b 0%, #6e5a3a 60%, #2a2316 100%)',
 };
 

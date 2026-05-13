@@ -41,3 +41,6 @@ pnpm-debug.log*
 
 # Dropbox xattr sidecar files (WSL/Linux)
 *:com.dropbox.attrs
+
+# Playwright CLI scratch dir (screenshots, snapshots, console logs)
+.playwright-cli/
