@@ -73,7 +73,7 @@
     width: 36px;
     height: 36px;
     pointer-events: none;
-    z-index: 50;
+    z-index: 100;
     opacity: 0;
     transition: opacity 120ms linear;
     will-change: transform;

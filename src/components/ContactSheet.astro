@@ -63,8 +63,50 @@ import EnlargedFrame from './EnlargedFrame.astro';
   // Global wire-up via event delegation on `document`. Survives Astro
   // view transitions because `document` persists across navigations.
   // The flag prevents duplicate listeners if the script re-executes.
-  if (!(window as unknown as { __enlargeWired?: boolean }).__enlargeWired) {
-    (window as unknown as { __enlargeWired?: boolean }).__enlargeWired = true;
+  type WiredWindow = Window & { __enlargeWired?: boolean };
+  if (!(window as WiredWindow).__enlargeWired) {
+    (window as WiredWindow).__enlargeWired = true;
+
+    let activeModal: HTMLElement | null = null;
+    let lastTrigger: HTMLElement | null = null;
+    let inertedSiblings: HTMLElement[] = [];
+
+    const openModal = (modal: HTMLElement, trigger: HTMLElement) => {
+      lastTrigger = trigger;
+      activeModal = modal;
+      modal.removeAttribute('hidden');
+      // Force layout so the transition runs from the hidden state.
+      void modal.offsetWidth;
+      modal.setAttribute('data-open', '');
+      const closeBtn = modal.querySelector<HTMLButtonElement>('[data-close]');
+      closeBtn?.focus();
+      // Inert every body child except the modal itself.
+      inertedSiblings = [];
+      for (const child of Array.from(document.body.children)) {
+        const el = child as HTMLElement;
+        if (el !== modal && !el.hasAttribute('inert')) {
+          el.setAttribute('inert', '');
+          inertedSiblings.push(el);
+        }
+      }
+    };
+
+    const closeModal = () => {
+      if (!activeModal) return;
+      const modal = activeModal;
+      modal.removeAttribute('data-open');
+      // Hide after the opacity transition ends so the modal stays in
+      // the layout tree during the fade-out.
+      window.setTimeout(() => {
+        if (modal && !modal.hasAttribute('data-open')) {
+          modal.setAttribute('hidden', '');
+        }
+      }, 230);
+      for (const el of inertedSiblings) el.removeAttribute('inert');
+      inertedSiblings = [];
+      lastTrigger?.focus();
+      activeModal = null;
+    };
 
     document.addEventListener('click', (e) => {
       const target = e.target as Element | null;
@@ -74,22 +116,47 @@ import EnlargedFrame from './EnlargedFrame.astro';
       if (trigger) {
         if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
         const id = trigger.getAttribute('data-enlarge-target');
-        if (id) {
-          const dialog = document.getElementById(id) as HTMLDialogElement | null;
-          dialog?.showModal();
+        if (!id) return;
+        const modal = document.querySelector<HTMLElement>(`[data-modal-id="${id}"]`);
+        if (modal) openModal(modal, trigger);
+        return;
+      }
+
+      if (target.closest('[data-close]')) {
+        closeModal();
+        return;
+      }
+
+      // Backdrop click: the click target is the modal element itself
+      // (not a child). The frame-wrapper child blocks bubbles inside.
+      if (activeModal && target === activeModal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!activeModal) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+        return;
+      }
+      if (e.key === 'Tab') {
+        // Trap focus inside the modal. With a single focusable element
+        // (the close button), Tab and Shift+Tab both stay on it.
+        const focusable = activeModal.querySelectorAll<HTMLElement>(
+          'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          last.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          first.focus();
+          e.preventDefault();
         }
-        return;
-      }
-
-      const closeBtn = target.closest('[data-close]') as HTMLElement | null;
-      if (closeBtn) {
-        const dialog = closeBtn.closest('dialog.enlarged-frame') as HTMLDialogElement | null;
-        dialog?.close();
-        return;
-      }
-
-      if (target instanceof HTMLDialogElement && target.classList.contains('enlarged-frame')) {
-        target.close();
       }
     });
   }
