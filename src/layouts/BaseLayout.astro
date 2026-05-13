@@ -1,6 +1,7 @@
 ---
 import { ViewTransitions } from 'astro:transitions';
 import ReticleCursor from '../components/ReticleCursor.svelte';
+import SocialMedia from '../components/SocialMedia.astro';
 import '../styles/globals.css';
 
 interface Props {
@@ -33,5 +34,6 @@ const {
   <body>
     <ReticleCursor client:only="svelte" />
     <slot />
+    <SocialMedia />
   </body>
 </html>
