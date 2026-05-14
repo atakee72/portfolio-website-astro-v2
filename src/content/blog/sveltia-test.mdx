@@ -1,0 +1,29 @@
+---
+title: "Sveltia CMS — Test Post"
+description: "A throwaway entry to verify that the new publishing dashboard round-trips through git, Vercel, and the live site as expected."
+publishedAt: 2026-05-15
+author:
+  name: "Ercan Atak"
+  bio: "Full-stack developer, photographer, and painter based in Berlin."
+mainImage:
+  src: "/assets/graduate.jpg"
+  alt: "Placeholder cover for the test post"
+categories: ["meta", "tooling"]
+draft: false
+---
+
+This is a placeholder post created to verify the new publishing pipeline:
+
+1. A file lands in `src/content/blog/`
+2. Vercel rebuilds
+3. The post appears on the homepage terminal feed and at its slug
+
+If you can read this on the live site, the loop is closed.
+
+```bash
+# How this post got here
+echo "no terminal needed once Sveltia is your daily driver"
+```
+
+Delete this entry once you've verified the round-trip — Sveltia's
+"Delete entry" button in the blog list works for that.
