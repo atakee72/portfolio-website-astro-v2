@@ -23,10 +23,12 @@ collections:
     format: frontmatter
     create: true
     slug: '{{slug}}'
+    summary: '{{fields.title}}'
+    sortable_fields: ['publishedAt', 'title']
     fields:
       - { name: title, label: Title, widget: string, required: true }
-      - { name: description, label: Description, widget: text, required: true }
-      - { name: publishedAt, label: Published, widget: datetime, required: true }
+      - { name: description, label: Description, widget: text, required: true, hint: 'One-line summary shown in lists and meta tags.' }
+      - { name: publishedAt, label: Published, widget: datetime, required: true, default: '' }
       - name: author
         label: Author
         widget: object
@@ -39,6 +41,7 @@ collections:
         label: Main Image
         widget: object
         required: true
+        hint: 'Cover image — click to open the Cloudinary library.'
         fields:
           - { name: src, label: Source, widget: image, required: true }
           - { name: alt, label: Alt text, widget: string, required: true }
@@ -48,7 +51,7 @@ collections:
         required: false
         default: []
         field: { name: category, label: Category, widget: string }
-      - { name: draft, label: Draft, widget: boolean, required: false, default: false }
+      - { name: draft, label: Draft, widget: boolean, required: false, default: false, hint: 'Drafts are hidden in production but visible in dev.' }
       - { name: body, label: Body, widget: markdown }
 
   - name: rolls
@@ -59,14 +62,17 @@ collections:
     format: json
     create: true
     slug: '{{slug}}'
+    summary: '{{fields.title}} — {{fields.location}}'
+    sortable_fields: ['date', 'title', 'location']
     fields:
-      - { name: title, label: Title, widget: string, required: true }
-      - { name: date, label: Date, widget: datetime, required: true }
+      - { name: title, label: Title, widget: string, required: true, hint: 'Shown in the gallery index and on the roll page.' }
+      - { name: date, label: Date, widget: datetime, required: true, default: '' }
       - { name: location, label: Location, widget: string, required: true }
       - name: cover
         label: Cover
         widget: object
         required: true
+        hint: 'The image used as the roll thumbnail.'
         fields:
           - { name: cldPath, label: Cloudinary image, widget: image, required: true }
           - { name: alt, label: Alt text, widget: string, required: true }
@@ -75,6 +81,7 @@ collections:
         widget: list
         required: true
         min: 1
+        hint: 'Add at least one photo. Drag rows to reorder.'
         fields:
           - { name: cldPath, label: Cloudinary image, widget: image, required: true }
           - { name: alt, label: Alt text, widget: string, required: true }
@@ -84,4 +91,4 @@ collections:
             widget: hidden
             required: false
             default: {}
-      - { name: draft, label: Draft, widget: boolean, required: false, default: true }
+      - { name: draft, label: Draft, widget: boolean, required: false, default: true, hint: 'Drafts are hidden on the live site.' }
