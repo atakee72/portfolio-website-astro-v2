@@ -1,0 +1,87 @@
+backend:
+  name: github
+  repo: atakee72/portfolio-website-astro-v2
+  branch: main
+
+publish_mode: simple
+
+media_library:
+  name: cloudinary
+  output_filename_only: true
+  config:
+    cloud_name: djgxiadrc
+    api_key: 'REPLACE_WITH_CLOUDINARY_API_KEY'
+
+media_folder: ''
+
+collections:
+  - name: blog
+    label: Blog
+    label_singular: Post
+    folder: src/content/blog
+    extension: mdx
+    format: frontmatter
+    create: true
+    slug: '{{slug}}'
+    fields:
+      - { name: title, label: Title, widget: string, required: true }
+      - { name: description, label: Description, widget: text, required: true }
+      - { name: publishedAt, label: Published, widget: datetime, required: true }
+      - name: author
+        label: Author
+        widget: object
+        required: true
+        fields:
+          - { name: name, label: Name, widget: string, required: true }
+          - { name: image, label: Image URL, widget: string, required: false }
+          - { name: bio, label: Bio, widget: text, required: false }
+      - name: mainImage
+        label: Main Image
+        widget: object
+        required: true
+        fields:
+          - { name: src, label: Source, widget: image, required: true }
+          - { name: alt, label: Alt text, widget: string, required: true }
+      - name: categories
+        label: Categories
+        widget: list
+        required: false
+        default: []
+        field: { name: category, label: Category, widget: string }
+      - { name: draft, label: Draft, widget: boolean, required: false, default: false }
+      - { name: body, label: Body, widget: markdown }
+
+  - name: rolls
+    label: Photography Rolls
+    label_singular: Roll
+    folder: src/content/rolls
+    extension: json
+    format: json
+    create: true
+    slug: '{{slug}}'
+    fields:
+      - { name: title, label: Title, widget: string, required: true }
+      - { name: date, label: Date, widget: datetime, required: true }
+      - { name: location, label: Location, widget: string, required: true }
+      - name: cover
+        label: Cover
+        widget: object
+        required: true
+        fields:
+          - { name: cldPath, label: Cloudinary image, widget: image, required: true }
+          - { name: alt, label: Alt text, widget: string, required: true }
+      - name: photos
+        label: Photos
+        widget: list
+        required: true
+        min: 1
+        fields:
+          - { name: cldPath, label: Cloudinary image, widget: image, required: true }
+          - { name: alt, label: Alt text, widget: string, required: true }
+          - { name: caption, label: Caption, widget: string, required: false }
+          - name: exif
+            label: EXIF
+            widget: hidden
+            required: false
+            default: {}
+      - { name: draft, label: Draft, widget: boolean, required: false, default: true }

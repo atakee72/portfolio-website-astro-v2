@@ -107,26 +107,45 @@ Edit `site:` in `astro.config.mjs`.
 ## Testing
 No tests configured. The build pipeline runs `astro check` (covers type errors across `.astro`, `.svelte`, `.ts`) before producing output.
 
-## Photography pipeline (Cloudinary)
+## Photography & blog pipeline (Sveltia CMS + Cloudinary)
 
-The `/lens` routes deliver film/digital photo rolls. Storage is Cloudinary; metadata + EXIF live in `src/content/rolls/<slug>.json` (validated by a Zod schema in `src/content/config.ts`).
+Content lives in `src/content/blog/*.mdx` and `src/content/rolls/*.json`, validated by Zod schemas in `src/content/config.ts`. Photos themselves are stored in Cloudinary. Publishing happens through Sveltia CMS at `/photojockeysblog/` — a static HTML page served from `public/`.
 
 ### Env vars
-Copy `.env.example` to `.env` (or `.env.local` — both are gitignored):
+Copy `.env.example` to `.env.local` (gitignored):
 
-- `PUBLIC_CLOUDINARY_CLOUD_NAME` — required for `<CldImage>` to construct URLs. Exposed to the client (not a secret).
-- `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — server-only. Used by upload helpers. Never prefix with `PUBLIC_`.
+- `PUBLIC_CLOUDINARY_CLOUD_NAME` — required for `<CldImage>` and the Sveltia media-library widget.
+- `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — used by `scripts/sync-exif.mjs` at build time to pull EXIF for each photo from Cloudinary's Admin API.
 
-On Vercel set `PUBLIC_CLOUDINARY_CLOUD_NAME` in project env. API key/secret stay local.
+On Vercel, all three must be set on **Production, Preview, and Development** so the build pipeline can fetch EXIF.
 
-### Publishing a new roll
-1. Drop the web-sized JPEGs (≤ 2000 px long edge, ~80% quality) into `inbox/<batch>/` (gitignored).
-2. `node scripts/extract-exif.mjs <roll-slug> inbox/<batch>` — writes `src/content/rolls/<roll-slug>.json` with EXIF pre-filled. GPS coords are dropped. `draft: true` by default.
-3. Hand-edit the JSON: `title`, `location`, `cover.alt`, per-photo `alt`/`caption`. Date defaults to today; correct if needed.
-4. Upload the source JPEGs to Cloudinary as `lens/<roll-slug>/01.jpg`, `02.jpg`, … via dashboard or `cld uploader upload <file> -o public_id=lens/<roll-slug>/01`.
-5. Flip `draft: false` (or remove the field).
-6. Optional: set `slug: '<roll-slug>'` on a matching `contactSheet.ts` photo entry so the homepage cell's lightbox shows a "see full roll →" CTA.
-7. `pnpm build`. Static routes for `/lens/<slug>` and `/lens/<slug>/<n>` emit automatically.
+### Publishing via Sveltia (primary workflow)
+
+1. Open `https://<your-site>/photojockeysblog/` (also `/photojockeysblog/` in dev at `http://localhost:4321`).
+2. First time: click "Sign In with Token". Sveltia opens a dialog linking to GitHub's fine-grained PAT page with the correct scopes pre-selected (repo `atakee72/portfolio-website-astro-v2`, **Contents: Read and write**). Paste the PAT. It's stored in browser localStorage. **Renew every 90 days.**
+3. Pick a collection (Blog or Photography Rolls) → click "+ New".
+4. Fill the form. For images (mainImage on blog, cover/photos on rolls), click the image field → Cloudinary media library opens inline. Drag-drop JPEGs (web-sized ≤ 2000 px). Sveltia stores just the Cloudinary public_id (e.g. `lens/<slug>/01`).
+5. Click **Save & Publish**. Sveltia commits the JSON/MDX to GitHub. Vercel auto-rebuilds. Live in ~2 min.
+6. EXIF appears automatically — `scripts/sync-exif.mjs` runs as part of the build, fetches metadata from Cloudinary for any new photos, caches it in `.astro/exif-cache.json` (gitignored), and the rolls helper merges it at render time.
+
+Notes:
+- You need to be **logged into cloudinary.com in the same browser session** for the media library to authenticate.
+- The MDX body uses a Markdown editor (Sveltia has a WYSIWYG + raw toggle). For JSX components in posts, switch to raw mode.
+- "Save (Draft)" commits with `draft: true`. Drafts are filtered out in production but visible in `pnpm dev`.
+
+### Manual fallback workflow (still supported)
+
+If Sveltia is unavailable or you prefer terminal:
+1. Hand-edit `src/content/blog/<slug>.mdx` or `src/content/rolls/<slug>.json` directly.
+2. Upload photos to Cloudinary via dashboard or `cld uploader upload <file> -o public_id=lens/<slug>/01`.
+3. Optional: set `slug: '<roll-slug>'` on a matching `contactSheet.ts` photo entry so the homepage cell links to the roll.
+4. `git commit && git push`. Vercel deploys.
+
+### Schema sync — important when adding fields
+
+The Sveltia form is defined by `public/photojockeysblog/config.yml`. The Astro validation schema is `src/content/config.ts` (Zod). **When you add or rename a field, you must update both files.** A field present in one but not the other causes either a hidden CMS form (YAML missing) or a build failure (Zod missing).
+
+Why two schemas? `astro-decap-collection` (the codegen that'd remove the duplication) currently demands Astro 6 + Zod 4 and has a packaging bug (its `yaml` dep is listed as devDependency). When it stabilizes for Astro 5, this manual sync can be replaced by codegen. Until then, the duplication tax is ~5 min when a field changes (rare).
 
 ### Watermark
 Inline `l_text:` overlay applied by `src/components/CloudPhoto.astro` — © ATAK in JetBrains Mono 24px, white 50% opacity, bottom-right with 24px padding. To change, edit the `overlays` array in that one file.
@@ -139,3 +158,9 @@ Setting menu drifts; current path is something like Settings → Security → "R
 
 ### Anti-download chrome
 `CloudPhoto.astro` enforces `oncontextmenu="return false"`, `draggable="false"`, and a transparent overlay so the inner `<img>` is never the click target. Theater, not protection — DevTools still wins. Real protection = watermark + web-sized ceiling.
+
+### Sveltia CMS — operational notes
+- Version pinned to `@sveltia/cms@0.160.1` in `public/photojockeysblog/index.html`. Bump deliberately after reviewing release notes.
+- The `/photojockeysblog/` path is intentionally obscure (replaces conventional `/admin/`) to cut bot probes. **Not** listed in `robots.txt` — the page itself emits `<meta name="robots" content="noindex,nofollow,noarchive">` instead.
+- Real security still comes from the PAT, not URL obscurity.
+- Cloudinary `api_key` is exposed in `config.yml` by design — per Decap CMS docs it's safe to publish. Only `api_secret` (used by `sync-exif.mjs` server-side) must stay private.

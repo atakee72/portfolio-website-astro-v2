@@ -1,4 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { readFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 
 export async function getAllBlogPosts() {
   const posts = await getCollection('blog', ({ data }) => {
@@ -24,6 +27,35 @@ export async function getAllTestimonials() {
   return testimonials[0]?.data.testimonials || [];
 }
 
+type ExifEntry = {
+  camera?: string;
+  lens?: string;
+  iso?: number;
+  aperture?: string;
+  shutter?: string;
+  focalLength?: string;
+  dateTaken?: string;
+};
+type ExifCache = Record<string, ExifEntry>;
+
+let _exifCache: ExifCache | null = null;
+function loadExifCache(): ExifCache {
+  if (_exifCache !== null) return _exifCache;
+  const here = dirname(fileURLToPath(import.meta.url));
+  const cachePath = resolve(here, '../../.astro/exif-cache.json');
+  if (!existsSync(cachePath)) {
+    _exifCache = {};
+    return _exifCache;
+  }
+  try {
+    _exifCache = JSON.parse(readFileSync(cachePath, 'utf-8'));
+    return _exifCache!;
+  } catch {
+    _exifCache = {};
+    return _exifCache;
+  }
+}
+
 export async function getAllRolls() {
   const rolls = await getCollection('rolls', ({ data }) => {
     if (import.meta.env.PROD) {
@@ -32,13 +64,36 @@ export async function getAllRolls() {
     return true;
   });
 
-  return rolls.sort(
+  const exifCache = loadExifCache();
+
+  const enriched = rolls.map((roll) => ({
+    ...roll,
+    data: {
+      ...roll.data,
+      photos: roll.data.photos.map((photo) => {
+        const cached = exifCache[photo.cldPath];
+        if (!cached) return photo;
+        return {
+          ...photo,
+          exif: {
+            ...photo.exif,
+            ...cached,
+            dateTaken: cached.dateTaken
+              ? new Date(cached.dateTaken)
+              : photo.exif.dateTaken,
+          },
+        };
+      }),
+    },
+  }));
+
+  return enriched.sort(
     (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
   );
 }
 
 export async function getRollBySlug(slug: string) {
-  const rolls = await getCollection('rolls');
+  const rolls = await getAllRolls();
   return rolls.find((r) => r.id === slug);
 }
 
