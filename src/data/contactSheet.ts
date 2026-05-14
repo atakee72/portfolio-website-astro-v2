@@ -6,13 +6,13 @@
  *   paint — warm gradient keyed by `tone` (c, f)
  *   code  — black panel with monospace text inside
  *
- * Once Ercan provides real photographs and paintings, change `tone` to
- * `src` and render an <img> inside the frame; the rest of the layout
- * stays unchanged.
+ * `slug` on photo frames links the cell to a /lens/<slug> roll page.
+ * When set, the lightbox shows a "see full roll →" CTA. When unset,
+ * the lightbox enlarges the placeholder gradient only.
  */
 
 export type Frame =
-  | { k: 'photo'; tone: 'a' | 'b' | 'd' | 'e' | 'g'; label: string; tag: string }
+  | { k: 'photo'; tone: 'a' | 'b' | 'd' | 'e' | 'g'; label: string; tag: string; slug?: string }
   | { k: 'paint'; tone: 'c' | 'f'; label: string; tag: string }
   | { k: 'code'; text: string; tag: string };
 

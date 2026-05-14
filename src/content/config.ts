@@ -1,5 +1,39 @@
 import { defineCollection, z } from 'astro:content';
 
+const rollsCollection = defineCollection({
+  type: 'data',
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    location: z.string(),
+    cover: z.object({
+      cldPath: z.string(),
+      alt: z.string(),
+    }),
+    photos: z
+      .array(
+        z.object({
+          cldPath: z.string(),
+          alt: z.string(),
+          caption: z.string().optional(),
+          exif: z
+            .object({
+              camera: z.string().optional(),
+              lens: z.string().optional(),
+              iso: z.number().optional(),
+              aperture: z.string().optional(),
+              shutter: z.string().optional(),
+              focalLength: z.string().optional(),
+              dateTaken: z.coerce.date().optional(),
+            })
+            .default({}),
+        })
+      )
+      .min(1),
+    draft: z.boolean().default(false),
+  }),
+});
+
 const blogCollection = defineCollection({
   type: 'content',
   schema: z.object({
@@ -38,4 +72,5 @@ const testimonialsCollection = defineCollection({
 export const collections = {
   blog: blogCollection,
   testimonials: testimonialsCollection,
+  rolls: rollsCollection,
 };

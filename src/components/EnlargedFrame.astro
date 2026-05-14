@@ -1,25 +1,79 @@
 ---
 import type { Frame } from '@/data/contactSheet';
 import { photoBg, paintBg } from '@/data/contactSheet';
+import CloudPhoto from './CloudPhoto.astro';
 
 interface Props {
   id: string;
-  frame: Extract<Frame, { k: 'photo' | 'paint' }>;
+  frame?: Extract<Frame, { k: 'photo' | 'paint' }>;
+  imageCldPath?: string;
+  imageAlt?: string;
+  label?: string;
+  tag?: string;
+  caption?: string;
+  exifLine?: string;
+  rollSlug?: string;
+  permalinkHref?: string;
 }
 
-const { id, frame } = Astro.props;
-const bg = frame.k === 'photo' ? photoBg(frame.tone) : paintBg(frame.tone);
+const {
+  id,
+  frame,
+  imageCldPath,
+  imageAlt,
+  label,
+  tag,
+  caption,
+  exifLine,
+  rollSlug,
+  permalinkHref,
+} = Astro.props;
+
+const resolvedLabel = label ?? frame?.label;
+const resolvedTag = tag ?? frame?.tag;
+const tagIsSafelight = frame?.k === 'paint';
+
+const bgStyle = imageCldPath
+  ? undefined
+  : frame
+    ? frame.k === 'photo'
+      ? photoBg(frame.tone)
+      : paintBg(frame.tone)
+    : undefined;
 ---
 
 <div
   class="enlarged-frame-modal"
   role="dialog"
   aria-modal="true"
-  aria-label={frame.label}
+  aria-label={resolvedLabel}
   data-modal-id={id}
   hidden
 >
   <div class="frame-wrapper">
+    {permalinkHref && (
+      <a
+        href={permalinkHref}
+        aria-label="Open permalink for this photo"
+        class="absolute top-3 right-14 z-10 w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          class="w-4 h-4"
+          aria-hidden="true"
+        >
+          <path
+            d="M11 3a1 1 0 100 2h2.586l-4.293 4.293a1 1 0 001.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+          ></path>
+          <path
+            d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"
+          ></path>
+        </svg>
+      </a>
+    )}
+
     <button
       type="button"
       data-close
@@ -41,20 +95,53 @@ const bg = frame.k === 'photo' ? photoBg(frame.tone) : paintBg(frame.tone);
       </svg>
     </button>
 
-    <div class="frame" style={bg}>
-      <span
-        class:list={[
-          'absolute top-3 left-3 text-[11px] tracking-[0.14em] px-2 py-1 bg-black/50 border',
-          frame.k === 'paint'
-            ? 'text-safelight border-safelight'
-            : 'text-paper border-paper',
-        ]}
+    <div class="frame" style={bgStyle}>
+      {imageCldPath && (
+        <CloudPhoto
+          cldPath={imageCldPath}
+          alt={imageAlt ?? resolvedLabel ?? ''}
+          width={2000}
+          loading="eager"
+          class="absolute inset-0 w-full h-full"
+        />
+      )}
+
+      {resolvedTag && (
+        <span
+          class:list={[
+            'absolute top-3 left-3 z-[3] text-[11px] tracking-[0.14em] px-2 py-1 bg-black/50 border',
+            tagIsSafelight
+              ? 'text-safelight border-safelight'
+              : 'text-paper border-paper',
+          ]}
+        >
+          {resolvedTag}
+        </span>
+      )}
+
+      <div
+        class="absolute left-3 right-3 bottom-3 z-[3] flex justify-between items-end gap-3 text-[12px] tracking-[0.16em] text-paper"
       >
-        {frame.tag}
-      </span>
-      <span class="absolute left-3 bottom-3 text-[12px] tracking-[0.16em] text-paper">
-        {frame.label}
-      </span>
+        <div>
+          {resolvedLabel && <div>{resolvedLabel}</div>}
+          {caption && (
+            <div class="text-paper-2 normal-case tracking-[0.04em] mt-1">{caption}</div>
+          )}
+          {exifLine && (
+            <div class="text-mute-2 font-mono text-[11px] tracking-[0.08em] mt-1">
+              {exifLine}
+            </div>
+          )}
+        </div>
+        {rollSlug && (
+          <a
+            href={`/lens/${rollSlug}`}
+            class="hover:text-phosphor transition-colors shrink-0"
+          >
+            see full roll →
+          </a>
+        )}
+      </div>
     </div>
   </div>
 </div>

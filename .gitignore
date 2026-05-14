@@ -44,3 +44,6 @@ pnpm-debug.log*
 
 # Playwright CLI scratch dir (screenshots, snapshots, console logs)
 .playwright-cli/
+
+# Local-only inbox for unprocessed scans before EXIF extraction
+inbox/

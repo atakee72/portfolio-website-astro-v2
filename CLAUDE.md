@@ -106,3 +106,36 @@ Edit `site:` in `astro.config.mjs`.
 
 ## Testing
 No tests configured. The build pipeline runs `astro check` (covers type errors across `.astro`, `.svelte`, `.ts`) before producing output.
+
+## Photography pipeline (Cloudinary)
+
+The `/lens` routes deliver film/digital photo rolls. Storage is Cloudinary; metadata + EXIF live in `src/content/rolls/<slug>.json` (validated by a Zod schema in `src/content/config.ts`).
+
+### Env vars
+Copy `.env.example` to `.env` (or `.env.local` — both are gitignored):
+
+- `PUBLIC_CLOUDINARY_CLOUD_NAME` — required for `<CldImage>` to construct URLs. Exposed to the client (not a secret).
+- `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — server-only. Used by upload helpers. Never prefix with `PUBLIC_`.
+
+On Vercel set `PUBLIC_CLOUDINARY_CLOUD_NAME` in project env. API key/secret stay local.
+
+### Publishing a new roll
+1. Drop the web-sized JPEGs (≤ 2000 px long edge, ~80% quality) into `inbox/<batch>/` (gitignored).
+2. `node scripts/extract-exif.mjs <roll-slug> inbox/<batch>` — writes `src/content/rolls/<roll-slug>.json` with EXIF pre-filled. GPS coords are dropped. `draft: true` by default.
+3. Hand-edit the JSON: `title`, `location`, `cover.alt`, per-photo `alt`/`caption`. Date defaults to today; correct if needed.
+4. Upload the source JPEGs to Cloudinary as `lens/<roll-slug>/01.jpg`, `02.jpg`, … via dashboard or `cld uploader upload <file> -o public_id=lens/<roll-slug>/01`.
+5. Flip `draft: false` (or remove the field).
+6. Optional: set `slug: '<roll-slug>'` on a matching `contactSheet.ts` photo entry so the homepage cell's lightbox shows a "see full roll →" CTA.
+7. `pnpm build`. Static routes for `/lens/<slug>` and `/lens/<slug>/<n>` emit automatically.
+
+### Watermark
+Inline `l_text:` overlay applied by `src/components/CloudPhoto.astro` — © ATAK in JetBrains Mono 24px, white 50% opacity, bottom-right with 24px padding. To change, edit the `overlays` array in that one file.
+
+### Hot-link protection (Cloudinary console)
+Setting menu drifts; current path is something like Settings → Security → "Restricted media types" / "Allowed strict referrals". Adding the Vercel domain restricts where image transforms render — but it also breaks Slack/Twitter og:image previews (their crawlers send their own referrer). Two options, decide per account:
+
+- **Open hot-linking** (default for personal portfolios): leave the restriction off. Watermark + 2000 px ceiling are the real defenses.
+- **Strict referrer**: add `developer-portefeuille…vercel.app` plus social-crawler referrers (`slackb.com`, `twitter.com`, `x.com`, `linkedin.com`) — list drifts.
+
+### Anti-download chrome
+`CloudPhoto.astro` enforces `oncontextmenu="return false"`, `draggable="false"`, and a transparent overlay so the inner `<img>` is never the click target. Theater, not protection — DevTools still wins. Real protection = watermark + web-sized ceiling.

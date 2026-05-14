@@ -1,0 +1,211 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+import CloudPhoto from '@/components/CloudPhoto.astro';
+import EnlargedFrame from '@/components/EnlargedFrame.astro';
+import { getAllRolls } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const rolls = await getAllRolls();
+  return rolls.map((roll) => ({
+    params: { slug: roll.id },
+    props: { roll },
+  }));
+}
+
+const { roll } = Astro.props;
+const photos = roll.data.photos;
+
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+
+const exifLine = (exif: typeof photos[number]['exif']) => {
+  const parts: string[] = [];
+  if (exif.camera) parts.push(exif.camera);
+  if (exif.lens) parts.push(exif.lens);
+  if (exif.aperture) parts.push(exif.aperture);
+  if (exif.shutter) parts.push(exif.shutter);
+  if (exif.iso) parts.push(`ISO ${exif.iso}`);
+  return parts.join(' · ');
+};
+---
+
+<BaseLayout
+  title={`${roll.data.title} — Lens`}
+  description={`${roll.data.title} · ${roll.data.location} · ${photos.length} frames`}
+>
+  <Navbar />
+
+  <main
+    class="
+      px-4 pt-4 pb-6 md:px-6 md:pt-6 md:pb-7 lg:px-9 lg:pt-9 lg:pb-7
+      max-w-[1320px] mx-auto
+    "
+  >
+    <p
+      class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-2 font-mono"
+    >
+      <a href="/lens" class="hover:text-phosphor transition-colors">// lens</a>
+      &nbsp;/&nbsp;{roll.id}
+    </p>
+
+    <h1
+      class="m-0 font-display font-bold text-paper-hi text-[clamp(32px,5vw,56px)] tracking-[-0.02em] leading-[0.95] mb-2"
+    >
+      {roll.data.title}
+    </h1>
+
+    <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono mb-8">
+      {roll.data.location} · {fmtDate(roll.data.date)} · {photos.length} frames
+    </p>
+
+    <ul
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 list-none p-0 m-0"
+    >
+      {photos.map((photo, i) => {
+        const n = i + 1;
+        const modalId = `photo-${n}`;
+        return (
+          <li>
+            <button
+              type="button"
+              data-enlarge-target={modalId}
+              class="
+                relative aspect-[4/3] w-full border border-ink-3 overflow-hidden bg-ink-2
+                appearance-none text-left transition-transform duration-200
+                ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-visible:scale-[1.02]
+              "
+            >
+              <CloudPhoto
+                cldPath={photo.cldPath}
+                alt={photo.alt}
+                width={1200}
+                class="absolute inset-0 w-full h-full"
+              />
+              <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
+                {String(n).padStart(2, '0')}/{String(photos.length).padStart(2, '0')}
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  </main>
+
+  {photos.map((photo, i) => {
+    const n = i + 1;
+    return (
+      <EnlargedFrame
+        id={`photo-${n}`}
+        imageCldPath={photo.cldPath}
+        imageAlt={photo.alt}
+        label={`${String(n).padStart(2, '0')} / ${String(photos.length).padStart(2, '0')}`}
+        caption={photo.caption}
+        exifLine={exifLine(photo.exif)}
+        permalinkHref={`/lens/${roll.id}/${n}`}
+      />
+    );
+  })}
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  type WiredWindow = Window & { __enlargeWired?: boolean };
+  if (!(window as WiredWindow).__enlargeWired) {
+    (window as WiredWindow).__enlargeWired = true;
+
+    let activeModal: HTMLElement | null = null;
+    let lastTrigger: HTMLElement | null = null;
+    let inertedSiblings: HTMLElement[] = [];
+
+    const openModal = (modal: HTMLElement, trigger: HTMLElement) => {
+      lastTrigger = trigger;
+      activeModal = modal;
+      if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+      }
+      modal.removeAttribute('hidden');
+      void modal.offsetWidth;
+      modal.setAttribute('data-open', '');
+      const closeBtn = modal.querySelector('[data-close]') as HTMLButtonElement | null;
+      closeBtn?.focus();
+      inertedSiblings = [];
+      for (const child of Array.from(document.body.children)) {
+        const el = child as HTMLElement;
+        if (el !== modal && !el.hasAttribute('inert')) {
+          el.setAttribute('inert', '');
+          inertedSiblings.push(el);
+        }
+      }
+    };
+
+    const closeModal = () => {
+      if (!activeModal) return;
+      const modal = activeModal;
+      modal.removeAttribute('data-open');
+      window.setTimeout(() => {
+        if (modal && !modal.hasAttribute('data-open')) {
+          modal.setAttribute('hidden', '');
+        }
+      }, 230);
+      for (const el of inertedSiblings) el.removeAttribute('inert');
+      inertedSiblings = [];
+      lastTrigger?.focus();
+      activeModal = null;
+    };
+
+    document.addEventListener('click', (e) => {
+      const target = e.target as Element | null;
+      if (!target) return;
+
+      const trigger = target.closest('[data-enlarge-target]') as HTMLElement | null;
+      if (trigger) {
+        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+        const id = trigger.getAttribute('data-enlarge-target');
+        if (!id) return;
+        const modal = document.querySelector(`[data-modal-id="${id}"]`) as HTMLElement | null;
+        if (modal) openModal(modal, trigger);
+        return;
+      }
+
+      if (target.closest('[data-close]')) {
+        closeModal();
+        return;
+      }
+
+      if (activeModal && target === activeModal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!activeModal) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusable = activeModal.querySelectorAll(
+          'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
+        ) as NodeListOf<HTMLElement>;
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          last.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          first.focus();
+          e.preventDefault();
+        }
+      }
+    });
+  }
+</script>

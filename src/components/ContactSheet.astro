@@ -54,7 +54,11 @@ import EnlargedFrame from './EnlargedFrame.astro';
 
   {contactSheet.map((f, i) =>
     f.k === 'photo' || f.k === 'paint' ? (
-      <EnlargedFrame id={`frame-${i + 1}`} frame={f} />
+      <EnlargedFrame
+        id={`frame-${i + 1}`}
+        frame={f}
+        rollSlug={f.k === 'photo' ? f.slug : undefined}
+      />
     ) : null,
   )}
 </section>
@@ -86,7 +90,7 @@ import EnlargedFrame from './EnlargedFrame.astro';
       // Force layout so the transition runs from the hidden state.
       void modal.offsetWidth;
       modal.setAttribute('data-open', '');
-      const closeBtn = modal.querySelector<HTMLButtonElement>('[data-close]');
+      const closeBtn = modal.querySelector('[data-close]') as HTMLButtonElement | null;
       closeBtn?.focus();
       // Inert every body child except the modal itself.
       inertedSiblings = [];
@@ -125,7 +129,7 @@ import EnlargedFrame from './EnlargedFrame.astro';
         if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
         const id = trigger.getAttribute('data-enlarge-target');
         if (!id) return;
-        const modal = document.querySelector<HTMLElement>(`[data-modal-id="${id}"]`);
+        const modal = document.querySelector(`[data-modal-id="${id}"]`) as HTMLElement | null;
         if (modal) openModal(modal, trigger);
         return;
       }
@@ -152,9 +156,9 @@ import EnlargedFrame from './EnlargedFrame.astro';
       if (e.key === 'Tab') {
         // Trap focus inside the modal. With a single focusable element
         // (the close button), Tab and Shift+Tab both stay on it.
-        const focusable = activeModal.querySelectorAll<HTMLElement>(
+        const focusable = activeModal.querySelectorAll(
           'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
-        );
+        ) as NodeListOf<HTMLElement>;
         if (focusable.length === 0) return;
         const first = focusable[0];
         const last = focusable[focusable.length - 1];

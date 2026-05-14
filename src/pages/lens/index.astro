@@ -1,0 +1,86 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+import CloudPhoto from '@/components/CloudPhoto.astro';
+import { getAllRolls } from '@/lib/content';
+
+const rolls = await getAllRolls();
+
+const fmtDate = (d: Date) =>
+  d.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  });
+---
+
+<BaseLayout
+  title="Lens — rolls of film"
+  description="Photography rolls — 35mm, 120, digital. Berlin, Istanbul, and points between."
+>
+  <Navbar />
+
+  <main
+    class="
+      px-4 pt-4 pb-6 md:px-6 md:pt-6 md:pb-7 lg:px-9 lg:pt-9 lg:pb-7
+      max-w-[1320px] mx-auto
+    "
+  >
+    <p
+      class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-5 font-mono"
+    >
+      // lens — rolls of film
+    </p>
+
+    <h1
+      class="m-0 font-display font-bold text-paper-hi text-[clamp(40px,7vw,80px)] tracking-[-0.03em] leading-[0.92] mb-8"
+    >
+      rolls
+    </h1>
+
+    {rolls.length === 0 ? (
+      <div
+        class="
+          bg-ink-2 border border-ink-3 px-4 py-3.5 font-mono text-[13px]
+          text-mute-2 max-w-[600px]
+        "
+      >
+        <span class="text-safelight">$</span> ls -1 rolls/
+        <br />
+        <span class="text-mute-2">// no rolls processed yet — first scan in queue</span>
+      </div>
+    ) : (
+      <ul
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 list-none p-0 m-0"
+      >
+        {rolls.map((roll) => (
+          <li>
+            <a
+              href={`/lens/${roll.id}`}
+              class="block relative aspect-[4/3] border border-ink-3 overflow-hidden bg-ink-2 transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-visible:scale-[1.02]"
+            >
+              <CloudPhoto
+                cldPath={roll.data.cover.cldPath}
+                alt={roll.data.cover.alt}
+                width={1200}
+                class="absolute inset-0 w-full h-full"
+              />
+              <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
+                ROLL · {roll.data.photos.length}
+              </span>
+              <div
+                class="absolute left-2 right-2 bottom-2 z-[3] flex justify-between items-end gap-2 text-[11px] tracking-[0.16em] text-paper"
+              >
+                <span>{roll.data.title}</span>
+                <span class="text-mute-2">{fmtDate(roll.data.date)}</span>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </main>
+
+  <Footer />
+</BaseLayout>

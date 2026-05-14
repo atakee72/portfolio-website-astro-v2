@@ -1,0 +1,67 @@
+---
+import { CldImage } from 'astro-cloudinary';
+import { cn } from '@/lib/utils';
+
+interface Props {
+  cldPath: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  class?: string;
+  sizes?: string;
+  loading?: 'eager' | 'lazy';
+}
+
+const {
+  cldPath,
+  alt,
+  width = 2000,
+  height,
+  class: className,
+  sizes,
+  loading = 'lazy',
+} = Astro.props;
+
+// Watermark: © ATAK in JetBrains Mono, white 50% opacity, bottom-right
+// with 24px padding. Inline so no Cloudinary console preset is required.
+const overlays = [
+  {
+    text: {
+      text: '© ATAK',
+      fontFamily: 'JetBrains Mono',
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: 'white',
+    },
+    position: {
+      gravity: 'south_east',
+      x: 24,
+      y: 24,
+    },
+    effects: [{ opacity: 50 }],
+  },
+];
+---
+
+<div class={cn('relative inline-block', className)}>
+  <CldImage
+    src={cldPath}
+    alt={alt}
+    width={width}
+    height={height}
+    sizes={sizes}
+    loading={loading}
+    quality={80}
+    format="auto"
+    overlays={overlays}
+    draggable="false"
+    oncontextmenu="return false"
+    class="block w-full h-auto select-none pointer-events-none"
+  />
+  <div
+    class="absolute inset-0 z-10"
+    aria-hidden="true"
+    oncontextmenu="return false"
+  >
+  </div>
+</div>
