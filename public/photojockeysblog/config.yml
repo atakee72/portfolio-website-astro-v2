@@ -10,7 +10,7 @@ media_library:
   output_filename_only: true
   config:
     cloud_name: djgxiadrc
-    api_key: 'REPLACE_WITH_CLOUDINARY_API_KEY'
+    api_key: '284812788854479'
 
 media_folder: ''
 
