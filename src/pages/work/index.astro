@@ -1,0 +1,50 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import { projects } from '@/data/projects';
+---
+
+<BaseLayout
+  title="Work — all projects"
+  description={`All work · ${projects.length} project${projects.length === 1 ? '' : 's'}`}
+>
+  <Navbar />
+
+  <main
+    class="
+      px-4 pt-4 pb-6 md:px-6 md:pt-6 md:pb-7 lg:px-9 lg:pt-9 lg:pb-7
+      max-w-[1320px] mx-auto
+    "
+  >
+    <p
+      class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-2 font-mono"
+    >
+      <a href="/" class="hover:text-phosphor transition-colors">// home</a>
+      &nbsp;/&nbsp;work
+    </p>
+
+    <h1
+      class="m-0 font-display font-bold text-paper-hi text-[clamp(32px,5vw,56px)] tracking-[-0.02em] leading-[0.95] mb-2"
+    >
+      Work
+    </h1>
+
+    <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono mb-8">
+      // all projects · {projects.length} entr{projects.length === 1 ? 'y' : 'ies'}
+    </p>
+
+    {projects.length === 0 ? (
+      <p class="text-[12px] text-mute-2 font-mono">// no projects yet</p>
+    ) : (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {projects.map((p, i) => (
+          <ProjectCard project={p} index={i} total={projects.length} />
+        ))}
+      </div>
+    )}
+  </main>
+
+  <Footer />
+</BaseLayout>

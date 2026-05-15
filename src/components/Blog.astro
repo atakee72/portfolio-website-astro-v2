@@ -5,9 +5,11 @@ import type { CollectionEntry } from 'astro:content';
 
 interface Props {
   posts: CollectionEntry<'blog'>[];
+  seeAllHref?: string;
+  hasMore?: boolean;
 }
 
-const { posts } = Astro.props;
+const { posts, seeAllHref, hasMore = false } = Astro.props;
 ---
 
 <AppWrap id="blog" className="!min-h-0 block">
@@ -17,9 +19,19 @@ const { posts } = Astro.props;
       max-w-[1320px] mx-auto
     "
   >
-    <h2 class="m-0 text-[13px] text-mute-2 tracking-[0.18em] uppercase mb-4">
-      // JOURNAL — latest entries
-    </h2>
+    <div class="flex items-baseline justify-between gap-3 mb-4">
+      <h2 class="m-0 text-[13px] text-mute-2 tracking-[0.18em] uppercase">
+        // JOURNAL — latest entries
+      </h2>
+      {seeAllHref && hasMore && (
+        <a
+          href={seeAllHref}
+          class="text-[11px] text-phosphor tracking-[0.16em] uppercase hover:text-paper transition-colors shrink-0"
+        >
+          see all entries →
+        </a>
+      )}
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {posts.map((post) => <BlogPostCard post={post} />)}

@@ -17,7 +17,7 @@ export type Frame =
   | { k: 'code'; text: string; tag: string };
 
 export const contactSheet: Frame[] = [
-  { k: 'photo', tone: 'a', label: 'TEMPELHOF · 18:42', tag: 'PORTRA 400' },
+  { k: 'photo', tone: 'a', label: 'TEMPELHOF · 18:42', tag: 'PORTRA 400', slug: 'animals' },
   { k: 'code', text: 'export default function Page() {\n  return <Studio />;\n}', tag: 'ASTRO 5' },
   { k: 'photo', tone: 'b', label: 'BOSPORUS · 07:11', tag: '35MM' },
   { k: 'paint', tone: 'c', label: 'POMEGRANATES · STUDIO', tag: 'OIL · 50×40' },

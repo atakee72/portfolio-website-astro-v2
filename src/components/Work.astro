@@ -1,8 +1,14 @@
 ---
 import AppWrap from './AppWrap.astro';
 import ExifWork from './ExifWork.astro';
+
+interface Props {
+  seeAllHref?: string;
+}
+
+const { seeAllHref } = Astro.props;
 ---
 
 <AppWrap id="work" className="!min-h-0 block">
-  <ExifWork />
+  <ExifWork seeAllHref={seeAllHref} />
 </AppWrap>

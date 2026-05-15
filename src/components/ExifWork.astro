@@ -1,5 +1,16 @@
 ---
 import { projects } from '@/data/projects';
+import ProjectCard from './ProjectCard.astro';
+
+interface Props {
+  seeAllHref?: string;
+}
+
+const { seeAllHref } = Astro.props;
+
+const HOME_CAP = 6;
+const visible = projects.slice(0, HOME_CAP);
+const hasOverflow = projects.length > HOME_CAP;
 ---
 
 <section
@@ -8,56 +19,23 @@ import { projects } from '@/data/projects';
     max-w-[1320px] mx-auto
   "
 >
-  <h2 class="m-0 text-[13px] text-mute-2 tracking-[0.18em] uppercase mb-4">
-    // EXIF — work that paid the rent
-  </h2>
+  <div class="flex items-baseline justify-between gap-3 mb-4">
+    <h2 class="m-0 text-[13px] text-mute-2 tracking-[0.18em] uppercase">
+      // EXIF — work that paid the rent
+    </h2>
+    {seeAllHref && hasOverflow && (
+      <a
+        href={seeAllHref}
+        class="text-[11px] text-phosphor tracking-[0.16em] uppercase hover:text-paper transition-colors shrink-0"
+      >
+        see all work →
+      </a>
+    )}
+  </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-    {projects.map((p, i) => (
-      <a
-        href={p.url}
-        target={p.url !== '#' ? '_blank' : undefined}
-        rel={p.url !== '#' ? 'noopener noreferrer' : undefined}
-        class="
-          flex flex-col gap-1
-          border border-ink-3 bg-ink-2 px-4 py-4
-          transition-colors hover:bg-[#1e1e22]
-        "
-      >
-        <span class="text-[10px] text-safelight tracking-[0.18em]">
-          {String(i + 1).padStart(2, '0')}/{String(projects.length).padStart(2, '0')}
-        </span>
-
-        <h3 class="font-display font-bold text-[26px] text-paper-hi mt-2 tracking-[-0.02em]">
-          {p.title}
-        </h3>
-
-        <p class="text-[12px] text-paper-2 mb-3">{p.subtitle}</p>
-
-        <dl class="border-t border-b border-dashed border-ink-3 py-2.5 flex flex-col gap-1 m-0">
-          <div class="flex justify-between text-[10px] text-mute-2 tracking-[0.10em]">
-            <dt>STACK</dt><dd class="text-paper m-0">· {p.exif.stack}</dd>
-          </div>
-          <div class="flex justify-between text-[10px] text-mute-2 tracking-[0.10em]">
-            <dt>YEAR</dt><dd class="text-paper m-0">· {p.exif.year}</dd>
-          </div>
-          <div class="flex justify-between text-[10px] text-mute-2 tracking-[0.10em]">
-            <dt>STATUS</dt>
-            <dd
-              class:list={[
-                'm-0',
-                p.exif.status === 'live' ? 'text-phosphor' : 'text-mute',
-              ]}
-            >
-              · {p.exif.status}
-            </dd>
-          </div>
-        </dl>
-
-        <span class="text-[11px] text-phosphor tracking-[0.12em] uppercase mt-2.5">
-          open frame →
-        </span>
-      </a>
+    {visible.map((p, i) => (
+      <ProjectCard project={p} index={i} total={visible.length} />
     ))}
   </div>
 </section>

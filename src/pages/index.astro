@@ -10,7 +10,10 @@ import Footer from '@/components/Footer.astro';
 import { getAllBlogPosts, getAllTestimonials } from '@/lib/content';
 import { FEATURES } from '@/lib/config';
 
-const posts = await getAllBlogPosts();
+const BLOG_HOME_CAP = 6;
+const allPosts = await getAllBlogPosts();
+const posts = allPosts.slice(0, BLOG_HOME_CAP);
+const hasMorePosts = allPosts.length > BLOG_HOME_CAP;
 const testimonials = FEATURES.SHOW_TESTIMONIALS ? await getAllTestimonials() : [];
 ---
 
@@ -18,8 +21,8 @@ const testimonials = FEATURES.SHOW_TESTIMONIALS ? await getAllTestimonials() : [
   <Navbar />
   <Header />
   <About />
-  <Work />
-  <Blog posts={posts} />
+  <Work seeAllHref="/work" />
+  <Blog posts={posts} seeAllHref="/blog" hasMore={hasMorePosts} />
   {FEATURES.SHOW_TESTIMONIALS && <Testimonials testimonials={testimonials} />}
   <Footer />
 </BaseLayout>
