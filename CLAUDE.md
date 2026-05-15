@@ -87,6 +87,10 @@ public/assets/           # Static images (PNG/JPG only — no SVG barrel)
 - **Do not import `react-icons` (or any React component) into `.astro` templates** — there is no React in this project, and even if there were, `react-icons` triggers SSR hook-call warnings. Inline SVGs instead (see how `SocialMedia.astro` does it).
 - **Two unused leftovers were removed during the Astro migration**: any reference to `public/assets/index.js`, `next-themes`, or `react-magic-motion` is stale.
 - **Tailwind arbitrary-value classes with CSS variables work** (e.g., `text-[var(--brand)]`). Used in `SocialMedia.astro` for per-icon hover colors.
+- **`CloudPhoto.astro` lays a transparent anti-download overlay at `z-10`** over every image. Anything interactive that sits inside `.frame` in the lightbox (close button, copy-link, prev/next, caption row with "see full roll →" link) MUST be `z-20+` or its clicks get eaten silently. Same trap on contact-sheet cells if you ever add an interactive child to the photo button.
+- **Cloudinary text overlays only support a fixed set of fonts** (Arial, Courier, Times, Verdana, Helvetica, Georgia, etc.). Custom fonts like "JetBrains Mono" return HTTP 400 with `x-cld-error: Unsupported font family ...` and a broken-image GIF. The watermark in `CloudPhoto.astro` uses `Courier`. To debug image issues fast: `curl -I` the Cloudinary URL and check headers.
+- **Sveltia commits straight to GitHub via API** — it never touches your local working tree. **Always `git pull` before editing files Sveltia might have edited** (`src/content/blog/*.mdx`, `src/content/rolls/*.json`) to avoid diverging streams.
+- **Contact-sheet cells auto-resolve `slug` to roll cover.** Set `slug: 'my-roll'` on a photo cell in `src/data/contactSheet.ts` and `ContactSheet.astro` looks up the matching `src/content/rolls/<slug>.json`, renders the cover via `<CloudPhoto>`, and surfaces a "see full roll →" CTA in the lightbox. Cells without a slug keep their placeholder gradient.
 
 ## Common Tasks
 
@@ -175,7 +179,12 @@ The Sveltia form is defined by `public/photojockeysblog/config.yml`. The Astro v
 Why two schemas? `astro-decap-collection` (the codegen that'd remove the duplication) currently demands Astro 6 + Zod 4 and has a packaging bug (its `yaml` dep is listed as devDependency). When it stabilizes for Astro 5, this manual sync can be replaced by codegen. Until then, the duplication tax is ~5 min when a field changes (rare).
 
 ### Watermark
-Inline `l_text:` overlay applied by `src/components/CloudPhoto.astro` — © ATAK in JetBrains Mono 24px, white 50% opacity, bottom-right with 24px padding. To change, edit the `overlays` array in that one file.
+Inline `l_text:` overlay applied by `src/components/CloudPhoto.astro` — © ATAK in **Courier** bold 40px, white 70% opacity, bottom-right with 32px padding. **Courier (not JetBrains Mono)** — Cloudinary only supports a fixed set of fonts for text overlays; custom fonts return HTTP 400. To change, edit the `overlays` array in that one file.
+
+### EXIF stripping on delivery
+`CloudPhoto.astro` passes `rawTransformations={['fl_strip_profile']}` so every served JPEG has its metadata block stripped — GPS, camera serial, software fingerprints, everything. Captions on the page still read full EXIF because `sync-exif.mjs` pulls it from Cloudinary's stored original via the Admin API (which `fl_strip_profile` doesn't affect). Best of both: rich captions, naked downloads.
+
+This requires `scripts/prep-and-upload.mjs` to call sharp's `.keepMetadata()` during resize — otherwise EXIF is stripped at upload time and the Admin API returns nothing, leaving captions blank.
 
 ### Hot-link protection (Cloudinary console)
 Setting menu drifts; current path is something like Settings → Security → "Restricted media types" / "Allowed strict referrals". Adding the Vercel domain restricts where image transforms render — but it also breaks Slack/Twitter og:image previews (their crawlers send their own referrer). Two options, decide per account:

@@ -20,12 +20,12 @@ export const contactSheet: Frame[] = [
   { k: 'photo', tone: 'a', label: 'TEMPELHOF · 18:42', tag: 'PORTRA 400', slug: 'animals' },
   { k: 'code', text: 'export default function Page() {\n  return <Studio />;\n}', tag: 'ASTRO 5' },
   { k: 'photo', tone: 'b', label: 'BOSPORUS · 07:11', tag: '35MM' },
-  { k: 'paint', tone: 'c', label: 'POMEGRANATES · STUDIO', tag: 'OIL · 50×40' },
-  { k: 'photo', tone: 'd', label: 'KREUZBERG · NIGHT', tag: 'TRI-X 400' },
   { k: 'code', text: '$ pnpm build\n  ✓ 22 pages\n  ✓ 0 warnings', tag: 'BUILD OK' },
-  { k: 'photo', tone: 'e', label: 'STUDIO · NORTH LIGHT', tag: '120MM' },
-  { k: 'paint', tone: 'f', label: 'AFTER BONNARD', tag: 'GOUACHE' },
+  { k: 'photo', tone: 'd', label: 'KREUZBERG · NIGHT', tag: 'TRI-X 400' },
+  { k: 'paint', tone: 'c', label: 'POMEGRANATES · STUDIO', tag: 'OIL · 50×40' },
   { k: 'photo', tone: 'g', label: 'U-BAHN · 23:54', tag: 'PUSHED +1' },
+  { k: 'paint', tone: 'f', label: 'AFTER BONNARD', tag: 'GOUACHE' },
+  { k: 'code', text: '// react\nconst [n, setN] = useState(0);\n\n// svelte\nlet n = $state(0);', tag: 'RUNES' },
 ];
 
 const PHOTO: Record<string, string> = {

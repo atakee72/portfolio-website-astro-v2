@@ -1,6 +1,21 @@
 ---
 import { contactSheet, photoBg, paintBg } from '@/data/contactSheet';
+import { getAllRolls } from '@/lib/content';
 import EnlargedFrame from './EnlargedFrame.astro';
+import CloudPhoto from './CloudPhoto.astro';
+
+// Resolve photo-cell slugs to their roll cover image at build time.
+// Cells without a slug keep the placeholder gradient.
+const rolls = await getAllRolls();
+const coverBySlug = new Map(
+  rolls.map((r) => [
+    r.id,
+    { cldPath: r.data.cover.cldPath, alt: r.data.cover.alt },
+  ]),
+);
+
+const resolvedCover = (f: (typeof contactSheet)[number]) =>
+  f.k === 'photo' && f.slug ? coverBySlug.get(f.slug) : undefined;
 ---
 
 <section
@@ -14,6 +29,14 @@ import EnlargedFrame from './EnlargedFrame.astro';
     const isVisual = f.k === 'photo' || f.k === 'paint';
     const dialogId = `frame-${i + 1}`;
     const Tag = isVisual ? 'button' : 'article';
+    const cover = resolvedCover(f);
+    const bgStyle = cover
+      ? undefined
+      : f.k === 'photo'
+        ? photoBg(f.tone)
+        : f.k === 'paint'
+          ? paintBg(f.tone)
+          : undefined;
     return (
       <Tag
         {...(isVisual ? { type: 'button', 'data-enlarge-target': dialogId } : {})}
@@ -22,15 +45,24 @@ import EnlargedFrame from './EnlargedFrame.astro';
           'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] ' +
           'hover:scale-[1.02] focus-within:scale-[1.02] focus-visible:scale-[1.02]'
         }
-        style={f.k === 'photo' ? photoBg(f.tone) : f.k === 'paint' ? paintBg(f.tone) : undefined}
+        style={bgStyle}
       >
+        {cover && (
+          <CloudPhoto
+            cldPath={cover.cldPath}
+            alt={cover.alt}
+            width={800}
+            class="absolute inset-0 w-full h-full"
+          />
+        )}
+
         <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
           {String(i + 1).padStart(2, '0')}A
         </span>
 
         <span
           class:list={[
-            'absolute top-1.5 right-1.5 text-[9px] tracking-[0.14em] px-1.5 py-0.5 bg-black/50 border',
+            'absolute top-1.5 right-1.5 z-[3] text-[9px] tracking-[0.14em] px-1.5 py-0.5 bg-black/50 border',
             f.k === 'paint' ? 'text-safelight border-safelight'
               : f.k === 'code' ? 'text-phosphor border-phosphor'
               : 'text-paper border-paper',
@@ -44,7 +76,7 @@ import EnlargedFrame from './EnlargedFrame.astro';
             <pre class="m-0 text-[11px] text-phosphor leading-[1.5] whitespace-pre-wrap">{f.text}</pre>
           </div>
         ) : (
-          <span class="absolute left-2 bottom-2 text-[10px] tracking-[0.16em] text-paper">
+          <span class="absolute left-2 bottom-2 z-[3] text-[10px] tracking-[0.16em] text-paper">
             {f.label}
           </span>
         )}
@@ -52,15 +84,19 @@ import EnlargedFrame from './EnlargedFrame.astro';
     );
   })}
 
-  {contactSheet.map((f, i) =>
-    f.k === 'photo' || f.k === 'paint' ? (
+  {contactSheet.map((f, i) => {
+    if (f.k !== 'photo' && f.k !== 'paint') return null;
+    const cover = resolvedCover(f);
+    return (
       <EnlargedFrame
         id={`frame-${i + 1}`}
         frame={f}
         rollSlug={f.k === 'photo' ? f.slug : undefined}
+        imageCldPath={cover?.cldPath}
+        imageAlt={cover?.alt}
       />
-    ) : null,
-  )}
+    );
+  })}
 </section>
 
 <script>
