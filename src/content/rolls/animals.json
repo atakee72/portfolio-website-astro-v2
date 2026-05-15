@@ -1,0 +1,22 @@
+{
+  "title": "",
+  "date": "2026-05-15",
+  "location": "",
+  "cover": {
+    "cldPath": "lens/animals/01",
+    "alt": ""
+  },
+  "photos": [
+    {
+      "cldPath": "lens/animals/01",
+      "alt": "",
+      "caption": ""
+    },
+    {
+      "cldPath": "lens/animals/02",
+      "alt": "",
+      "caption": ""
+    }
+  ],
+  "draft": true
+}
