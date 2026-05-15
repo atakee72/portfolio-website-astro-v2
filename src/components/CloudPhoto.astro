@@ -22,23 +22,23 @@ const {
   loading = 'lazy',
 } = Astro.props;
 
-// Watermark: © ATAK in JetBrains Mono, white 50% opacity, bottom-right
-// with 24px padding. Inline so no Cloudinary console preset is required.
+// Watermark: © ATAK in Courier bold, white 70% opacity, bottom-right
+// with 32px padding. Inline so no Cloudinary console preset is required.
 const overlays = [
   {
     text: {
       text: '© ATAK',
       fontFamily: 'Courier',
-      fontSize: 24,
+      fontSize: 40,
       fontWeight: 'bold',
       color: 'white',
     },
     position: {
       gravity: 'south_east',
-      x: 24,
-      y: 24,
+      x: 32,
+      y: 32,
     },
-    effects: [{ opacity: 50 }],
+    effects: [{ opacity: 70 }],
   },
 ];
 ---
