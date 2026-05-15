@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "sync-exif": "node scripts/sync-exif.mjs",
+    "prep": "node --env-file=.env.local scripts/prep-and-upload.mjs",
     "lint": "eslint src --ext .js,.ts,.astro,.svelte",
     "type-check": "astro check"
   },

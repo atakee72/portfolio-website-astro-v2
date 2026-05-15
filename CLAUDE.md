@@ -133,6 +133,33 @@ Notes:
 - The MDX body uses a Markdown editor (Sveltia has a WYSIWYG + raw toggle). For JSX components in posts, switch to raw mode.
 - "Save (Draft)" commits with `draft: true`. Drafts are filtered out in production but visible in `pnpm dev`.
 
+### Batch upload via script (for rolls > 5 photos)
+
+Sveltia's drag-drop is fine for 1–3 photos but tedious at 20–40. The
+`pnpm prep` script handles the bulk path:
+
+```bash
+pnpm prep <roll-slug> <folder-of-jpegs> [--force]
+# e.g.
+pnpm prep tempelhof "/mnt/c/Users/Ercan/Pictures/scans/2026-05"
+```
+
+What it does:
+1. Reads every JPEG in the folder (top-level only, alphabetical).
+2. Resizes each to 2000 px long edge, JPEG q=80, **keeps EXIF** (so
+   `sync-exif.mjs` can fetch it from Cloudinary at build time).
+3. Uploads to Cloudinary at `lens/<slug>/NN` (zero-padded).
+4. Writes `src/content/rolls/<slug>.json` with `draft: true` and
+   blank title/location/alts — for Sveltia to fill in.
+
+Then: `git commit && git push` the JSON → refresh Sveltia →
+the draft roll appears in the Rolls collection → fill text fields →
+Save & Publish.
+
+The script requires `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET` in
+`.env.local` (loaded via Node 22's `--env-file` flag). Re-running for
+the same slug refuses unless `--force` is passed.
+
 ### Manual fallback workflow (still supported)
 
 If Sveltia is unavailable or you prefer terminal:
