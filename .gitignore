@@ -47,3 +47,6 @@ pnpm-debug.log*
 
 # Local-only inbox for unprocessed scans before EXIF extraction
 inbox/
+
+# Local-only working docs (workflow notes, etc.)
+docs/
