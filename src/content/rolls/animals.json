@@ -1,21 +1,21 @@
 {
-  "title": "",
+  "title": "Animals",
   "date": "2026-05-15",
-  "location": "",
+  "location": "Anywhere",
   "cover": {
     "cldPath": "lens/animals/01",
-    "alt": ""
+    "alt": "Horses in the sun"
   },
   "photos": [
     {
       "cldPath": "lens/animals/01",
-      "alt": "",
-      "caption": ""
+      "alt": "Horses in the sun",
+      "caption": "All like sunbathing"
     },
     {
       "cldPath": "lens/animals/02",
-      "alt": "",
-      "caption": ""
+      "alt": "Lonely dove",
+      "caption": "On the street"
     }
   ],
   "draft": true
