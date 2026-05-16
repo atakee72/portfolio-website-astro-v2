@@ -40,6 +40,7 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
     return (
       <Tag
         {...(isVisual ? { type: 'button', 'data-enlarge-target': dialogId } : {})}
+        {...(f.k === 'photo' && f.slug ? { 'data-roll-slug': f.slug } : {})}
         class={
           'relative aspect-[4/3] border border-ink-3 overflow-hidden text-left appearance-none ' +
           'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] ' +
@@ -162,7 +163,13 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
 
       const trigger = target.closest('[data-enlarge-target]') as HTMLElement | null;
       if (trigger) {
-        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+          // No modal on mobile — but if this cell is linked to a roll,
+          // tap-navigate straight to it so the affordance isn't lost.
+          const rollSlug = trigger.getAttribute('data-roll-slug');
+          if (rollSlug) window.location.href = `/lens/${rollSlug}/`;
+          return;
+        }
         const id = trigger.getAttribute('data-enlarge-target');
         if (!id) return;
         const modal = document.querySelector(`[data-modal-id="${id}"]`) as HTMLElement | null;
