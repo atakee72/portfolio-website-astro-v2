@@ -7,7 +7,7 @@
     { label: 'journal', href: '#blog' },
     { label: 'rolls', href: '#' },
     { label: 'paints', href: '#' },
-    { label: 'reach', href: 'mailto:atakee@gmail.com' },
+    { label: 'reach', href: '#reach-form' },
   ];
 
   let isOpen = $state(false);

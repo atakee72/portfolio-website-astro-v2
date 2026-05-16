@@ -7,9 +7,10 @@ import SprocketRow from './SprocketRow.astro';
 const heroMeta = 'ROLL 12 · F/2.8 · 1/250 · ISO 400';
 const heroLines = ['ercan', 'atak'];
 const tagline = '// dev · photog · painter';
+const stackline = '// building intelligent apps · ts/astro/react/svelte · berlin';
 const intro = `I keep three darkrooms: one for software, one for film, one for paint.
-Below is the latest contact sheet — frames as they came back, unranked. Click any
-cell to enlarge.`;
+Software-side I build intelligent apps — AI-augmented full-stack, agent
+orchestration, polished surfaces. Below is the latest contact sheet.`;
 
 // Anchors per audit finding C in the redesign plan.
 const navItems: { label: string; href: string }[] = [
@@ -18,7 +19,7 @@ const navItems: { label: string; href: string }[] = [
   { label: 'journal', href: '#blog' },
   { label: 'rolls', href: '/lens' },
   { label: 'paints', href: '#' },
-  { label: 'reach', href: 'mailto:atakee@gmail.com' },
+  { label: 'reach', href: '#reach-form' },
 ];
 ---
 
@@ -44,6 +45,9 @@ const navItems: { label: string; href: string }[] = [
 
       <p class="font-mono text-[13px] text-phosphor tracking-[0.08em] mt-4">
         {tagline}
+      </p>
+      <p class="font-mono text-[12px] text-mute-2 tracking-[0.08em] mt-1">
+        {stackline}
       </p>
 
       <p class="max-w-[500px] text-[13px] text-paper-2 mt-6 leading-[1.6]">

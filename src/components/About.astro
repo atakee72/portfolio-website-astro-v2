@@ -1,5 +1,6 @@
 ---
 import AppWrap from './AppWrap.astro';
+import { FEATURES } from '@/lib/config';
 ---
 
 <AppWrap id="about" className="!min-h-0 block">
@@ -23,8 +24,22 @@ ercan atak — full-stack, half-painter,
             born Istanbul, in Berlin since 2014,
             Kreuzberg 12049
 
-<span class="text-safelight">$</span> contact
-atakee@gmail.com · +49 (30) 88694300
+<span class="text-safelight">$</span> stack
+typescript · astro · react · svelte · node
+postgres · mongo · openai · claude · vercel · supabase
+
+<span class="text-safelight">$</span> build
+intelligent apps · agent orchestration
+content-driven sites · design-engineer work
+{FEATURES.AVAILABILITY && (
+<>
+
+<span class="text-safelight">$</span> status
+<span class="text-phosphor">●</span> available for projects · remote or berlin</>
+)}
+
+<span class="text-safelight">$</span> reach
+<span class="text-mute-2">[contact form lands in PR-F]</span>
 
 <span class="text-safelight">$</span> <span class="darkroom-caret"></span></pre>
     </aside>

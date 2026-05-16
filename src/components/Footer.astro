@@ -1,28 +1,20 @@
 ---
-const email = 'atakee@gmail.com';
-const phone = '+49 30 88694300';
-const place = '12049 Berlin';
 const year = new Date().getFullYear();
 ---
 
 <footer
-  id="reach"
   class="
     mt-6 pt-3.5 pb-6
     px-4 md:px-6 lg:px-9
     border-t border-ink-3
     max-w-[1320px] mx-auto
-    flex flex-col gap-2 lg:flex-row lg:justify-between
+    flex flex-col gap-2 lg:flex-row lg:justify-between lg:items-baseline
     text-[10px] tracking-[0.16em] text-mute
   "
 >
   <span class="text-safelight">FRAME 36/36 — END OF ROLL</span>
-  <span>
-    <a href={`mailto:${email}`} class="text-paper hover:text-phosphor">{email}</a>
-    {'  ·  '}
-    <a href={`tel:${phone.replace(/\s+/g, '')}`} class="text-paper hover:text-phosphor">{phone}</a>
-    {'  ·  '}
-    {place}
+  <span class="text-mute-2 font-mono normal-case tracking-[0.08em]">
+    // built with astro · svelte · tailwind · cloudinary · vercel · web3forms
   </span>
   <span>© ATAK · {year}</span>
 </footer>

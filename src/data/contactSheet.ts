@@ -18,7 +18,7 @@ export type Frame =
 
 export const contactSheet: Frame[] = [
   { k: 'photo', tone: 'a', label: 'TEMPELHOF · 18:42', tag: 'PORTRA 400', slug: 'animals' },
-  { k: 'code', text: 'export default function Page() {\n  return <Studio />;\n}', tag: 'ASTRO 5' },
+  { k: 'code', text: '// agents.dispatch()\n\nconst agents = [\n  goalFinder,\n  talentFinder,\n  jobScout,\n]\n\nrun({ thread, profile, tools })', tag: 'DISPATCH' },
   { k: 'photo', tone: 'b', label: 'BOSPORUS · 07:11', tag: '35MM' },
   { k: 'code', text: '$ pnpm build\n  ✓ 22 pages\n  ✓ 0 warnings', tag: 'BUILD OK' },
   { k: 'photo', tone: 'd', label: 'KREUZBERG · NIGHT', tag: 'TRI-X 400' },
