@@ -1,6 +1,7 @@
 ---
 import AppWrap from './AppWrap.astro';
 import { FEATURES } from '@/lib/config';
+import ReachForm from './ReachForm.svelte';
 ---
 
 <AppWrap id="about" className="!min-h-0 block">
@@ -36,10 +37,13 @@ content-driven sites · design-engineer work{FEATURES.AVAILABILITY && (<>
 <span class="text-phosphor">●</span> available for projects · remote or berlin
 </>)}
 
-<span class="text-safelight">$</span> reach
-<span class="text-mute-2">[contact form lands in PR-F]</span>
+<span class="text-safelight">$</span> reach</pre>
 
-<span class="text-safelight">$</span> <span class="darkroom-caret"></span></pre>
+      <div class="mt-3">
+        <ReachForm client:visible />
+      </div>
+
+      <pre class="m-0 mt-3 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono"><span class="text-safelight">$</span> <span class="darkroom-caret"></span></pre>
     </aside>
   </section>
 </AppWrap>

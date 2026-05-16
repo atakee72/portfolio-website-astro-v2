@@ -59,7 +59,7 @@ public/assets/           # Static images (PNG/JPG only — no SVG barrel)
 
 ### Component Pattern: server-first, islands rarely
 - Default to `.astro` (zero JS shipped)
-- Only use Svelte islands for state that actually needs the browser (localStorage, click handlers). Currently: `ThemeToggleBtn.svelte`, `MobileMenuBtn.svelte`
+- Only use Svelte islands for state that actually needs the browser (localStorage, click handlers, form submission). Currently: `MobileMenuBtn.svelte`, `LiveClock.svelte`, `ReticleCursor.svelte`, `ReachForm.svelte`
 - Wire islands in `.astro` files with `client:only="svelte"` (these components depend on browser APIs; SSR adds no value)
 - **`.svelte` imports require the explicit extension** in `.astro` frontmatter
 
