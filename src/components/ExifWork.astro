@@ -36,7 +36,9 @@ const hasOverflow = all.length > HOME_CAP;
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
     {visible.map((p, i) => (
-      <ProjectCard project={p} index={i} total={visible.length} />
+      <div class:list={[p.data.featured && 'lg:col-span-2']}>
+        <ProjectCard project={p} index={i} total={visible.length} />
+      </div>
     ))}
   </div>
 </section>
