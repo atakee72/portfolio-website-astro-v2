@@ -111,6 +111,37 @@ Edit `site:` in `astro.config.mjs`.
 ## Testing
 No tests configured. The build pipeline runs `astro check` (covers type errors across `.astro`, `.svelte`, `.ts`) before producing output.
 
+## Secret scanning (gitleaks)
+
+Two layers, both run automatically:
+
+- **Pre-commit hook** (`.husky/pre-commit`) — scans staged diffs via `gitleaks protect --staged`. Warns instead of blocking if gitleaks isn't installed locally, so collaborators without it can still commit (CI is the safety net).
+- **GitHub Actions** (`.github/workflows/gitleaks.yml`) — runs `gitleaks-action@v2` on every push to `main` and every PR. Scans full history (`fetch-depth: 0`). Free for public repos.
+
+`.gitleaksignore` (empty by default) accepts entries like `<commit-sha>:<file>:<rule-id>:<line>` for explicitly allowlisted historical findings.
+
+Install gitleaks locally (WSL/Linux):
+```bash
+mkdir -p ~/.local/bin
+curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_*_linux_x64.tar.gz \
+  | tar -xz -C ~/.local/bin gitleaks
+chmod +x ~/.local/bin/gitleaks
+```
+
+Or just download from https://github.com/gitleaks/gitleaks/releases/latest and drop into `~/.local/bin/`. The hook's lookup order is PATH → `~/.local/bin/` → `/usr/local/bin/` → `/opt/homebrew/bin/`.
+
+If you ever need to bypass the hook (rare — usually means rotating the secret instead): `git commit --no-verify` skips pre-commit. **CI still catches it on push, so don't `--no-verify` without a follow-up plan.**
+
+## Homepage composition (curated caps)
+
+The homepage (`src/pages/index.astro`) deliberately caps each section to keep the page from growing unboundedly as content lands:
+
+- **Contact sheet** (`ContactSheet.astro`) — **hardcoded 9 cells** in `src/data/contactSheet.ts`. Curated highlight area, not a feed. Composition: 5 photo + 2 paint + 2 code (current; one photo cell was swapped to code for the RUNES card). Set `slug: '<roll>'` on a photo cell to auto-resolve to that roll's cover image and add a "see full roll →" CTA in the lightbox.
+- **Blog** — capped at **6 most recent** posts (`BLOG_HOME_CAP` in `index.astro`). Overflow goes to `/blog/index.astro`. Signpost link "see all entries →" appears in the section header only when there's actual overflow (`hasMore` prop).
+- **Work** — capped at **6** projects (`HOME_CAP` in `ExifWork.astro`). Overflow goes to `/work/index.astro`. Same signpost pattern.
+
+`ProjectCard.astro` is shared between the homepage `<ExifWork>` and the `/work` overflow page so the card markup stays DRY.
+
 ## Photography & blog pipeline (Sveltia CMS + Cloudinary)
 
 Content lives in `src/content/blog/*.mdx` and `src/content/rolls/*.json`, validated by Zod schemas in `src/content/config.ts`. Photos themselves are stored in Cloudinary. Publishing happens through Sveltia CMS at `/photojockeysblog/` — a static HTML page served from `public/`.
