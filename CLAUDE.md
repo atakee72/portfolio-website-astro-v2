@@ -3,7 +3,7 @@
 Guidance for Claude Code when working in this repository.
 
 ## Project Overview
-Personal portfolio site built with **Astro 5** (static output). Content is local (no external CMS): MDX blog posts and JSON testimonials via Astro Content Collections. Interactivity is handled by two **Svelte 5** islands. Originally migrated from Next.js 14 + Sanity (see git history).
+Personal portfolio site built with **Astro 5** (static output). Content is local (no external CMS): MDX blog posts and JSON testimonials via Astro Content Collections. Interactivity is handled by four **Svelte 5** islands. Originally migrated from Next.js 14 + Sanity (see git history).
 
 ## Development Commands
 ```bash
@@ -18,7 +18,7 @@ Package manager is **pnpm** (lockfile is committed).
 
 ## Tech Stack
 - **Astro 5** with `output: 'static'` and View Transitions
-- **Svelte 5** (runes API) — used for the two interactive islands only
+- **Svelte 5** (runes API) — used for the four interactive islands only
 - **`@astrojs/svelte@^7`** — note: `@astrojs/svelte@8+` requires Astro 6, do not upgrade until Astro itself is upgraded
 - **Tailwind CSS 3** via `@astrojs/tailwind` with class-based dark mode and `@tailwindcss/typography`
 - **MDX** for blog posts (`@astrojs/mdx`)
@@ -29,10 +29,12 @@ Package manager is **pnpm** (lockfile is committed).
 ## Directory Layout
 ```
 src/
-├── components/          # .astro server components + 2 .svelte islands
+├── components/          # .astro server components + 4 .svelte islands
 │   ├── *.astro          # Server components (zero JS shipped)
-│   ├── ThemeToggleBtn.svelte
-│   └── MobileMenuBtn.svelte
+│   ├── LiveClock.svelte
+│   ├── MobileMenuBtn.svelte
+│   ├── ReachForm.svelte
+│   └── ReticleCursor.svelte
 ├── content/             # Content Collections (defined in config.ts)
 │   ├── config.ts        # Zod schemas for blog + testimonials
 │   ├── blog/*.mdx       # Blog posts
@@ -60,7 +62,10 @@ public/assets/           # Static images (PNG/JPG only — no SVG barrel)
 ### Component Pattern: server-first, islands rarely
 - Default to `.astro` (zero JS shipped)
 - Only use Svelte islands for state that actually needs the browser (localStorage, click handlers, form submission). Currently: `MobileMenuBtn.svelte`, `LiveClock.svelte`, `ReticleCursor.svelte`, `ReachForm.svelte`
-- Wire islands in `.astro` files with `client:only="svelte"` (these components depend on browser APIs; SSR adds no value)
+- Wire islands in `.astro` files with the right `client:*` directive for their role:
+  - `client:only="svelte"` — depends entirely on browser APIs (localStorage, document); SSR adds no value (e.g., `MobileMenuBtn`, `ReticleCursor`)
+  - `client:visible` — content-bearing island below the fold; defer hydration until scrolled into view (e.g., `ReachForm`)
+  - `client:idle` — non-critical interactivity that can wait until the main thread is idle (e.g., `LiveClock`)
 - **`.svelte` imports require the explicit extension** in `.astro` frontmatter
 
 ### AppWrap (slot-based wrapper, not an HOC)

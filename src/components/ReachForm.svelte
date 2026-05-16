@@ -99,9 +99,11 @@
     {status === 'sending' ? 'sending…' : '$ send →'}
   </button>
 
-  {#if status === 'sent'}
-    <p class="text-phosphor mt-1 m-0">✓ message sent — i'll reply within 48h.</p>
-  {:else if status === 'error'}
-    <p class="text-yavru mt-1 m-0">! could not send: {errorMessage}</p>
-  {/if}
+  <div aria-live="polite" class="m-0">
+    {#if status === 'sent'}
+      <p class="text-phosphor mt-1 m-0">✓ message sent — i'll reply within 48h.</p>
+    {:else if status === 'error'}
+      <p class="text-yavru mt-1 m-0">! could not send: {errorMessage}</p>
+    {/if}
+  </div>
 </form>
