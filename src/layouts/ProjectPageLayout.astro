@@ -1,0 +1,144 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import CloudPhoto from '@/components/CloudPhoto.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { title, subtitle, cover, screenshots, exif, links } = project.data;
+const ogImage = !cover.cloud ? cover.src : undefined;
+const statusClass =
+  exif.status === 'live'
+    ? 'text-phosphor'
+    : exif.status === 'wip'
+      ? 'text-safelight'
+      : 'text-mute';
+---
+
+<BaseLayout title={`${title} — case study`} description={subtitle} ogImage={ogImage} ogType="article">
+  <Navbar />
+
+  <article class="min-h-screen py-12 px-4 md:px-6 lg:px-9">
+    <div class="max-w-3xl mx-auto">
+      <p class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-2 font-mono">
+        <a href="/" class="hover:text-phosphor transition-colors">// home</a>
+        &nbsp;/&nbsp;
+        <a href="/work" class="hover:text-phosphor transition-colors">work</a>
+        &nbsp;/&nbsp;{project.slug}
+      </p>
+
+      <header class="mb-10">
+        <p class="text-[11px] text-safelight tracking-[0.18em] uppercase mb-4">
+          // CASE STUDY
+        </p>
+
+        <h1 class="font-display font-bold text-paper-hi text-[clamp(32px,5vw,52px)] leading-[1.05] tracking-[-0.02em] mb-3">
+          {title}
+        </h1>
+
+        <p class="text-[14px] text-paper-2 mb-6">{subtitle}</p>
+
+        {(links.github || links.live) && (
+          <div class="flex flex-wrap gap-3 mb-6 text-[11px] tracking-[0.14em] uppercase">
+            {links.github && (
+              <a
+                href={links.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-paper hover:text-phosphor transition-colors border border-ink-3 px-3 py-1.5"
+              >
+                github →
+              </a>
+            )}
+            {links.live && (
+              <a
+                href={links.live}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-paper hover:text-phosphor transition-colors border border-ink-3 px-3 py-1.5"
+              >
+                live →
+              </a>
+            )}
+          </div>
+        )}
+
+        {cover && (
+          cover.cloud ? (
+            <CloudPhoto cldPath={cover.src} alt={cover.alt} width={1200} class="w-full border border-ink-3" />
+          ) : (
+            <img src={cover.src} alt={cover.alt} class="w-full h-64 md:h-96 object-cover border border-ink-3" />
+          )
+        )}
+      </header>
+
+      <dl class="border border-ink-3 bg-ink-2 px-4 py-3 mb-10 flex flex-col gap-1 text-[11px] tracking-[0.10em] font-mono">
+        <div class="flex justify-between text-mute-2">
+          <dt>STACK</dt><dd class="text-paper m-0">· {exif.stack}</dd>
+        </div>
+        <div class="flex justify-between text-mute-2">
+          <dt>YEAR</dt><dd class="text-paper m-0">· {exif.year}</dd>
+        </div>
+        {exif.role && (
+          <div class="flex justify-between text-mute-2">
+            <dt>ROLE</dt><dd class="text-paper m-0">· {exif.role}</dd>
+          </div>
+        )}
+        <div class="flex justify-between text-mute-2">
+          <dt>STATUS</dt>
+          <dd class:list={['m-0', statusClass]}>· ● {exif.status}</dd>
+        </div>
+        {exif.tags.length > 0 && (
+          <div class="flex justify-between text-mute-2">
+            <dt>TAGS</dt><dd class="text-paper m-0">· {exif.tags.join(' · ')}</dd>
+          </div>
+        )}
+      </dl>
+
+      <div class="prose prose-invert max-w-none
+        prose-headings:font-display prose-headings:text-paper-hi prose-headings:tracking-[-0.02em]
+        prose-p:text-paper-2
+        prose-a:text-phosphor prose-a:no-underline hover:prose-a:underline
+        prose-strong:text-paper-hi
+        prose-code:text-phosphor prose-code:bg-ink-2 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none
+        prose-pre:bg-ink-2 prose-pre:border prose-pre:border-ink-3 prose-pre:rounded-none">
+        <slot />
+      </div>
+
+      {screenshots.length > 0 && (
+        <section class="mt-12 flex flex-col gap-6">
+          <h2 class="text-[13px] text-mute-2 tracking-[0.18em] uppercase m-0">
+            // SCREENSHOTS
+          </h2>
+          {screenshots.map((shot) => (
+            <figure class="m-0">
+              {shot.cloud ? (
+                <CloudPhoto cldPath={shot.src} alt={shot.alt} width={1200} class="w-full border border-ink-3" />
+              ) : (
+                <img src={shot.src} alt={shot.alt} class="w-full border border-ink-3" />
+              )}
+              {shot.caption && (
+                <figcaption class="text-[11px] text-mute-2 tracking-[0.10em] mt-2 font-mono">
+                  // {shot.caption}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </section>
+      )}
+
+      <footer class="mt-16 pt-6 border-t border-ink-3 flex flex-wrap justify-between gap-3 text-[11px] tracking-[0.14em] uppercase">
+        <a href="/work" class="text-paper hover:text-phosphor transition-colors">
+          ← back to work
+        </a>
+        <a href="/#reach-form" class="text-phosphor hover:text-paper transition-colors">
+          // reach about this case →
+        </a>
+      </footer>
+    </div>
+  </article>
+</BaseLayout>

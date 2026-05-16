@@ -76,6 +76,8 @@ const projectsCollection = defineCollection({
     subtitle: z.string(),
     publishedAt: z.coerce.date(),
     featured: z.boolean().default(false),
+    // `cloud: true` ⇒ `src` is a Cloudinary public_id (rendered via CloudPhoto).
+    // `cloud: false` ⇒ `src` is a local /assets/... path (rendered via <img>).
     cover: z.object({
       src: z.string(),
       alt: z.string(),

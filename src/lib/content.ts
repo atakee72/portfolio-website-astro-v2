@@ -127,7 +127,7 @@ export async function getAllProjects() {
 }
 
 export async function getProjectBySlug(slug: string) {
-  const projects = await getAllProjects();
+  const projects = await getCollection('projects');
   return projects.find((p) => p.slug === slug);
 }
 
