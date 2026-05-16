@@ -15,7 +15,8 @@ function fmtDate(d: Date): string {
 }
 
 const body = post.body ?? '';
-const wordCount = body.split(/\s+/).filter(Boolean).length;
+const prose = body.replace(/```[\s\S]*?```/g, '');
+const wordCount = prose.split(/\s+/).filter(Boolean).length;
 const readTime = Math.max(1, Math.round(wordCount / 200));
 ---
 
@@ -92,7 +93,7 @@ const readTime = Math.max(1, Math.round(wordCount / 200));
           ← more journal
         </a>
         <a href="/#reach-form" class="text-phosphor hover:text-paper transition-colors">
-          // reach about this stack →
+          {stack.length > 0 ? '// reach about this stack →' : '// reach out →'}
         </a>
       </footer>
     </div>

@@ -38,11 +38,10 @@ const gridPosts = posts.filter((p) => p !== featuredPost);
     {featuredPost && (
       <a
         href={`/blog/${featuredPost.slug}`}
-        class="
-          block border border-ink-3 bg-ink-2 mb-3
-          transition-colors hover:bg-[#1e1e22]
-          grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-0
-        "
+        class:list={[
+          'block border border-ink-3 bg-ink-2 mb-3 transition-colors hover:bg-[#1e1e22] grid grid-cols-1 gap-0',
+          featuredPost.data.mainImage && 'lg:grid-cols-[1.4fr_1fr]',
+        ]}
       >
         {featuredPost.data.mainImage && (
           <img
@@ -66,9 +65,11 @@ const gridPosts = posts.filter((p) => p !== featuredPost);
       </a>
     )}
 
-    {gridPosts.length === 0 && !featuredPost ? (
+    {gridPosts.length === 0 && !featuredPost && (
       <p class="text-[12px] text-mute-2 font-mono">// no entries yet</p>
-    ) : gridPosts.length > 0 && (
+    )}
+
+    {gridPosts.length > 0 && (
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {gridPosts.map((post) => <BlogPostCard post={post} />)}
       </div>
