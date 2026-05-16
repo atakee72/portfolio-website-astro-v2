@@ -126,6 +126,13 @@ export async function getAllProjects() {
   });
 }
 
+/**
+ * Look up a project by slug. Returns drafts in all environments
+ * (matches `getPostBySlug` convention) — so draft case studies can
+ * be previewed via direct URL in prod. The static page itself is
+ * only generated for non-drafts, since `[slug].astro` uses
+ * `getAllProjects()` which prod-filters drafts.
+ */
 export async function getProjectBySlug(slug: string) {
   const projects = await getCollection('projects');
   return projects.find((p) => p.slug === slug);

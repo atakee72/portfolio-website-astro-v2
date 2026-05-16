@@ -67,12 +67,11 @@ const statusClass =
           </div>
         )}
 
-        {cover && (
-          cover.cloud ? (
-            <CloudPhoto cldPath={cover.src} alt={cover.alt} width={1200} class="w-full border border-ink-3" />
-          ) : (
-            <img src={cover.src} alt={cover.alt} class="w-full h-64 md:h-96 object-cover border border-ink-3" />
-          )
+        {/* Cloud images are pre-cropped at upload (via `pnpm prep`); local images get a fixed-height crop here. */}
+        {cover.cloud ? (
+          <CloudPhoto cldPath={cover.src} alt={cover.alt} width={1200} class="w-full border border-ink-3" />
+        ) : (
+          <img src={cover.src} alt={cover.alt} class="w-full h-64 md:h-96 object-cover border border-ink-3" />
         )}
       </header>
 
