@@ -40,3 +40,10 @@ trained domain.
 WIP. Gemini handles ASR + dialogue; structured outputs feed back into
 the CRM via webhook. The hard part is graceful handoff — knowing when
 to stop talking and route to a human.
+
+## Reflection
+
+Voice agents fail differently from text agents — silence reads as broken,
+even when the model is just thinking. Confidence thresholds and explicit
+handoff phrases ("let me transfer you") matter more than prompt quality.
+The next iteration will surface call duration as a quality signal.

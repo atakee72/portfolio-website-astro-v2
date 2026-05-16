@@ -38,3 +38,10 @@ WP Webhooks triggers Cloudflare Pages rebuilds on content updates.
 Mobile-first carousels with swipe gestures, encrypted newsletter
 storage, responsive event tables. The CMS layer is invisible to the
 client — they write blog posts; the site auto-rebuilds.
+
+## Reflection
+
+WordPress headless was the right call for a non-technical client — they
+write in an interface they already know, the static site rebuilds itself.
+The friction sits in the deployment loop: a stuck Cloudflare build means
+the client doesn't see their edit. Worth investing in a healthcheck.
