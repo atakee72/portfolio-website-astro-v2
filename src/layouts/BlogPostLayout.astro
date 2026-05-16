@@ -8,60 +8,74 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, description, author, mainImage, publishedAt, categories } = post.data;
+const { title, description, author, mainImage, publishedAt, categories, stack } = post.data;
 
 function fmtDate(d: Date): string {
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
+
+const body = post.body ?? '';
+const wordCount = body.split(/\s+/).filter(Boolean).length;
+const readTime = Math.max(1, Math.round(wordCount / 200));
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} ogImage={mainImage?.src} ogType="article">
   <Navbar />
   <article class="min-h-screen py-12 px-4 md:px-6 lg:px-9">
     <div class="max-w-3xl mx-auto">
-      <header class="mb-10">
-        <a
-          href="/#blog"
-          class="inline-block mb-6 text-[11px] tracking-[0.16em] uppercase text-phosphor hover:underline"
-        >
-          ← back to journal
-        </a>
+      <a
+        href="/#blog"
+        class="inline-block mb-6 text-[11px] tracking-[0.16em] uppercase text-phosphor hover:underline"
+      >
+        ← back to journal
+      </a>
 
-        <h1 class="font-display font-bold text-paper-hi text-[clamp(32px,5vw,52px)] leading-[1.05] tracking-[-0.02em] mb-4">
-          {title}
-        </h1>
+      <p class="text-[11px] text-mute-2 tracking-[0.14em] font-mono mb-4">
+        // by {author.name} · {readTime} min read · <time datetime={publishedAt.toISOString()}>{fmtDate(publishedAt)}</time>
+      </p>
 
-        <div class="flex flex-wrap items-center gap-3 text-[11px] tracking-[0.12em] text-mute-2 mb-6">
-          {author.image && (
-            <img
-              src={author.image}
-              alt={author.name}
-              class="w-9 h-9 object-cover border border-ink-3"
-            />
-          )}
-          <span class="text-paper">{author.name}</span>
-          <span class="text-mute">·</span>
-          <time datetime={publishedAt.toISOString()}>{fmtDate(publishedAt)}</time>
-        </div>
+      <h1 class="font-display font-bold text-paper-hi text-[clamp(32px,5vw,52px)] leading-[1.05] tracking-[-0.02em] mb-4">
+        {title}
+      </h1>
 
-        {categories.length > 0 && (
-          <div class="flex flex-wrap gap-2 mb-6">
-            {categories.map((category) => (
-              <span class="px-2 py-0.5 border border-phosphor text-phosphor text-[10px] tracking-[0.16em] uppercase">
-                {category}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {mainImage && (
+      <div class="flex flex-wrap items-center gap-3 text-[11px] tracking-[0.12em] text-mute-2 mb-6">
+        {author.image && (
           <img
-            src={mainImage.src}
-            alt={mainImage.alt}
-            class="w-full h-64 md:h-96 object-cover border border-ink-3"
+            src={author.image}
+            alt={author.name}
+            class="w-9 h-9 object-cover border border-ink-3"
           />
         )}
-      </header>
+        <span class="text-paper">{author.name}</span>
+      </div>
+
+      {categories.length > 0 && (
+        <div class="flex flex-wrap gap-2 mb-3">
+          {categories.map((category) => (
+            <span class="px-2 py-0.5 border border-phosphor text-phosphor text-[10px] tracking-[0.16em] uppercase">
+              {category}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {stack.length > 0 && (
+        <div class="flex flex-wrap gap-2 mb-6">
+          {stack.map((tech) => (
+            <span class="px-2 py-0.5 border border-safelight text-safelight text-[10px] tracking-[0.16em] uppercase">
+              {tech}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {mainImage && (
+        <img
+          src={mainImage.src}
+          alt={mainImage.alt}
+          class="w-full h-64 md:h-96 object-cover border border-ink-3 mb-8"
+        />
+      )}
 
       <div class="prose prose-invert max-w-none
         prose-headings:font-display prose-headings:text-paper-hi prose-headings:tracking-[-0.02em]
@@ -72,6 +86,15 @@ function fmtDate(d: Date): string {
         prose-pre:bg-ink-2 prose-pre:border prose-pre:border-ink-3 prose-pre:rounded-none">
         <slot />
       </div>
+
+      <footer class="mt-16 pt-6 border-t border-ink-3 flex flex-wrap justify-between gap-3 text-[11px] tracking-[0.14em] uppercase">
+        <a href="/#blog" class="text-paper hover:text-phosphor transition-colors">
+          ← more journal
+        </a>
+        <a href="/#reach-form" class="text-phosphor hover:text-paper transition-colors">
+          // reach about this stack →
+        </a>
+      </footer>
     </div>
   </article>
 </BaseLayout>

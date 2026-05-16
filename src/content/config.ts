@@ -50,6 +50,8 @@ const blogCollection = defineCollection({
       alt: z.string(),
     }),
     categories: z.array(z.string()).default([]),
+    stack: z.array(z.string()).default([]),
+    featured: z.boolean().default(false),
     draft: z.boolean().default(false),
   }),
 });

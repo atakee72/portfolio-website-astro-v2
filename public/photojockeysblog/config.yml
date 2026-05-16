@@ -51,6 +51,14 @@ collections:
         required: false
         default: []
         field: { name: category, label: Category, widget: string }
+      - name: stack
+        label: Stack
+        widget: list
+        required: false
+        default: []
+        field: { name: tech, label: Tech, widget: string }
+        hint: 'Technologies used or discussed in this post.'
+      - { name: featured, label: Featured, widget: boolean, required: false, default: false, hint: 'Featured posts get a larger card on the homepage.' }
       - { name: draft, label: Draft, widget: boolean, required: false, default: false, hint: 'Drafts are hidden in production but visible in dev.' }
       - { name: body, label: Body, widget: markdown }
 
