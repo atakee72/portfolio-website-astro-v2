@@ -1,5 +1,5 @@
 ---
-import type { Project } from '@/data/projects';
+import type { Project } from '@/lib/content';
 
 interface Props {
   project: Project;
@@ -7,14 +7,13 @@ interface Props {
   total: number;
 }
 
-const { project: p, index, total } = Astro.props;
-const isExternal = p.url !== '#';
+const { project, index, total } = Astro.props;
+const { data, slug } = project;
+const { exif } = data;
 ---
 
 <a
-  href={p.url}
-  target={isExternal ? '_blank' : undefined}
-  rel={isExternal ? 'noopener noreferrer' : undefined}
+  href={`/work/${slug}`}
   class="
     flex flex-col gap-1
     border border-ink-3 bg-ink-2 px-4 py-4
@@ -26,27 +25,31 @@ const isExternal = p.url !== '#';
   </span>
 
   <h3 class="font-display font-bold text-[26px] text-paper-hi mt-2 tracking-[-0.02em]">
-    {p.title}
+    {data.title}
   </h3>
 
-  <p class="text-[12px] text-paper-2 mb-3">{p.subtitle}</p>
+  <p class="text-[12px] text-paper-2 mb-3">{data.subtitle}</p>
 
   <dl class="border-t border-b border-dashed border-ink-3 py-2.5 flex flex-col gap-1 m-0">
     <div class="flex justify-between text-[10px] text-mute-2 tracking-[0.10em]">
-      <dt>STACK</dt><dd class="text-paper m-0">· {p.exif.stack}</dd>
+      <dt>STACK</dt><dd class="text-paper m-0">· {exif.stack}</dd>
     </div>
     <div class="flex justify-between text-[10px] text-mute-2 tracking-[0.10em]">
-      <dt>YEAR</dt><dd class="text-paper m-0">· {p.exif.year}</dd>
+      <dt>YEAR</dt><dd class="text-paper m-0">· {exif.year}</dd>
     </div>
     <div class="flex justify-between text-[10px] text-mute-2 tracking-[0.10em]">
       <dt>STATUS</dt>
       <dd
         class:list={[
           'm-0',
-          p.exif.status === 'live' ? 'text-phosphor' : 'text-mute',
+          exif.status === 'live'
+            ? 'text-phosphor'
+            : exif.status === 'wip'
+              ? 'text-safelight'
+              : 'text-mute',
         ]}
       >
-        · {p.exif.status}
+        · {exif.status}
       </dd>
     </div>
   </dl>

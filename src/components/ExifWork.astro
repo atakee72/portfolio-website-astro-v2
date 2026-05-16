@@ -1,5 +1,5 @@
 ---
-import { projects } from '@/data/projects';
+import { getAllProjects } from '@/lib/content';
 import ProjectCard from './ProjectCard.astro';
 
 interface Props {
@@ -9,8 +9,9 @@ interface Props {
 const { seeAllHref } = Astro.props;
 
 const HOME_CAP = 6;
-const visible = projects.slice(0, HOME_CAP);
-const hasOverflow = projects.length > HOME_CAP;
+const all = await getAllProjects();
+const visible = all.slice(0, HOME_CAP);
+const hasOverflow = all.length > HOME_CAP;
 ---
 
 <section
@@ -21,7 +22,7 @@ const hasOverflow = projects.length > HOME_CAP;
 >
   <div class="flex items-baseline justify-between gap-3 mb-4">
     <h2 class="m-0 text-[13px] text-mute-2 tracking-[0.18em] uppercase">
-      // EXIF — work that paid the rent
+      // EXIF — case studies that paid the rent
     </h2>
     {seeAllHref && hasOverflow && (
       <a

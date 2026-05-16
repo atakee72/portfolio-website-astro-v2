@@ -1,0 +1,49 @@
+---
+title: Multi-Agent Career Coaching
+subtitle: 5 AI assistants, one orchestrated system
+publishedAt: 2025-10-10
+featured: true
+cover:
+  src: /assets/projects/coaching-cover.png
+  alt: Multi-agent coaching dashboard
+  cloud: false
+screenshots: []
+exif:
+  stack: Astro + React + Supabase + OpenAI Assistants v2
+  year: '2025'
+  status: live
+  role: full-stack + system design
+  tags:
+    - ai
+    - fullstack
+    - agents
+links:
+  github: https://github.com/atakee72/crowd-coach
+draft: false
+---
+
+## Problem
+
+Single-agent chat doesn't fit multi-domain coaching. A career coach plays
+five distinct roles — goal-finding, talent-mapping, job-scouting, resource
+analysis, application drafting — each with its own prompt, its own RAG
+corpus, and its own database write surface.
+
+## Build
+
+Five specialized OpenAI Assistants, each with function-calling tools that
+read and write to a Supabase Postgres profile schema (RLS enforced).
+CV uploads run through pdf-parse / mammoth and the extracted text is
+ingested as assistant context. Image generation surfaces directly in chat.
+
+## Architecture
+
+The dispatcher hands the active thread to whichever agent matches the
+user's intent; all five agents share a common DB toolset so the user's
+profile evolves coherently across conversations.
+
+## Reflection
+
+V1 is in production with the client. A next-gen rebuild — with current
+Claude / OpenAI capabilities — is in progress; the GitHub repo carries
+the architecture-only demo (placeholder chat, no client prompts or RAG).

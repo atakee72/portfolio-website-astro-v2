@@ -69,8 +69,48 @@ const testimonialsCollection = defineCollection({
   }),
 });
 
+const projectsCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    subtitle: z.string(),
+    publishedAt: z.coerce.date(),
+    featured: z.boolean().default(false),
+    cover: z.object({
+      src: z.string(),
+      alt: z.string(),
+      cloud: z.boolean().default(false),
+    }),
+    screenshots: z
+      .array(
+        z.object({
+          src: z.string(),
+          alt: z.string(),
+          caption: z.string().optional(),
+          cloud: z.boolean().default(false),
+        })
+      )
+      .default([]),
+    exif: z.object({
+      stack: z.string(),
+      year: z.string(),
+      status: z.enum(['live', 'archived', 'wip']),
+      role: z.string().optional(),
+      tags: z.array(z.string()).default([]),
+    }),
+    links: z
+      .object({
+        github: z.string().url().optional(),
+        live: z.string().url().optional(),
+      })
+      .default({}),
+    draft: z.boolean().default(false),
+  }),
+});
+
 export const collections = {
   blog: blogCollection,
   testimonials: testimonialsCollection,
   rolls: rollsCollection,
+  projects: projectsCollection,
 };

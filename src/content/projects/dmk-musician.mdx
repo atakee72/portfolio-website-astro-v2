@@ -1,0 +1,40 @@
+---
+title: Mahir Frontend
+subtitle: Musician portfolio · headless WordPress
+publishedAt: 2025-10-01
+featured: false
+cover:
+  src: /assets/projects/dmk-cover.png
+  alt: DMK Musician landing
+  cloud: false
+screenshots: []
+exif:
+  stack: Astro + React + WordPress GraphQL + Cloudflare
+  year: '2025'
+  status: live
+  role: full-stack
+  tags:
+    - cms
+    - content
+    - client-work
+links:
+  github: https://github.com/atakee72/DMK-Musician-Website
+draft: false
+---
+
+## Problem
+
+Musician Deniz Mahir Kartal needed a portfolio he could update himself —
+gigs, photo galleries, films, newsletter — without touching code.
+
+## Build
+
+Astro static site fed by a headless WordPress instance over GraphQL.
+Apollo Client handles fetching, Web3Forms wires the contact form,
+WP Webhooks triggers Cloudflare Pages rebuilds on content updates.
+
+## Architecture
+
+Mobile-first carousels with swipe gestures, encrypted newsletter
+storage, responsive event tables. The CMS layer is invisible to the
+client — they write blog posts; the site auto-rebuilds.

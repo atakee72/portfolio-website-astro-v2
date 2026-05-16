@@ -92,3 +92,59 @@ collections:
             required: false
             default: {}
       - { name: draft, label: Draft, widget: boolean, required: false, default: true, hint: 'Drafts are hidden on the live site.' }
+
+  - name: projects
+    label: Case Studies
+    label_singular: Project
+    folder: src/content/projects
+    extension: mdx
+    format: frontmatter
+    create: true
+    slug: '{{slug}}'
+    summary: '{{fields.title}}'
+    sortable_fields: ['publishedAt', 'title', 'featured']
+    fields:
+      - { name: title, label: Title, widget: string, required: true }
+      - { name: subtitle, label: Subtitle, widget: string, required: true }
+      - { name: publishedAt, label: Published, widget: datetime, required: true, default: '' }
+      - { name: featured, label: Featured, widget: boolean, required: false, default: false, hint: 'Featured projects get a larger card on the homepage grid.' }
+      - name: cover
+        label: Cover
+        widget: object
+        required: true
+        fields:
+          - { name: src, label: Source, widget: image, required: true }
+          - { name: alt, label: Alt text, widget: string, required: true }
+          - { name: cloud, label: 'Use Cloudinary?', widget: boolean, required: false, default: false }
+      - name: screenshots
+        label: Screenshots
+        widget: list
+        required: false
+        fields:
+          - { name: src, label: Source, widget: image, required: true }
+          - { name: alt, label: Alt text, widget: string, required: true }
+          - { name: caption, label: Caption, widget: string, required: false }
+          - { name: cloud, label: 'Cloudinary?', widget: boolean, required: false, default: false }
+      - name: exif
+        label: Meta
+        widget: object
+        required: true
+        fields:
+          - { name: stack, label: Stack summary, widget: string, required: true }
+          - { name: year, label: Year, widget: string, required: true }
+          - { name: status, label: Status, widget: select, options: ['live', 'wip', 'archived'], default: 'live', required: true }
+          - { name: role, label: Role, widget: string, required: false }
+          - name: tags
+            label: Tags
+            widget: list
+            required: false
+            field: { name: tag, label: Tag, widget: string }
+      - name: links
+        label: Links
+        widget: object
+        required: false
+        fields:
+          - { name: github, label: GitHub URL, widget: string, required: false }
+          - { name: live, label: Live URL, widget: string, required: false }
+      - { name: draft, label: Draft, widget: boolean, required: false, default: false, hint: 'Drafts are hidden in production but visible in dev.' }
+      - { name: body, label: Body, widget: markdown }

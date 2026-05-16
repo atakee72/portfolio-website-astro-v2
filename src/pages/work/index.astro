@@ -3,12 +3,14 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import ProjectCard from '@/components/ProjectCard.astro';
-import { projects } from '@/data/projects';
+import { getAllProjects } from '@/lib/content';
+
+const projects = await getAllProjects();
 ---
 
 <BaseLayout
-  title="Work — all projects"
-  description={`All work · ${projects.length} project${projects.length === 1 ? '' : 's'}`}
+  title="Work — case studies"
+  description={`Case studies · ${projects.length} project${projects.length === 1 ? '' : 's'}`}
 >
   <Navbar />
 
@@ -32,7 +34,7 @@ import { projects } from '@/data/projects';
     </h1>
 
     <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono mb-8">
-      // all projects · {projects.length} entr{projects.length === 1 ? 'y' : 'ies'}
+      // case studies · {projects.length} entr{projects.length === 1 ? 'y' : 'ies'}
     </p>
 
     {projects.length === 0 ? (

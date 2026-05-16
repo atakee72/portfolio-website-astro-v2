@@ -1,0 +1,42 @@
+---
+title: Moritz W · Lichtkünstler
+subtitle: Portfolio for a Berlin light artist
+publishedAt: 2026-02-11
+featured: false
+cover:
+  src: /assets/projects/moritzw-cover.png
+  alt: Moritz W portfolio
+  cloud: false
+screenshots: []
+exif:
+  stack: Astro + Sanity + Portable Text
+  year: '2026'
+  status: live
+  role: full-stack + design collaboration
+  tags:
+    - cms
+    - content
+    - client-work
+    - art
+links:
+  github: https://github.com/atakee72/moritzw-lichtkuenstler
+draft: false
+---
+
+## Problem
+
+A light artist needed a portfolio that handled image-heavy galleries,
+flexible block content, and an artist statement that could change
+language and tone across exhibitions — without learning a CMS.
+
+## Build
+
+Astro static site fed by Sanity Studio. Portable Text renders artist
+statements with mixed-media blocks (image + text + video). Sanity's
+image pipeline handles crop variants for hero vs gallery vs thumb.
+
+## Architecture
+
+The Studio runs locally for the artist's edits, deploys via `sanity
+deploy`. Astro pulls from the Sanity Content Lake at build time and
+emits a fully-static site to Vercel.

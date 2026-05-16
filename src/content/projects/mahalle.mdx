@@ -1,0 +1,49 @@
+---
+title: MaHalle
+subtitle: Home-made Facebook for the Kiez
+publishedAt: 2024-12-01
+featured: false
+cover:
+  src: /assets/maHalle.png
+  alt: Logo of MaHalle
+  cloud: false
+screenshots: []
+exif:
+  stack: Astro + React + Svelte + MongoDB + auth-astro
+  year: '2024'
+  status: live
+  role: full-stack + design
+  tags:
+    - fullstack
+    - platform
+    - ai-moderation
+links:
+  github: https://github.com/atakee72/fullstack-community-webApp-astro---v.3
+  live: https://mahalle-das-kiezgesichterbuch.vercel.app
+draft: false
+---
+
+## Problem
+
+The Schillerkiez (Berlin Kreuzberg) needed a digital commons — forum,
+calendar, marketplace, local news, air-quality data — without surrendering
+to a global platform.
+
+## Build
+
+Astro SSR + React + Svelte islands, MongoDB direct driver, auth-astro
+with JWT, TanStack Query with 24h localStorage persistence. Forum,
+calendar, marketplace, newsboard with daily fetch, recommendations,
+reports & admin moderation.
+
+## Architecture
+
+Multilingual AI moderation (TR/EN/DE + leetspeak filters) gates all
+user-generated content before it lands. Carved-title accents per page,
+dark-glass design system, BLUME air-quality proxy and Schillerkiez
+demographics surfaced from public APIs.
+
+## Reflection
+
+Built with a manifesto attached — the project's moral charter sits at
+the root of the repo as `MANIFESTO.md`.

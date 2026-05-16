@@ -109,8 +109,31 @@ export async function getAllPhotoEntries() {
   );
 }
 
+export async function getAllProjects() {
+  const projects = await getCollection('projects', ({ data }) => {
+    if (import.meta.env.PROD) {
+      return data.draft !== true;
+    }
+    return true;
+  });
+
+  return projects.sort((a, b) => {
+    // Featured first, then publishedAt desc.
+    if (a.data.featured !== b.data.featured) {
+      return a.data.featured ? -1 : 1;
+    }
+    return b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf();
+  });
+}
+
+export async function getProjectBySlug(slug: string) {
+  const projects = await getAllProjects();
+  return projects.find((p) => p.slug === slug);
+}
+
 export type BlogPost = CollectionEntry<'blog'>;
 export type Roll = CollectionEntry<'rolls'>;
+export type Project = CollectionEntry<'projects'>;
 export type Testimonial = {
   name: string;
   company: string;
