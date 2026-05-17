@@ -129,10 +129,6 @@ const buildSha = (process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev').slice(0, 7);
         ) as HTMLMetaElement | null;
         const initialSha = metaEl?.content ?? '';
         if (initialSha && initialSha !== 'dev') {
-          const modal = document.getElementById('version-modal');
-          const reloadBtn = document.getElementById('version-reload');
-          const dismissBtn = document.getElementById('version-dismiss');
-
           const fetchSha = async (): Promise<string | null> => {
             try {
               const r = await fetch('/version.json', { cache: 'no-store' });
@@ -148,14 +144,22 @@ const buildSha = (process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev').slice(0, 7);
             const sha = await fetchSha();
             if (!sha || sha === initialSha) return;
             if (sha === sessionStorage.getItem('versionDismissedSha')) return;
-            modal?.removeAttribute('hidden');
+            document.getElementById('version-modal')?.removeAttribute('hidden');
           };
 
-          reloadBtn?.addEventListener('click', () => location.reload());
-          dismissBtn?.addEventListener('click', async () => {
-            const sha = await fetchSha();
-            if (sha) sessionStorage.setItem('versionDismissedSha', sha);
-            modal?.setAttribute('hidden', '');
+          // Document-level delegation: survives View Transitions DOM swaps,
+          // unlike listeners attached to the modal's specific buttons.
+          document.addEventListener('click', async (e) => {
+            const target = e.target as Element | null;
+            if (target?.closest('#version-reload')) {
+              location.reload();
+              return;
+            }
+            if (target?.closest('#version-dismiss')) {
+              const sha = await fetchSha();
+              if (sha) sessionStorage.setItem('versionDismissedSha', sha);
+              document.getElementById('version-modal')?.setAttribute('hidden', '');
+            }
           });
 
           document.addEventListener('visibilitychange', () => {
