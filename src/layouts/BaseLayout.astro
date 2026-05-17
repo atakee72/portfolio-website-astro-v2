@@ -17,8 +17,6 @@ const {
   ogImage,
   ogType = 'website',
 } = Astro.props;
-
-const buildSha = (process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev').slice(0, 7);
 ---
 
 <!DOCTYPE html>
@@ -28,7 +26,6 @@ const buildSha = (process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev').slice(0, 7);
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <meta name="build-sha" content={buildSha} />
     <title>{title}</title>
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -73,102 +70,5 @@ const buildSha = (process.env.VERCEL_GIT_COMMIT_SHA ?? 'dev').slice(0, 7);
     <ReticleCursor client:only="svelte" />
     <slot />
     <SocialMedia />
-
-    <div
-      id="version-modal"
-      hidden
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="version-modal-title"
-      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4"
-    >
-      <div class="bg-ink-2 border border-ink-3 px-6 py-5 max-w-[420px] w-full font-mono text-paper">
-        <div class="text-[10px] text-mute-2 tracking-[0.18em] uppercase pb-2 mb-3 border-b border-ink-3">
-          // build update
-        </div>
-        <h2
-          id="version-modal-title"
-          class="text-[15px] text-paper-hi font-display tracking-[-0.01em] m-0 mb-2"
-        >
-          new version available
-        </h2>
-        <p class="text-[12px] text-mute-2 leading-[1.6] mb-4 m-0">
-          reload to see the latest changes.
-        </p>
-        <div class="flex gap-2">
-          <button
-            id="version-reload"
-            type="button"
-            class="px-3 py-1.5 border border-phosphor text-phosphor text-[11px] tracking-[0.14em] uppercase hover:bg-phosphor hover:text-ink transition-colors"
-          >
-            reload
-          </button>
-          <button
-            id="version-dismiss"
-            type="button"
-            class="px-3 py-1.5 border border-ink-3 text-mute-2 text-[11px] tracking-[0.14em] uppercase hover:text-paper hover:border-paper transition-colors"
-          >
-            dismiss
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      type Win = Window & { __versionCheckWired?: boolean };
-      // Gated: only runs for visitors who set `localStorage.versionCheck = '1'`
-      // (i.e., the site owner). Skips when SHA is 'dev' (local) since a fresh
-      // dev build always matches itself.
-      if (
-        !(window as Win).__versionCheckWired &&
-        localStorage.getItem('versionCheck') === '1'
-      ) {
-        (window as Win).__versionCheckWired = true;
-        const metaEl = document.querySelector(
-          'meta[name="build-sha"]',
-        ) as HTMLMetaElement | null;
-        const initialSha = metaEl?.content ?? '';
-        if (initialSha && initialSha !== 'dev') {
-          const fetchSha = async (): Promise<string | null> => {
-            try {
-              const r = await fetch('/version.json', { cache: 'no-store' });
-              if (!r.ok) return null;
-              const j = (await r.json()) as { sha?: string };
-              return j.sha ?? null;
-            } catch {
-              return null;
-            }
-          };
-
-          const check = async () => {
-            const sha = await fetchSha();
-            if (!sha || sha === initialSha) return;
-            if (sha === sessionStorage.getItem('versionDismissedSha')) return;
-            document.getElementById('version-modal')?.removeAttribute('hidden');
-          };
-
-          // Document-level delegation: survives View Transitions DOM swaps,
-          // unlike listeners attached to the modal's specific buttons.
-          document.addEventListener('click', async (e) => {
-            const target = e.target as Element | null;
-            if (target?.closest('#version-reload')) {
-              location.reload();
-              return;
-            }
-            if (target?.closest('#version-dismiss')) {
-              const sha = await fetchSha();
-              if (sha) sessionStorage.setItem('versionDismissedSha', sha);
-              document.getElementById('version-modal')?.setAttribute('hidden', '');
-            }
-          });
-
-          document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') void check();
-          });
-          window.setInterval(() => void check(), 5 * 60 * 1000);
-          window.setTimeout(() => void check(), 2000);
-        }
-      }
-    </script>
   </body>
 </html>
