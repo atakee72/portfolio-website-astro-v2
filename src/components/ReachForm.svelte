@@ -1,5 +1,5 @@
 <script lang="ts">
-  const accessKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '';
+  const accessKey = (import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '').trim();
 
   type Status = 'idle' | 'sending' | 'sent' | 'error';
   let status: Status = $state('idle');
