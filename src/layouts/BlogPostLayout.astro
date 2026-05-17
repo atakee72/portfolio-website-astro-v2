@@ -34,7 +34,7 @@ const readTime = Math.max(1, Math.round(wordCount / 200));
       </p>
 
       <p class="text-[11px] text-mute-2 tracking-[0.14em] font-mono mb-4">
-        // by {author.name} · {readTime} min read · <time datetime={publishedAt.toISOString()}>{fmtDate(publishedAt)}</time>
+        // {isLinkpost ? 'reblogged by' : 'by'} {author.name} · {readTime} min read · <time datetime={publishedAt.toISOString()}>{fmtDate(publishedAt)}</time>
       </p>
 
       {isLinkpost && (
