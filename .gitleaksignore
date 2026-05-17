@@ -1,0 +1,3 @@
+# Web3Forms access_key — per-form, intentionally public per Web3Forms docs.
+# Security boundary is the allowed-domains list at web3forms.com, not the key.
+src/components/ReachForm.svelte:generic-api-key:6

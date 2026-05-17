@@ -1,5 +1,9 @@
 <script lang="ts">
-  const accessKey = (import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '').trim();
+  // Web3Forms access_key is per-form and explicitly public (security boundary is
+  // the allowed-domains list at web3forms.com, not the key). Inlined here to
+  // avoid env-var pipeline fragility — Vercel CLI 54.1 can't reliably store
+  // newline-free values, and the SSR pass embedded a literal \n into the HTML.
+  const accessKey = '7d9f19b1-e43e-46fb-95e8-b4cf91c59cc4';
 
   type Status = 'idle' | 'sending' | 'sent' | 'error';
   let status: Status = $state('idle');
