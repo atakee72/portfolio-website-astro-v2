@@ -46,6 +46,25 @@ const {
       rel="stylesheet"
     />
     <ViewTransitions />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: 'Ercan Atak',
+      url: 'https://ercan-atak.de',
+      email: 'contact@ercan-atak.de',
+      jobTitle: 'Full-Stack Developer',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Berlin',
+        addressCountry: 'DE',
+      },
+      sameAs: [
+        'https://github.com/atakee72',
+        'https://linkedin.com/in/ercan-atak',
+        'https://www.behance.net/E-Atak-Photography',
+        'https://www.instagram.com/a_t_a_k_e_e/',
+      ],
+    })} />
   </head>
   <body>
     <ReticleCursor client:only="svelte" />
