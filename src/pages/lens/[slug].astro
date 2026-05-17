@@ -77,6 +77,7 @@ const exifLine = (exif: typeof photos[number]['exif']) => {
             <button
               type="button"
               data-enlarge-target={modalId}
+              data-permalink={`/lens/${roll.id}/${n}`}
               class="
                 relative aspect-[4/3] w-full border border-ink-3 overflow-hidden bg-ink-2
                 appearance-none text-left transition-transform duration-200
@@ -198,7 +199,12 @@ const exifLine = (exif: typeof photos[number]['exif']) => {
 
       const trigger = target.closest('[data-enlarge-target]') as HTMLElement | null;
       if (trigger) {
-        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+          // No modal on mobile — tap-navigate to the dedicated single-photo page.
+          const permalink = trigger.getAttribute('data-permalink');
+          if (permalink) window.location.href = permalink;
+          return;
+        }
         const id = trigger.getAttribute('data-enlarge-target');
         if (!id) return;
         const modal = document.querySelector(`[data-modal-id="${id}"]`) as HTMLElement | null;

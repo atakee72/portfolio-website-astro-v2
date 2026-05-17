@@ -91,7 +91,7 @@
     id="reach-message"
     name="message"
     required
-    rows={4}
+    rows={8}
     class="bg-ink border border-ink-3 px-2 py-1.5 text-paper focus:border-phosphor outline-none resize-y"
   ></textarea>
 

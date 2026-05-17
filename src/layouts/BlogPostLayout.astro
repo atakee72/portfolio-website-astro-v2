@@ -24,12 +24,12 @@ const readTime = Math.max(1, Math.round(wordCount / 200));
   <Navbar />
   <article class="min-h-screen py-12 px-4 md:px-6 lg:px-9">
     <div class="max-w-3xl mx-auto">
-      <a
-        href="/#blog"
-        class="inline-block mb-6 text-[11px] tracking-[0.16em] uppercase text-phosphor hover:underline"
-      >
-        ← back to journal
-      </a>
+      <p class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-2 font-mono">
+        <a href="/" class="hover:text-phosphor transition-colors">// home</a>
+        &nbsp;/&nbsp;
+        <a href="/blog" class="hover:text-phosphor transition-colors">journal</a>
+        &nbsp;/&nbsp;{post.slug}
+      </p>
 
       <p class="text-[11px] text-mute-2 tracking-[0.14em] font-mono mb-4">
         // by {author.name} · {readTime} min read · <time datetime={publishedAt.toISOString()}>{fmtDate(publishedAt)}</time>

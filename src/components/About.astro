@@ -15,12 +15,13 @@ import ReachForm from './ReachForm.svelte';
       // ABOUT
     </h2>
 
-    <aside id="reach-form" class="bg-ink-2 border border-ink-3 px-4 py-3.5 max-w-[760px]">
+    <aside id="reach-form" class="bg-ink-2 border border-ink-3 px-4 py-3.5">
       <div class="text-[10px] text-mute-2 tracking-[0.18em] pb-2.5 mb-3 border-b border-ink-3 uppercase">
         ~/about
       </div>
 
-      <pre class="m-0 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono"><span class="text-safelight">$</span> whoami
+      <div class="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+        <pre class="m-0 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono lg:col-start-1 lg:row-start-1"><span class="text-safelight">$</span> whoami
 ercan atak — full-stack, half-painter,
             born Istanbul, in Berlin since 2014,
             Kreuzberg 12049
@@ -38,13 +39,14 @@ content-driven sites · design-engineer work{FEATURES.AVAILABILITY && (<>
 </>)}
 
 <span class="text-safelight">$</span> reach
-<a href="mailto:contact@ercan-atak.de" class="text-phosphor hover:underline">contact@ercan-atak.de</a> · or use the form below ↓</pre>
+<a href="mailto:contact@ercan-atak.de" class="text-phosphor hover:underline">contact@ercan-atak.de</a> · or use the form <span class="lg:hidden">below ↓</span><span class="hidden lg:inline">→</span></pre>
 
-      <div class="mt-3">
-        <ReachForm client:visible />
+        <div class="mt-3 lg:mt-0 lg:col-start-2 lg:row-start-1">
+          <ReachForm client:visible />
+        </div>
+
+        <pre class="m-0 mt-3 lg:mt-2 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono lg:col-start-1 lg:row-start-2"><span class="text-safelight">$</span> <span class="darkroom-caret"></span></pre>
       </div>
-
-      <pre class="m-0 mt-3 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono"><span class="text-safelight">$</span> <span class="darkroom-caret"></span></pre>
     </aside>
   </section>
 </AppWrap>
