@@ -14,11 +14,6 @@ const { posts, seeAllHref, hasMore = false } = Astro.props;
 const featuredPost = posts.find((p) => p.data.featured);
 const gridPosts = posts.filter((p) => p !== featuredPost);
 const featuredIsLinkpost = !!featuredPost?.data.externalUrl;
-const featuredHref = featuredIsLinkpost
-  ? featuredPost!.data.externalUrl!
-  : featuredPost
-    ? `/blog/${featuredPost.slug}`
-    : '';
 ---
 
 <AppWrap id="blog" className="!min-h-0 block">
@@ -44,8 +39,7 @@ const featuredHref = featuredIsLinkpost
 
     {featuredPost && (
       <a
-        href={featuredHref}
-        {...(featuredIsLinkpost && { target: '_blank', rel: 'noopener noreferrer' })}
+        href={`/blog/${featuredPost.slug}`}
         class:list={[
           'block border border-ink-3 bg-ink-2 mb-3 transition-colors hover:bg-[#1e1e22] grid grid-cols-1 gap-0',
           featuredPost.data.mainImage && 'lg:grid-cols-[1.4fr_1fr]',

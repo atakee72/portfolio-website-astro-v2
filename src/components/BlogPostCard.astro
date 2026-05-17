@@ -10,7 +10,6 @@ interface Props {
 const { post, class: className } = Astro.props;
 const { title, description, publishedAt, categories, externalUrl } = post.data;
 const isLinkpost = !!externalUrl;
-const cardHref = isLinkpost ? externalUrl! : `/blog/${post.slug}`;
 
 function fmtDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -18,11 +17,7 @@ function fmtDate(d: Date): string {
 ---
 
 <article class={cn('group block border border-ink-3 bg-ink-2 transition-colors hover:bg-[#1e1e22]', className)}>
-  <a
-    href={cardHref}
-    class="block p-6"
-    {...(isLinkpost && { target: '_blank', rel: 'noopener noreferrer' })}
-  >
+  <a href={`/blog/${post.slug}`} class="block p-6">
     <div class="flex justify-between mb-4" aria-hidden="true">
       {Array.from({ length: 8 }).map(() => (
         <i class="block w-5 h-2 bg-ink"></i>
