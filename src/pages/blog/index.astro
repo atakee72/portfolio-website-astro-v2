@@ -3,9 +3,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import BlogPostCard from '@/components/BlogPostCard.astro';
+import FilterStrip from '@/components/FilterStrip.astro';
 import { getAllBlogPosts } from '@/lib/content';
 
 const posts = await getAllBlogPosts();
+const allTags = [...new Set(posts.flatMap((p) => p.data.categories))].sort();
 ---
 
 <BaseLayout
@@ -34,14 +36,20 @@ const posts = await getAllBlogPosts();
     </h1>
 
     <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono mb-8">
-      // all entries · {posts.length} post{posts.length === 1 ? '' : 's'}
+      // all entries · <span data-filter-count>{posts.length}</span> post{posts.length === 1 ? '' : 's'}
     </p>
+
+    <FilterStrip tags={allTags} />
 
     {posts.length === 0 ? (
       <p class="text-[12px] text-mute-2 font-mono">// no entries yet</p>
     ) : (
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {posts.map((post) => <BlogPostCard post={post} />)}
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" data-filter-target>
+        {posts.map((post) => (
+          <div data-tags={post.data.categories.join('|')}>
+            <BlogPostCard post={post} />
+          </div>
+        ))}
       </div>
     )}
   </main>

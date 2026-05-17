@@ -1,0 +1,94 @@
+---
+interface Props {
+  tags: string[];
+  label?: string;
+}
+
+const { tags, label = '// filter' } = Astro.props;
+---
+
+{tags.length > 0 && (
+  <div
+    role="group"
+    aria-label="Filter by tag"
+    data-filter-strip
+    class="flex flex-wrap items-center gap-2 mb-6 font-mono text-[10px] tracking-[0.16em] uppercase"
+  >
+    <span class="text-mute-2">{label}</span>
+    <button
+      type="button"
+      data-filter-chip="all"
+      aria-pressed="true"
+      class="filter-chip px-2 py-0.5 border transition-colors"
+    >
+      all
+    </button>
+    {tags.map((t) => (
+      <button
+        type="button"
+        data-filter-chip={t}
+        aria-pressed="false"
+        class="filter-chip px-2 py-0.5 border transition-colors"
+      >
+        {t}
+      </button>
+    ))}
+  </div>
+)}
+
+<style is:global>
+  .filter-hidden {
+    display: none;
+  }
+
+  .filter-chip {
+    border-color: #2a2a28;
+    color: #6a6a66;
+  }
+  .filter-chip:hover {
+    color: #e8e5dd;
+    border-color: #e8e5dd;
+  }
+  .filter-chip[aria-pressed='true'] {
+    border-color: #d4ff3a;
+    color: #d4ff3a;
+  }
+</style>
+
+<script>
+  type Win = Window & { __filterStripWired?: boolean };
+  if (!(window as Win).__filterStripWired) {
+    (window as Win).__filterStripWired = true;
+    document.addEventListener('click', (e) => {
+      const chip = (e.target as Element | null)?.closest<HTMLButtonElement>(
+        '[data-filter-chip]',
+      );
+      if (!chip) return;
+      const strip = chip.closest('[data-filter-strip]');
+      if (!strip) return;
+      const active = chip.getAttribute('data-filter-chip') ?? 'all';
+      strip
+        .querySelectorAll<HTMLButtonElement>('[data-filter-chip]')
+        .forEach((c) => {
+          c.setAttribute('aria-pressed', c === chip ? 'true' : 'false');
+        });
+      const items = document.querySelectorAll<HTMLElement>(
+        '[data-filter-target] [data-tags]',
+      );
+      let visible = 0;
+      items.forEach((item) => {
+        const tags = (item.getAttribute('data-tags') ?? '')
+          .split('|')
+          .filter(Boolean);
+        const show = active === 'all' || tags.includes(active);
+        item.classList.toggle('filter-hidden', !show);
+        if (show) visible++;
+      });
+      document
+        .querySelectorAll<HTMLElement>('[data-filter-count]')
+        .forEach((el) => {
+          el.textContent = String(visible);
+        });
+    });
+  }
+</script>
