@@ -6,7 +6,7 @@ import svelte from '@astrojs/svelte';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://yourdomain.com', // Update with your actual domain
+  site: 'https://ercan-atak.de',
   integrations: [
     svelte(),
     mdx(),

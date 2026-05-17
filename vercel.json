@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://ercan-atak.de/$1",
+      "permanent": true,
+      "has": [
+        { "type": "host", "value": "www.ercan-atak.de" }
+      ]
+    }
+  ]
+}
