@@ -236,3 +236,22 @@ Setting menu drifts; current path is something like Settings → Security → "R
 - The `/photojockeysblog/` path is intentionally obscure (replaces conventional `/admin/`) to cut bot probes. **Not** listed in `robots.txt` — the page itself emits `<meta name="robots" content="noindex,nofollow,noarchive">` instead.
 - Real security still comes from the PAT, not URL obscurity.
 - Cloudinary `api_key` is exposed in `config.yml` by design — per Decap CMS docs it's safe to publish. Only `api_secret` (used by `sync-exif.mjs` server-side) must stay private.
+
+## Domain & email
+
+Production: **https://ercan-atak.de** (apex canonical; `www` 308-redirects to apex via `vercel.json`).
+
+- **Registrar:** Porkbun. **DNS host:** Cloudflare (zone, DNS-only / gray cloud — never proxy records that point to Vercel; the two CDNs conflict on TLS). **Hosting:** Vercel (project `developer-portefeuille-of-ercan-atak`).
+- **DNS records to know:** `CNAME @ → cname.vercel-dns.com` (Cloudflare flattens at apex), `CNAME www → cname.vercel-dns.com`. Both DNS-only.
+- **Email** via Cloudflare Email Routing (free):
+  - `contact@ercan-atak.de` → `atakee+portfolio@gmail.com`
+  - `info@ercan-atak.de` → `atakee+portfolio@gmail.com`
+  - Catch-all: **Drop** (silent — kills spam to `admin@`, `webmaster@`, etc.; legit typos also drop)
+  - SPF + DKIM auto-added by Cloudflare (don't edit manually).
+- **Form** (`<ReachForm>`) posts to Web3Forms with an inlined per-form `access_key` (see `src/components/ReachForm.svelte` — public by design per Web3Forms docs, gitleaks-ignored). The Web3Forms account is set to deliver to `atakee+portfolio@gmail.com`, so both form submissions AND direct emails land at the same Gmail sub-address. One Gmail filter (`to:atakee+portfolio@gmail.com`) catches both.
+- **Where things live:**
+  - DNS records, MX, email routing rules → **Cloudflare dashboard** (not in source)
+  - SSL + domain attachment → **Vercel dashboard** or `vercel domains` CLI
+  - `www → apex` redirect → `vercel.json` `redirects` rule with `has: host` matcher (source-controlled)
+  - Sitemap / canonical URLs / og:url → `astro.config.mjs` `site:` field
+  - Surfaced `contact@` mailto in the UI → `About.astro` (under `$ reach`), `Footer.astro`, and JSON-LD `Person` schema in `BaseLayout.astro`
