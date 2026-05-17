@@ -40,11 +40,12 @@ collections:
       - name: mainImage
         label: Main Image
         widget: object
-        required: true
-        hint: 'Cover image — click to open the Cloudinary library.'
+        required: false
+        hint: 'Cover image — click to open the Cloudinary library. Optional for linkposts.'
         fields:
-          - { name: src, label: Source, widget: image, required: true }
-          - { name: alt, label: Alt text, widget: string, required: true }
+          - { name: src, label: Source, widget: image, required: false }
+          - { name: alt, label: Alt text, widget: string, required: false }
+      - { name: externalUrl, label: External URL, widget: string, required: false, hint: 'Linkpost — when set, the post title links to this URL. Leave empty for a regular post.' }
       - name: categories
         label: Categories
         widget: list

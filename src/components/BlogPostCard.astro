@@ -1,5 +1,5 @@
 ---
-import { cn } from '@/lib/utils';
+import { cn, getHostname } from '@/lib/utils';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -8,7 +8,9 @@ interface Props {
 }
 
 const { post, class: className } = Astro.props;
-const { title, description, publishedAt, categories } = post.data;
+const { title, description, publishedAt, categories, externalUrl } = post.data;
+const isLinkpost = !!externalUrl;
+const cardHref = isLinkpost ? externalUrl! : `/blog/${post.slug}`;
 
 function fmtDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -16,7 +18,11 @@ function fmtDate(d: Date): string {
 ---
 
 <article class={cn('group block border border-ink-3 bg-ink-2 transition-colors hover:bg-[#1e1e22]', className)}>
-  <a href={`/blog/${post.slug}`} class="block p-6">
+  <a
+    href={cardHref}
+    class="block p-6"
+    {...(isLinkpost && { target: '_blank', rel: 'noopener noreferrer' })}
+  >
     <div class="flex justify-between mb-4" aria-hidden="true">
       {Array.from({ length: 8 }).map(() => (
         <i class="block w-5 h-2 bg-ink"></i>
@@ -30,7 +36,7 @@ function fmtDate(d: Date): string {
     )}
 
     <h3 class="font-display font-bold text-[22px] leading-[1.2] text-paper-hi tracking-[-0.02em] m-0">
-      {title}
+      {title}{isLinkpost && <span aria-hidden="true"> ↗</span>}
     </h3>
 
     {description && (
@@ -41,7 +47,9 @@ function fmtDate(d: Date): string {
 
     <div class="mt-5 pt-3 border-t border-dashed border-ink-3 flex justify-between text-[10px] tracking-[0.12em] text-mute-2">
       <span>{fmtDate(publishedAt)}</span>
-      <span class="text-phosphor uppercase">read →</span>
+      <span class="text-phosphor uppercase">
+        {isLinkpost ? `via ${getHostname(externalUrl!)} ↗` : 'read →'}
+      </span>
     </div>
   </a>
 </article>

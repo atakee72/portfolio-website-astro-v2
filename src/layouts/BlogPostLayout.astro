@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
+import { getHostname } from '@/lib/utils';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -8,7 +9,8 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, description, author, mainImage, publishedAt, categories, stack } = post.data;
+const { title, description, author, mainImage, publishedAt, categories, stack, externalUrl } = post.data;
+const isLinkpost = !!externalUrl;
 
 function fmtDate(d: Date): string {
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -34,6 +36,17 @@ const readTime = Math.max(1, Math.round(wordCount / 200));
       <p class="text-[11px] text-mute-2 tracking-[0.14em] font-mono mb-4">
         // by {author.name} · {readTime} min read · <time datetime={publishedAt.toISOString()}>{fmtDate(publishedAt)}</time>
       </p>
+
+      {isLinkpost && (
+        <a
+          href={externalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 mb-6 px-3 py-2 border border-phosphor text-phosphor text-[12px] tracking-[0.14em] uppercase hover:bg-phosphor hover:text-ink transition-colors"
+        >
+          ↗ read original at {getHostname(externalUrl!)}
+        </a>
+      )}
 
       <h1 class="font-display font-bold text-paper-hi text-[clamp(32px,5vw,52px)] leading-[1.05] tracking-[-0.02em] mb-4">
         {title}

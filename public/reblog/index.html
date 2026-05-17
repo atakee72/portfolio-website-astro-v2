@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <title>reblog — capture</title>
+    <style>
+      :root {
+        --ink: #0d0d0c;
+        --ink-2: #18181a;
+        --ink-3: #2a2a28;
+        --mute: #6a6a66;
+        --mute-2: #9a9a92;
+        --paper: #e8e5dd;
+        --paper-hi: #f4f1ea;
+        --phosphor: #d4ff3a;
+        --safelight: #ff3b30;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 24px 16px;
+        background: var(--ink);
+        color: var(--paper);
+        font: 14px/1.6 "JetBrains Mono", ui-monospace, monospace;
+      }
+      .wrap { max-width: 760px; margin: 0 auto; }
+      h1 { font-size: 22px; letter-spacing: -0.02em; color: var(--paper-hi); margin: 0 0 8px; }
+      .crumb {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--mute-2);
+        margin-bottom: 24px;
+      }
+      .crumb a { color: var(--mute-2); text-decoration: none; }
+      .crumb a:hover { color: var(--phosphor); }
+      .panel {
+        background: var(--ink-2);
+        border: 1px solid var(--ink-3);
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      .panel-label {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--mute-2);
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid var(--ink-3);
+      }
+      .bookmarklet a {
+        display: inline-block;
+        padding: 8px 14px;
+        border: 1px solid var(--phosphor);
+        color: var(--phosphor);
+        text-decoration: none;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        font-size: 11px;
+        cursor: grab;
+      }
+      .bookmarklet a:hover { background: var(--phosphor); color: var(--ink); }
+      .bookmarklet p { font-size: 12px; color: var(--mute-2); margin: 10px 0 0; }
+      label {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--phosphor);
+        margin: 12px 0 4px;
+      }
+      label .req { color: var(--safelight); }
+      input[type="text"], input[type="url"], textarea {
+        width: 100%;
+        background: var(--ink);
+        border: 1px solid var(--ink-3);
+        color: var(--paper);
+        font: inherit;
+        padding: 8px 10px;
+        outline: none;
+      }
+      input:focus, textarea:focus { border-color: var(--phosphor); }
+      textarea { min-height: 140px; resize: vertical; }
+      .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      @media (max-width: 600px) { .row-2 { grid-template-columns: 1fr; } }
+      .checkbox-row { display: flex; align-items: center; gap: 10px; margin: 18px 0; }
+      .checkbox-row label { margin: 0; color: var(--paper); }
+      button.primary {
+        background: var(--phosphor);
+        color: var(--ink);
+        border: 1px solid var(--phosphor);
+        font: inherit;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 10px 18px;
+        cursor: pointer;
+      }
+      button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+      button.secondary {
+        background: transparent;
+        color: var(--mute-2);
+        border: 1px solid var(--ink-3);
+        font: inherit;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 6px 10px;
+        cursor: pointer;
+        margin-left: 8px;
+      }
+      .status { margin-top: 16px; padding: 10px 12px; font-size: 12px; }
+      .status.ok { color: var(--phosphor); border: 1px solid var(--phosphor); }
+      .status.err { color: var(--safelight); border: 1px solid var(--safelight); }
+      .help { font-size: 11px; color: var(--mute-2); margin-top: 4px; }
+      code { font-family: inherit; background: var(--ink); padding: 1px 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="crumb"><a href="/">// home</a> &nbsp;/&nbsp; reblog</p>
+      <h1>capture a linkpost</h1>
+
+      <div class="panel bookmarklet">
+        <div class="panel-label">// bookmarklet</div>
+        <a id="bookmarklet-link" draggable="true">drag → bookmarks bar</a>
+        <p>
+          Drag the green button to your browser's bookmarks bar. On any article you want to reblog,
+          click the bookmark — this page opens prefilled with the article's title, URL,
+          description and og:image. Add your commentary below, hit save.
+        </p>
+      </div>
+
+      <form id="reblog-form" class="panel" autocomplete="off">
+        <div class="panel-label">// new linkpost</div>
+
+        <label for="f-title">title <span class="req">*</span></label>
+        <input id="f-title" name="title" type="text" required />
+
+        <label for="f-url">external url <span class="req">*</span></label>
+        <input id="f-url" name="externalUrl" type="url" required />
+
+        <label for="f-description">description <span class="req">*</span></label>
+        <textarea id="f-description" name="description" required style="min-height: 60px;"></textarea>
+        <p class="help">one-line summary shown on cards and meta tags.</p>
+
+        <div class="row-2">
+          <div>
+            <label for="f-image">mainImage src</label>
+            <input id="f-image" name="mainImageSrc" type="text" />
+          </div>
+          <div>
+            <label for="f-alt">mainImage alt</label>
+            <input id="f-alt" name="mainImageAlt" type="text" />
+          </div>
+        </div>
+
+        <label for="f-categories">categories (comma-separated)</label>
+        <input id="f-categories" name="categories" type="text" placeholder="e.g. Astro, Performance" />
+
+        <label for="f-body">commentary</label>
+        <textarea id="f-body" name="body" placeholder="Your take on the article..."></textarea>
+
+        <div class="checkbox-row">
+          <input id="f-draft" name="draft" type="checkbox" checked />
+          <label for="f-draft">draft (hide in production)</label>
+        </div>
+
+        <button type="submit" class="primary" id="save-btn">save → commit to github</button>
+        <button type="button" class="secondary" id="reset-pat">reset PAT</button>
+
+        <div id="status"></div>
+      </form>
+    </div>
+
+    <script>
+      (function () {
+        const REPO = 'atakee72/portfolio-website-astro-v2';
+        const BRANCH = 'main';
+        const PAT_KEY = 'reblog_gh_pat';
+        const SITE_ORIGIN = 'https://ercan-atak.de';
+
+        // --- Bookmarklet: build the href and inject. Single line, no comments
+        //     since browsers strip newlines in javascript: URLs anyway.
+        const bm =
+          "javascript:(function(){const g=p=>document.querySelector('meta[property=\"'+p+'\"]')?.content||'';const params=new URLSearchParams({title:document.title,url:location.href,description:g('og:description'),image:g('og:image')});window.open('" +
+          SITE_ORIGIN +
+          "/reblog/?'+params.toString())})()";
+        document.getElementById('bookmarklet-link').setAttribute('href', bm);
+
+        // --- Prefill from query params
+        const params = new URLSearchParams(location.search);
+        const $ = (id) => document.getElementById(id);
+        if (params.get('title')) $('f-title').value = params.get('title');
+        if (params.get('url')) $('f-url').value = params.get('url');
+        if (params.get('description')) $('f-description').value = params.get('description');
+        if (params.get('image')) $('f-image').value = params.get('image');
+
+        // --- PAT prompt (first use)
+        function getPat() {
+          let pat = localStorage.getItem(PAT_KEY);
+          if (!pat) {
+            pat = prompt(
+              'GitHub Personal Access Token (fine-grained, scope: Contents Read+Write on this repo):',
+            );
+            if (pat) localStorage.setItem(PAT_KEY, pat.trim());
+          }
+          return pat;
+        }
+        $('reset-pat').onclick = () => {
+          if (confirm('Clear stored PAT? You will be re-prompted on next save.')) {
+            localStorage.removeItem(PAT_KEY);
+            setStatus('PAT cleared.', 'ok');
+          }
+        };
+
+        // --- Slugify
+        function slugify(s) {
+          return s
+            .toLowerCase()
+            .normalize('NFKD')
+            .replace(/[̀-ͯ]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 60);
+        }
+        // Fallback hash for empty slugs or collision suffixes.
+        function hash(s) {
+          let h = 0;
+          for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+          return (h >>> 0).toString(36).slice(0, 6);
+        }
+
+        // --- MDX builder. Uses JSON.stringify for strings (YAML accepts JSON
+        //     scalars, so quotes/newlines are escaped correctly).
+        function buildMdx(d) {
+          const today = new Date().toISOString().slice(0, 10);
+          const cats = d.categories
+            .split(',')
+            .map((c) => c.trim())
+            .filter(Boolean);
+          const lines = [
+            '---',
+            `title: ${JSON.stringify(d.title)}`,
+            `description: ${JSON.stringify(d.description)}`,
+            `publishedAt: ${today}`,
+            'author:',
+            '  name: "Ercan Atak"',
+          ];
+          if (d.mainImageSrc) {
+            lines.push(
+              'mainImage:',
+              `  src: ${JSON.stringify(d.mainImageSrc)}`,
+              `  alt: ${JSON.stringify(d.mainImageAlt || d.title)}`,
+            );
+          }
+          if (cats.length) {
+            lines.push(`categories: ${JSON.stringify(cats)}`);
+          }
+          lines.push(
+            `externalUrl: ${JSON.stringify(d.externalUrl)}`,
+            `draft: ${d.draft}`,
+            '---',
+            '',
+            d.body || '_(no commentary yet)_',
+            '',
+          );
+          return lines.join('\n');
+        }
+
+        // --- UTF-8 safe base64 for GitHub Contents API
+        function b64(s) {
+          return btoa(unescape(encodeURIComponent(s)));
+        }
+
+        // --- GitHub Contents existence check (returns true if file exists)
+        async function exists(path, pat) {
+          const r = await fetch(
+            `https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}`,
+            {
+              headers: {
+                Authorization: `Bearer ${pat}`,
+                Accept: 'application/vnd.github+json',
+              },
+            },
+          );
+          return r.status === 200;
+        }
+
+        // --- GitHub Contents PUT (create new file)
+        async function commit(path, content, message, pat) {
+          const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${pat}`,
+              Accept: 'application/vnd.github+json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message,
+              content: b64(content),
+              branch: BRANCH,
+            }),
+          });
+          if (!r.ok) {
+            const j = await r.json().catch(() => ({}));
+            throw new Error(`${r.status} ${j.message ?? r.statusText}`);
+          }
+          return r.json();
+        }
+
+        function setStatus(msg, kind) {
+          const el = $('status');
+          el.textContent = msg;
+          el.className = 'status ' + (kind || 'ok');
+        }
+
+        // --- Submit
+        $('reblog-form').onsubmit = async (e) => {
+          e.preventDefault();
+          const btn = $('save-btn');
+          btn.disabled = true;
+          setStatus('working…', 'ok');
+
+          try {
+            const data = {
+              title: $('f-title').value.trim(),
+              externalUrl: $('f-url').value.trim(),
+              description: $('f-description').value.trim(),
+              mainImageSrc: $('f-image').value.trim(),
+              mainImageAlt: $('f-alt').value.trim(),
+              categories: $('f-categories').value,
+              body: $('f-body').value,
+              draft: $('f-draft').checked,
+            };
+            if (data.mainImageSrc && !data.mainImageAlt) {
+              throw new Error('mainImage alt is required when mainImage src is set');
+            }
+
+            const pat = getPat();
+            if (!pat) throw new Error('PAT required to commit.');
+
+            let slug = slugify(data.title);
+            if (!slug) slug = 'reblog-' + hash(data.externalUrl);
+            const baseSlug = slug;
+            // Collision check — if exists, append URL-hash suffix
+            if (await exists(`src/content/blog/${baseSlug}.mdx`, pat)) {
+              slug = `${baseSlug}-${hash(data.externalUrl)}`;
+            }
+
+            const mdx = buildMdx(data);
+            const path = `src/content/blog/${slug}.mdx`;
+            const message = `feat(blog): linkpost — ${data.title}`.slice(0, 72);
+
+            await commit(path, mdx, message, pat);
+
+            setStatus(
+              `✓ committed to ${path}. Vercel will rebuild — post will be live at /blog/${slug} (or visible in dev if draft).`,
+              'ok',
+            );
+            // Optimistic: clear body so a second reblog doesn't carry over commentary
+            $('f-body').value = '';
+          } catch (err) {
+            console.error(err);
+            setStatus('! ' + (err.message || String(err)), 'err');
+          } finally {
+            btn.disabled = false;
+          }
+        };
+      })();
+    </script>
+  </body>
+</html>

@@ -46,12 +46,15 @@ const blogCollection = defineCollection({
       image: z.string().optional(),
       bio: z.string().optional(),
     }),
-    mainImage: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
+    mainImage: z
+      .object({
+        src: z.string(),
+        alt: z.string(),
+      })
+      .optional(),
     categories: z.array(z.string()).default([]),
     stack: z.array(z.string()).default([]),
+    externalUrl: z.string().url().or(z.literal('')).optional(),
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
   }),

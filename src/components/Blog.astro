@@ -1,6 +1,7 @@
 ---
 import AppWrap from './AppWrap.astro';
 import BlogPostCard from './BlogPostCard.astro';
+import { getHostname } from '@/lib/utils';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -12,6 +13,12 @@ interface Props {
 const { posts, seeAllHref, hasMore = false } = Astro.props;
 const featuredPost = posts.find((p) => p.data.featured);
 const gridPosts = posts.filter((p) => p !== featuredPost);
+const featuredIsLinkpost = !!featuredPost?.data.externalUrl;
+const featuredHref = featuredIsLinkpost
+  ? featuredPost!.data.externalUrl!
+  : featuredPost
+    ? `/blog/${featuredPost.slug}`
+    : '';
 ---
 
 <AppWrap id="blog" className="!min-h-0 block">
@@ -37,7 +44,8 @@ const gridPosts = posts.filter((p) => p !== featuredPost);
 
     {featuredPost && (
       <a
-        href={`/blog/${featuredPost.slug}`}
+        href={featuredHref}
+        {...(featuredIsLinkpost && { target: '_blank', rel: 'noopener noreferrer' })}
         class:list={[
           'block border border-ink-3 bg-ink-2 mb-3 transition-colors hover:bg-[#1e1e22] grid grid-cols-1 gap-0',
           featuredPost.data.mainImage && 'lg:grid-cols-[1.4fr_1fr]',
@@ -55,11 +63,13 @@ const gridPosts = posts.filter((p) => p !== featuredPost);
             // FEATURED
           </span>
           <h3 class="font-display font-bold text-[28px] text-paper-hi tracking-[-0.02em] mt-1">
-            {featuredPost.data.title}
+            {featuredPost.data.title}{featuredIsLinkpost && <span aria-hidden="true"> ↗</span>}
           </h3>
           <p class="text-[12px] text-paper-2">{featuredPost.data.description}</p>
           <span class="text-[11px] text-phosphor tracking-[0.12em] uppercase mt-2">
-            open frame →
+            {featuredIsLinkpost
+              ? `via ${getHostname(featuredPost.data.externalUrl!)} ↗`
+              : 'open frame →'}
           </span>
         </div>
       </a>
