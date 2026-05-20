@@ -109,6 +109,48 @@ collections:
             default: {}
       - { name: draft, label: Draft, widget: boolean, required: false, default: true, hint: 'Drafts are hidden on the live site.' }
 
+  - name: paintings
+    label: Paintings
+    label_singular: Painting
+    folder: src/content/paintings
+    extension: json
+    format: json
+    create: true
+    slug: '{{slug}}'
+    summary: '{{fields.title}} ({{fields.year}})'
+    sortable_fields: ['year', 'title']
+    fields:
+      - { name: title, label: Title, widget: string, required: true }
+      - { name: year, label: Year, widget: string, required: true, hint: 'e.g. 2024 or 2022–2024' }
+      - { name: medium, label: Medium, widget: string, required: true, hint: 'e.g. Oil on canvas, Watercolour, Acrylic, Drawing, Mixed media, Gouache' }
+      - name: subjects
+        label: Subjects
+        widget: list
+        required: false
+        default: []
+        field: { name: subject, label: Subject, widget: string }
+        hint: 'e.g. Nude, Portrait, Landscape, Still life'
+      - { name: dimensions, label: Dimensions, widget: string, required: false, hint: 'e.g. 70×50 cm' }
+      - { name: series, label: Series, widget: string, required: false, hint: 'Optional thematic grouping (latent — will enable /paints/series/<name> later)' }
+      - { name: description, label: Description, widget: text, required: false }
+      - name: image
+        label: Image
+        widget: object
+        required: true
+        hint: 'Click to open Cloudinary library.'
+        fields:
+          - { name: cldPath, label: Cloudinary image, widget: image, required: true }
+          - { name: alt, label: Alt text, widget: string, required: true }
+      - name: tags
+        label: Extra tags
+        widget: list
+        required: false
+        default: []
+        field: { name: tag, label: Tag, widget: string }
+        hint: 'Free-form (e.g. exhibited, sold, in-progress)'
+      - { name: featured, label: Featured, widget: boolean, required: false, default: false }
+      - { name: draft, label: Draft, widget: boolean, required: false, default: false }
+
   - name: projects
     label: Case Studies
     label_singular: Project

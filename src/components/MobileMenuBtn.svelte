@@ -6,7 +6,7 @@
     { label: 'sheet', href: '#sheet' },
     { label: 'journal', href: '#blog' },
     { label: 'rolls', href: '/lens' },
-    { label: 'paints', href: '#' },
+    { label: 'paints', href: '/paints' },
     { label: 'reach', href: '#reach-form' },
   ];
 

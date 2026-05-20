@@ -116,9 +116,30 @@ const projectsCollection = defineCollection({
   }),
 });
 
+const paintingsCollection = defineCollection({
+  type: 'data',
+  schema: z.object({
+    title: z.string(),
+    year: z.string(),
+    medium: z.string(),
+    subjects: z.array(z.string()).default([]),
+    dimensions: z.string().optional(),
+    series: z.string().optional(),
+    description: z.string().optional(),
+    image: z.object({
+      cldPath: z.string(),
+      alt: z.string(),
+    }),
+    tags: z.array(z.string()).default([]),
+    featured: z.boolean().default(false),
+    draft: z.boolean().default(false),
+  }),
+});
+
 export const collections = {
   blog: blogCollection,
   testimonials: testimonialsCollection,
   rolls: rollsCollection,
   projects: projectsCollection,
+  paintings: paintingsCollection,
 };

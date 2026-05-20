@@ -2,16 +2,18 @@
 interface Props {
   tags: string[];
   label?: string;
+  name?: string;
 }
 
-const { tags, label = '// filter' } = Astro.props;
+const { tags, label = '// filter', name } = Astro.props;
 ---
 
 {tags.length > 0 && (
   <div
     role="group"
-    aria-label="Filter by tag"
+    aria-label={`Filter by ${name ?? 'tag'}`}
     data-filter-strip
+    data-filter-name={name}
     class="flex flex-wrap items-center gap-2 mb-6 font-mono text-[10px] tracking-[0.16em] uppercase"
   >
     <span class="text-mute-2">{label}</span>
@@ -59,6 +61,61 @@ const { tags, label = '// filter' } = Astro.props;
   type Win = Window & { __filterStripWired?: boolean };
   if (!(window as Win).__filterStripWired) {
     (window as Win).__filterStripWired = true;
+
+    // Read the value(s) on an item for a given axis.
+    // Legacy axis ('tags' = no data-filter-name) reads from data-tags.
+    // New axes read from data-filter-<axis>.
+    const itemValuesForAxis = (item: HTMLElement, axis: string): string[] => {
+      const attr =
+        axis === 'tags' ? 'data-tags' : `data-filter-${axis}`;
+      return (item.getAttribute(attr) ?? '').split('|').filter(Boolean);
+    };
+
+    // Re-evaluate every item on the page against every strip on the page.
+    // An item is visible iff it passes ALL axes' active filters.
+    const applyFilters = () => {
+      const strips = document.querySelectorAll<HTMLElement>(
+        '[data-filter-strip]',
+      );
+      type AxisFilter = { axis: string; active: string };
+      const axes: AxisFilter[] = [];
+      strips.forEach((s) => {
+        const axis = s.getAttribute('data-filter-name') ?? 'tags';
+        const activeChip = s.querySelector<HTMLButtonElement>(
+          '[data-filter-chip][aria-pressed="true"]',
+        );
+        axes.push({
+          axis,
+          active: activeChip?.getAttribute('data-filter-chip') ?? 'all',
+        });
+      });
+
+      // Union selector: legacy items (data-tags) AND new items (data-filter-item).
+      const items = document.querySelectorAll<HTMLElement>(
+        '[data-filter-target] [data-filter-item], [data-filter-target] [data-tags]',
+      );
+      let visible = 0;
+      items.forEach((item) => {
+        let show = true;
+        for (const { axis, active } of axes) {
+          if (active === 'all') continue;
+          const values = itemValuesForAxis(item, axis);
+          if (!values.includes(active)) {
+            show = false;
+            break;
+          }
+        }
+        item.classList.toggle('filter-hidden', !show);
+        if (show) visible++;
+      });
+
+      document
+        .querySelectorAll<HTMLElement>('[data-filter-count]')
+        .forEach((el) => {
+          el.textContent = String(visible);
+        });
+    };
+
     document.addEventListener('click', (e) => {
       const chip = (e.target as Element | null)?.closest<HTMLButtonElement>(
         '[data-filter-chip]',
@@ -66,29 +123,12 @@ const { tags, label = '// filter' } = Astro.props;
       if (!chip) return;
       const strip = chip.closest('[data-filter-strip]');
       if (!strip) return;
-      const active = chip.getAttribute('data-filter-chip') ?? 'all';
       strip
         .querySelectorAll<HTMLButtonElement>('[data-filter-chip]')
         .forEach((c) => {
           c.setAttribute('aria-pressed', c === chip ? 'true' : 'false');
         });
-      const items = document.querySelectorAll<HTMLElement>(
-        '[data-filter-target] [data-tags]',
-      );
-      let visible = 0;
-      items.forEach((item) => {
-        const tags = (item.getAttribute('data-tags') ?? '')
-          .split('|')
-          .filter(Boolean);
-        const show = active === 'all' || tags.includes(active);
-        item.classList.toggle('filter-hidden', !show);
-        if (show) visible++;
-      });
-      document
-        .querySelectorAll<HTMLElement>('[data-filter-count]')
-        .forEach((el) => {
-          el.textContent = String(visible);
-        });
+      applyFilters();
     });
   }
 </script>

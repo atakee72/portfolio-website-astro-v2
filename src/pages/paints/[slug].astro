@@ -1,0 +1,255 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+import CloudPhoto from '@/components/CloudPhoto.astro';
+import { getAllPaintings } from '@/lib/content';
+import { getCldImageUrl } from 'astro-cloudinary/helpers';
+
+export async function getStaticPaths() {
+  const paintings = await getAllPaintings();
+  const total = paintings.length;
+  return paintings.map((painting, i) => ({
+    params: { slug: painting.id },
+    props: {
+      painting,
+      prev: paintings[(i - 1 + total) % total],
+      next: paintings[(i + 1) % total],
+      idx: i,
+      total,
+    },
+  }));
+}
+
+const { painting, prev, next, total } = Astro.props;
+const { data } = painting;
+
+const metaParts: string[] = [];
+metaParts.push(data.medium);
+if (data.dimensions) metaParts.push(data.dimensions);
+metaParts.push(data.year);
+const metaLine = metaParts.join(' · ');
+
+const prevHref = `/paints/${prev.id}`;
+const nextHref = `/paints/${next.id}`;
+const permalinkHref = `/paints/${painting.id}`;
+
+const ogImage = getCldImageUrl({
+  src: data.image.cldPath,
+  width: 1200,
+  height: 630,
+  crop: 'fill',
+  gravity: 'auto',
+});
+
+const pageTitle = `${data.title} (${data.year}) — Paints`;
+const pageDescription = data.description
+  ? `${data.description.slice(0, 160)}`
+  : `${data.title} · ${metaLine}`;
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  ogImage={ogImage}
+  ogType="article"
+>
+  <Navbar />
+
+  <main
+    class="
+      px-4 pt-4 pb-6 md:px-6 md:pt-6 md:pb-7 lg:px-9 lg:pt-9 lg:pb-7
+      max-w-[1320px] mx-auto
+    "
+  >
+    <p class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-5 font-mono">
+      <a href="/" class="hover:text-phosphor transition-colors">// home</a>
+      &nbsp;/&nbsp;
+      <a href="/paints" class="hover:text-phosphor transition-colors">paints</a>
+      &nbsp;/&nbsp;{painting.id}
+    </p>
+
+    <h1
+      class="m-0 font-display font-bold text-paper-hi text-[clamp(32px,5vw,56px)] tracking-[-0.02em] leading-[0.95] mb-2"
+    >
+      {data.title}
+    </h1>
+
+    <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono mb-8">
+      {metaLine}{data.series && ` · ${data.series}`}
+    </p>
+
+    <div class="relative mx-auto max-w-[1100px] border border-ink-3 overflow-hidden bg-ink-2">
+      <CloudPhoto
+        cldPath={data.image.cldPath}
+        alt={data.image.alt}
+        width={2000}
+        loading="eager"
+        class="block w-full h-auto"
+      />
+
+      {total > 1 && (
+        <>
+          <a
+            href={prevHref}
+            data-painting-prev
+            aria-label="Previous painting"
+            class="absolute left-3 top-1/2 -translate-y-1/2 z-[3] w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"></path>
+            </svg>
+          </a>
+          <a
+            href={nextHref}
+            data-painting-next
+            aria-label="Next painting"
+            class="absolute right-3 top-1/2 -translate-y-1/2 z-[3] w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"></path>
+            </svg>
+          </a>
+        </>
+      )}
+
+      <button
+        type="button"
+        data-copy-link={permalinkHref}
+        aria-label="Copy link to this painting"
+        class="copy-link-btn absolute top-3 right-3 z-[3] w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
+      >
+        <svg class="copy-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"></path>
+        </svg>
+        <svg class="check-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"></path>
+        </svg>
+        <span class="copied-label">copied</span>
+      </button>
+
+      <div class="absolute left-3 right-3 bottom-3 z-[3] flex justify-between items-end gap-3 text-[12px] tracking-[0.16em] text-paper">
+        <div class="bg-ink-2 border border-ink-3 px-3 py-2">
+          <div>{data.medium}</div>
+          {data.dimensions && (
+            <div class="text-paper-2 normal-case tracking-[0.04em] mt-1">
+              {data.dimensions}
+            </div>
+          )}
+          <div class="text-mute-2 font-mono text-[11px] tracking-[0.08em] mt-1">
+            {data.year}{data.series && ` · ${data.series}`}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {data.description && (
+      <div class="max-w-[760px] mx-auto mt-8 text-[14px] text-paper-2 leading-[1.7]">
+        <p class="m-0 whitespace-pre-wrap">{data.description}</p>
+      </div>
+    )}
+
+    {data.tags.length > 0 && (
+      <div class="max-w-[760px] mx-auto mt-6 flex flex-wrap gap-2">
+        {data.tags.map((t) => (
+          <span class="px-2 py-0.5 border border-ink-3 text-mute-2 text-[10px] tracking-[0.16em] uppercase">
+            {t}
+          </span>
+        ))}
+      </div>
+    )}
+
+    <div class="mt-8 flex justify-between items-center text-[12px] tracking-[0.14em] text-mute-2 font-mono">
+      <a href="/paints" class="hover:text-phosphor transition-colors">
+        ← back to paints
+      </a>
+      <span>{data.year}</span>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* Copy-link button: swap link icon → checkmark + "copied" flash when
+     data-state="copied" (set briefly by the inline script below). */
+  .copy-link-btn .check-icon,
+  .copy-link-btn .copied-label {
+    display: none;
+  }
+  .copy-link-btn[data-state='copied'] {
+    background-color: #00ff66;
+    color: #0d0d0c;
+    border-color: #00ff66;
+    width: auto;
+    padding: 0 0.6rem;
+    gap: 0.4rem;
+  }
+  .copy-link-btn[data-state='copied'] .copy-icon {
+    display: none;
+  }
+  .copy-link-btn[data-state='copied'] .check-icon,
+  .copy-link-btn[data-state='copied'] .copied-label {
+    display: inline-flex;
+  }
+  .copy-link-btn[data-state='copied'] .copied-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>
+
+<script>
+  type WiredWindow = Window & { __paintingPageWired?: boolean };
+  if (!(window as WiredWindow).__paintingPageWired) {
+    (window as WiredWindow).__paintingPageWired = true;
+
+    document.addEventListener('click', async (e) => {
+      const btn = (e.target as Element | null)?.closest(
+        '[data-copy-link]',
+      ) as HTMLButtonElement | null;
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const href = btn.getAttribute('data-copy-link');
+      if (!href) return;
+      const absoluteUrl = new URL(href, location.origin).href;
+
+      try {
+        await navigator.clipboard.writeText(absoluteUrl);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = absoluteUrl;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      btn.setAttribute('data-state', 'copied');
+      window.setTimeout(() => btn.removeAttribute('data-state'), 1600);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+      if (e.key === 'ArrowLeft') {
+        const prev = document.querySelector('[data-painting-prev]') as HTMLAnchorElement | null;
+        if (prev) {
+          e.preventDefault();
+          window.location.href = prev.href;
+        }
+      } else if (e.key === 'ArrowRight') {
+        const next = document.querySelector('[data-painting-next]') as HTMLAnchorElement | null;
+        if (next) {
+          e.preventDefault();
+          window.location.href = next.href;
+        }
+      }
+    });
+  }
+</script>
