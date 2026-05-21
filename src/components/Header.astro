@@ -3,6 +3,7 @@ import AppWrap from './AppWrap.astro';
 import TerminalFeed from './TerminalFeed.astro';
 import ContactSheet from './ContactSheet.astro';
 import SprocketRow from './SprocketRow.astro';
+import { navItems } from '@/data/nav';
 
 const heroMeta = 'ROLL 12 · F/2.8 · 1/250 · ISO 400';
 const heroLines = ['ercan', 'atak'];
@@ -11,16 +12,6 @@ const stackline = '// building intelligent apps · ts/astro/react/svelte · berl
 const intro = `I keep three darkrooms: one for software, one for film, one for paint.
 Software-side I build intelligent apps — AI-augmented full-stack, agent
 orchestration, polished surfaces. Below is the latest contact sheet.`;
-
-// Anchors per audit finding C in the redesign plan.
-const navItems: { label: string; href: string }[] = [
-  { label: 'home', href: '#home' },
-  { label: 'sheet', href: '#sheet' },
-  { label: 'journal', href: '#blog' },
-  { label: 'rolls', href: '/lens' },
-  { label: 'paints', href: '/paints' },
-  { label: 'reach', href: '#reach-form' },
-];
 ---
 
 <AppWrap id="home" className="!min-h-0 block">

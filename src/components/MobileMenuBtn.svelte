@@ -1,14 +1,5 @@
 <script lang="ts">
-  // Mirrors the hero navItems array in Header.astro.
-  // Anchors per audit finding C in the redesign plan.
-  const navItems: { label: string; href: string }[] = [
-    { label: 'home', href: '#home' },
-    { label: 'sheet', href: '#sheet' },
-    { label: 'journal', href: '#blog' },
-    { label: 'rolls', href: '/lens' },
-    { label: 'paints', href: '/paints' },
-    { label: 'reach', href: '#reach-form' },
-  ];
+  import { navItems } from '../data/nav';
 
   let isOpen = $state(false);
 </script>

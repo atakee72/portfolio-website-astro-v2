@@ -20,9 +20,9 @@ const testimonials = FEATURES.SHOW_TESTIMONIALS ? await getAllTestimonials() : [
 <BaseLayout>
   <Navbar />
   <Header />
-  <About />
   <Work seeAllHref="/work" />
   <Blog posts={posts} seeAllHref="/blog" hasMore={hasMorePosts} />
   {FEATURES.SHOW_TESTIMONIALS && <Testimonials testimonials={testimonials} />}
+  <About />
   <Footer />
 </BaseLayout>

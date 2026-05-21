@@ -1,8 +1,10 @@
 ---
 import LiveClock from './LiveClock.svelte';
 import MobileMenuBtn from './MobileMenuBtn.svelte';
+import { navItems } from '@/data/nav';
 
 const cmd = './develop --contact-sheet 2026';
+const isHomepage = Astro.url.pathname === '/';
 ---
 
 <nav
@@ -20,10 +22,25 @@ const cmd = './develop --contact-sheet 2026';
     class="text-phosphor hover:text-paper transition-colors"
     aria-label="Home"
   >ercan@darkroom</a>
-  <span class="text-mute">:</span>
-  <span class="text-mute-2">~/portfolio</span>
-  <span class="text-mute">$</span>
-  <span class="text-paper hidden sm:inline">{cmd}</span>
+  <span class:list={['text-mute', !isHomepage && 'lg:hidden']}>:</span>
+  <span class:list={['text-mute-2', !isHomepage && 'lg:hidden']}>~/portfolio</span>
+  <span class:list={['text-mute', !isHomepage && 'lg:hidden']}>$</span>
+  <span class:list={['text-paper hidden sm:inline', !isHomepage && 'lg:hidden']}>{cmd}</span>
+
+  {!isHomepage && (
+    <ul class="hidden lg:flex flex-wrap items-baseline gap-3 list-none p-0 m-0 text-[10px] tracking-[0.16em] uppercase">
+      {navItems.map((n) => (
+        <li>
+          <a
+            href={n.href}
+            class="text-paper hover:text-phosphor transition-colors"
+          >
+            {n.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
 
   <span class="flex-1"></span>
 
