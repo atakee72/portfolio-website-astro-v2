@@ -76,6 +76,17 @@ public/assets/           # Static images (PNG/JPG only — no SVG barrel)
 </AppWrap>
 ```
 
+### Navigation (single source of truth)
+`src/data/nav.ts` exports the canonical `navItems` array. Four files consume it:
+- `Header.astro` — numbered hero nav on the homepage
+- `Navbar.astro` — inline nav strip on subpages at `lg+`
+- `MobileMenuBtn.svelte` — hamburger overlay (mobile/tablet)
+- `404.astro` — recovery destinations
+
+**To add or rename a nav item, edit `src/data/nav.ts` only.** Don't duplicate the array elsewhere.
+
+Anchor hrefs are root-relative (`/#home`, `/#sheet`, etc.) so they work from any subpage — never use bare `#anchor`, it would scroll the current page instead of navigating home.
+
 ### Theme system (no external lib)
 - Initial theme is decided by an `is:inline` boot script in `BaseLayout.astro` that reads `localStorage.theme` (or `prefers-color-scheme`) and sets the `dark` class on `<html>` **before** hydration → no FOUC
 - `ThemeToggleBtn.svelte` reads the current state from the DOM on mount, then toggles `localStorage` + the `dark` class on click
@@ -105,13 +116,16 @@ Create `src/content/blog/<slug>.mdx` with frontmatter matching the schema in `sr
 ### Add a new section to the home page
 1. Create `src/components/NewSection.astro` (wrap in `<AppWrap id="...">` if it should be a navigable section)
 2. Import and render it in `src/pages/index.astro`
-3. Add an entry to `navItems` in `src/components/Navbar.astro` and `src/components/MobileMenuBtn.svelte`
+3. Add an entry to `navItems` in `src/data/nav.ts` — it flows to all four consumers (Header, Navbar, MobileMenuBtn, 404) automatically
 
 ### Modify theme colors
 Edit `theme.extend.colors` in `tailwind.config.ts`.
 
 ### Update site URL (for sitemap/canonical)
 Edit `site:` in `astro.config.mjs`.
+
+### RSS feed
+Combined feed at `/rss.xml` spans all four collections (blog, work, lens, paints), sorted by date desc. Generated at build time by `src/pages/rss.xml.ts` using `@astrojs/rss`. Summary-only — uses each collection's `description`/`subtitle`/equivalent, not full MDX body. Surfaced via `<link rel="alternate">` in `BaseLayout.astro` and a visible `rss` link in `Footer.astro`. To change scope or per-collection mapping, edit that one file.
 
 ## Testing
 No tests configured. The build pipeline runs `astro check` (covers type errors across `.astro`, `.svelte`, `.ts`) before producing output.
