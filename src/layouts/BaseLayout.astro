@@ -72,6 +72,20 @@ const {
         'https://www.instagram.com/a_t_a_k_e_e/',
       ],
     })} />
+    <script
+      is:inline
+      data-goatcounter="https://atakee.goatcounter.com/count"
+      data-goatcounter-settings='{"no_onload": true}'
+      async
+      src="https://gc.zgo.at/count.js"
+    ></script>
+    <script is:inline>
+      document.addEventListener('astro:page-load', () => {
+        if (window.goatcounter && window.goatcounter.count) {
+          window.goatcounter.count();
+        }
+      });
+    </script>
   </head>
   <body>
     <ReticleCursor client:only="svelte" />
