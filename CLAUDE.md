@@ -263,6 +263,25 @@ Production: **https://ercan-atak.de** (apex canonical; `www` 308-redirects to ap
   - Catch-all: **Drop** (silent — kills spam to `admin@`, `webmaster@`, etc.; legit typos also drop)
   - SPF + DKIM auto-added by Cloudflare (don't edit manually).
 - **Form** (`<ReachForm>`) posts to Web3Forms with an inlined per-form `access_key` (see `src/components/ReachForm.svelte` — public by design per Web3Forms docs, gitleaks-ignored). The Web3Forms account is set to deliver to `atakee+portfolio@gmail.com`, so both form submissions AND direct emails land at the same Gmail sub-address. One Gmail filter (`to:atakee+portfolio@gmail.com`) catches both.
+
+## Analytics
+
+**Provider**: GoatCounter (hosted free tier — AGPL, EU-hosted by maintainer). Privacy-respecting, cookieless, no PII. Account: `atakee@goatcounter.com`, username `contact@ercan-atak.de`.
+
+**Dashboard URLs** (both work, same data):
+- `https://atakee.goatcounter.com` — canonical
+- `https://stats.ercan-atak.de` — custom-domain alias (CNAME in Cloudflare DNS, gray cloud only)
+
+**Tracking script** lives in `src/layouts/BaseLayout.astro` `<head>`. Two important quirks:
+
+1. **View Transitions compatibility.** Standard GoatCounter snippet only counts on initial page load — Astro's View Transitions don't re-execute scripts on navigation. Solution: set `no_onload: true` on the script and add an `astro:page-load` listener that calls `window.goatcounter.count()`. The listener fires on initial load AND every subsequent navigation, so every page is counted exactly once.
+2. **`count.js` is gc.zgo.at-only.** The beacon endpoint `/count` works on the custom domain (`stats.ercan-atak.de/count`), but `count.js` itself is only served from `gc.zgo.at` — GoatCounter doesn't serve the JS asset from per-customer subdomains. Keep `src="https://gc.zgo.at/count.js"`; only `data-goatcounter` uses the custom domain.
+
+**Custom domain truth**: per GoatCounter's own UI, the custom domain is **vanity only** — it does NOT bypass ad-blockers (modern blockers fingerprint `count.js` content, not just hostname). The benefit is cosmetic (page source references `stats.ercan-atak.de` instead of `atakee.goatcounter.com`).
+
+**Localhost auto-ignored**: `pnpm dev` traffic doesn't pollute stats by default.
+
+**To change provider or disable**: edit the two `<script>` blocks in `BaseLayout.astro`. No other code references analytics.
 - **Where things live:**
   - DNS records, MX, email routing rules → **Cloudflare dashboard** (not in source)
   - SSL + domain attachment → **Vercel dashboard** or `vercel domains` CLI
