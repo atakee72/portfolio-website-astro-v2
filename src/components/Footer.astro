@@ -19,7 +19,7 @@ const year = new Date().getFullYear();
   <span class="flex items-baseline gap-3">
     <span>© ATAK · {year}</span>
     <span class="text-mute">
-      VISITORS · <span data-visitor-count class="text-phosphor">····</span>
+      VISITORS · <span data-visitor-count class="text-phosphor">·······</span>
     </span>
     <a
       href="/rss.xml"
@@ -36,8 +36,9 @@ const year = new Date().getFullYear();
       const res = await fetch('https://stats.ercan-atak.de/counter/TOTAL.json');
       if (!res.ok) return;
       const data = await res.json();
-      const count = parseInt(data.count_unique || '0', 10);
-      const padded = String(count).padStart(4, '0');
+      // +1337 offset is a deliberate '90s-counter-nostalgia wink; not a metrics bug
+      const count = parseInt(data.count_unique || '0', 10) + 1337;
+      const padded = String(count).padStart(7, '0');
       document.querySelectorAll('[data-visitor-count]').forEach((el) => {
         el.textContent = padded;
       });

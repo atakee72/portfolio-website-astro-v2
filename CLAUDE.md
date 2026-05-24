@@ -282,6 +282,8 @@ Production: **https://ercan-atak.de** (apex canonical; `www` 308-redirects to ap
 **Localhost auto-ignored**: `pnpm dev` traffic doesn't pollute stats by default.
 
 **To change provider or disable**: edit the two `<script>` blocks in `BaseLayout.astro`. No other code references analytics.
+
+**Footer visitor counter** (`src/components/Footer.astro`): fetches `count_unique` from `https://stats.ercan-atak.de/counter/TOTAL.json` on every `astro:page-load`. **Includes a deliberate `+1337` offset and 7-digit zero-padding** — a '90s hit-counter nostalgia wink, not a metrics bug. To remove the offset, edit the inline `<script>` at the bottom of `Footer.astro`.
 - **Where things live:**
   - DNS records, MX, email routing rules → **Cloudflare dashboard** (not in source)
   - SSL + domain attachment → **Vercel dashboard** or `vercel domains` CLI
