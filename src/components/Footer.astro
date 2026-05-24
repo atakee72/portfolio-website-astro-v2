@@ -19,7 +19,12 @@ const year = new Date().getFullYear();
   <span class="flex items-baseline gap-3">
     <span>© ATAK · {year}</span>
     <span class="text-mute">
-      VISITORS · <span data-visitor-count class="text-phosphor">·······</span>
+      VISITORS ·
+      <span data-visitor-count class="inline-flex items-baseline gap-[3px] text-phosphor font-mono">
+        {Array.from({ length: 7 }).map(() => (
+          <span class="bg-ink-3 px-0.5">·</span>
+        ))}
+      </span>
     </span>
     <a
       href="/rss.xml"
@@ -38,6 +43,13 @@ const year = new Date().getFullYear();
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
+  // Write each char of `str` into the corresponding child digit-slot of `el`
+  function setDigits(el, str) {
+    for (let i = 0; i < str.length && i < el.children.length; i++) {
+      el.children[i].textContent = str[i];
+    }
+  }
+
   // Split-flap cascade: each digit cycles 0-9 then settles, left-to-right
   function animateCascade(el, padded) {
     if (isAnimating) return;
@@ -49,17 +61,16 @@ const year = new Date().getFullYear();
     const firstSettleMs = 200;
     function tick() {
       const elapsed = Date.now() - start;
-      let display = '';
       for (let i = 0; i < len; i++) {
         const settleAt = firstSettleMs + i * settleStaggerMs;
-        display += elapsed >= settleAt ? padded[i] : Math.floor(Math.random() * 10);
+        const ch = elapsed >= settleAt ? padded[i] : String(Math.floor(Math.random() * 10));
+        if (el.children[i]) el.children[i].textContent = ch;
       }
-      el.textContent = display;
       const finalSettleAt = firstSettleMs + (len - 1) * settleStaggerMs;
       if (elapsed < finalSettleAt) {
         setTimeout(tick, tickMs);
       } else {
-        el.textContent = padded;
+        setDigits(el, padded);
         isAnimating = false;
       }
     }
@@ -77,9 +88,7 @@ const year = new Date().getFullYear();
       const targets = document.querySelectorAll('[data-visitor-count]');
 
       if (reducedMotion()) {
-        targets.forEach((el) => {
-          el.textContent = cachedPadded;
-        });
+        targets.forEach((el) => setDigits(el, cachedPadded));
         return;
       }
 
