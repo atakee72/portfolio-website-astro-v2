@@ -40,6 +40,7 @@ const buildYear = new Date().getFullYear();
   let cachedPadded = null;
   let isAnimating = false;
   let countFetch = null;
+  let pageAbort = null; // AbortController for current page's IO + hover listener
 
   function reducedMotion() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -104,10 +105,11 @@ const buildYear = new Date().getFullYear();
   }
 
   // Reveal = wait for both fetch + minimum dot-beat, then cascade
-  async function revealCounter(el) {
+  // `signal` aborts if user navigates away during the await
+  async function revealCounter(el, signal) {
     const minDotDelay = new Promise((r) => setTimeout(r, 600));
     const [padded] = await Promise.all([fetchCount(), minDotDelay]);
-    if (!padded) return;
+    if (!padded || signal.aborted) return;
     if (reducedMotion()) {
       setDigits(el, padded);
       return;
@@ -119,35 +121,49 @@ const buildYear = new Date().getFullYear();
     const targets = document.querySelectorAll('[data-visitor-count]');
     if (targets.length === 0) return;
 
+    // Tear down any prior wiring (covers re-runs on same DOM, e.g. dev HMR)
+    if (pageAbort) pageAbort.abort();
+    pageAbort = new AbortController();
+    const { signal } = pageAbort;
+
     // Kick off the fetch eagerly so data is ready by the time the user scrolls
     fetchCount();
 
     targets.forEach((el) => {
       // First viewport intersection triggers the reveal (cascade) once per page
-      if (!el.dataset.ioWired) {
-        el.dataset.ioWired = 'true';
-        const io = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              io.disconnect();
-              revealCounter(el);
-            }
-          });
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            io.unobserve(entry.target);
+            revealCounter(el, signal);
+          }
         });
-        io.observe(el);
-      }
+      });
+      io.observe(el);
+      // Disconnect the observer when the page swaps away
+      signal.addEventListener('abort', () => io.disconnect(), { once: true });
 
-      // Re-trigger on hover (Easter egg, no cursor change to preserve subtlety)
-      if (!el.dataset.hoverWired) {
-        el.dataset.hoverWired = 'true';
-        el.addEventListener('mouseenter', () => {
+      // Re-trigger on hover (Easter egg). Auto-removed via abort signal on swap.
+      el.addEventListener(
+        'mouseenter',
+        () => {
           if (cachedPadded && !reducedMotion()) {
             animateCascade(el, cachedPadded);
           }
-        });
-      }
+        },
+        { signal }
+      );
     });
   }
+
+  function cleanupCounter() {
+    if (pageAbort) {
+      pageAbort.abort();
+      pageAbort = null;
+    }
+  }
+
   document.addEventListener('astro:page-load', updateYear);
   document.addEventListener('astro:page-load', wireCounter);
+  document.addEventListener('astro:before-swap', cleanupCounter);
 </script>
