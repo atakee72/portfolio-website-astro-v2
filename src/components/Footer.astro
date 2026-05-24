@@ -39,12 +39,12 @@ const buildYear = new Date().getFullYear();
 <script is:inline>
   let cachedPadded = null;
   let isAnimating = false;
+  let countFetch = null;
 
   function reducedMotion() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
-  // Write each char of `str` into the corresponding child digit-slot of `el`
   function setDigits(el, str) {
     for (let i = 0; i < str.length && i < el.children.length; i++) {
       el.children[i].textContent = str[i];
@@ -84,41 +84,70 @@ const buildYear = new Date().getFullYear();
     });
   }
 
-  async function updateVisitorCount() {
-    try {
-      // Run fetch and a minimum dot-placeholder delay in parallel,
-      // so the loading dots are visible for a beat before the cascade fires.
-      const fetchPromise = fetch('https://stats.ercan-atak.de/counter/TOTAL.json');
-      const minDotDelay = new Promise((r) => setTimeout(r, 600));
-      const [res] = await Promise.all([fetchPromise, minDotDelay]);
-      if (!res.ok) return;
-      const data = await res.json();
-      // +1337 offset is a deliberate '90s-counter-nostalgia wink; not a metrics bug
-      const count = parseInt(data.count_unique || '0', 10) + 1337;
-      cachedPadded = String(count).padStart(7, '0');
-      const targets = document.querySelectorAll('[data-visitor-count]');
-
-      if (reducedMotion()) {
-        targets.forEach((el) => setDigits(el, cachedPadded));
-        return;
+  // Eager fetch (kicks off on page load); memoised across navigations
+  function fetchCount() {
+    if (countFetch) return countFetch;
+    countFetch = (async () => {
+      try {
+        const res = await fetch('https://stats.ercan-atak.de/counter/TOTAL.json');
+        if (!res.ok) return null;
+        const data = await res.json();
+        // +1337 offset is a deliberate '90s-counter-nostalgia wink; not a metrics bug
+        const count = parseInt(data.count_unique || '0', 10) + 1337;
+        cachedPadded = String(count).padStart(7, '0');
+        return cachedPadded;
+      } catch {
+        return null;
       }
+    })();
+    return countFetch;
+  }
 
-      targets.forEach((el) => {
-        animateCascade(el, cachedPadded);
-        // Re-trigger on hover (Easter egg, no cursor change to preserve subtlety)
-        if (!el.dataset.hoverWired) {
-          el.dataset.hoverWired = 'true';
-          el.addEventListener('mouseenter', () => {
-            if (cachedPadded && !reducedMotion()) {
-              animateCascade(el, cachedPadded);
+  // Reveal = wait for both fetch + minimum dot-beat, then cascade
+  async function revealCounter(el) {
+    const minDotDelay = new Promise((r) => setTimeout(r, 600));
+    const [padded] = await Promise.all([fetchCount(), minDotDelay]);
+    if (!padded) return;
+    if (reducedMotion()) {
+      setDigits(el, padded);
+      return;
+    }
+    animateCascade(el, padded);
+  }
+
+  function wireCounter() {
+    const targets = document.querySelectorAll('[data-visitor-count]');
+    if (targets.length === 0) return;
+
+    // Kick off the fetch eagerly so data is ready by the time the user scrolls
+    fetchCount();
+
+    targets.forEach((el) => {
+      // First viewport intersection triggers the reveal (cascade) once per page
+      if (!el.dataset.ioWired) {
+        el.dataset.ioWired = 'true';
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              io.disconnect();
+              revealCounter(el);
             }
           });
-        }
-      });
-    } catch {
-      /* silent — counter stays as placeholder */
-    }
+        });
+        io.observe(el);
+      }
+
+      // Re-trigger on hover (Easter egg, no cursor change to preserve subtlety)
+      if (!el.dataset.hoverWired) {
+        el.dataset.hoverWired = 'true';
+        el.addEventListener('mouseenter', () => {
+          if (cachedPadded && !reducedMotion()) {
+            animateCascade(el, cachedPadded);
+          }
+        });
+      }
+    });
   }
   document.addEventListener('astro:page-load', updateYear);
-  document.addEventListener('astro:page-load', updateVisitorCount);
+  document.addEventListener('astro:page-load', wireCounter);
 </script>
