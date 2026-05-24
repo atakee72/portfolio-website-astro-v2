@@ -283,7 +283,11 @@ Production: **https://ercan-atak.de** (apex canonical; `www` 308-redirects to ap
 
 **To change provider or disable**: edit the two `<script>` blocks in `BaseLayout.astro`. No other code references analytics.
 
-**Footer visitor counter** (`src/components/Footer.astro`): fetches `count_unique` from `https://stats.ercan-atak.de/counter/TOTAL.json` on every `astro:page-load`. **Includes a deliberate `+1337` offset and 7-digit zero-padding** — a '90s hit-counter nostalgia wink, not a metrics bug. To remove the offset, edit the inline `<script>` at the bottom of `Footer.astro`.
+**Footer visitor counter** (`src/components/Footer.astro`): fetches `count_unique` from `https://stats.ercan-atak.de/counter/TOTAL.json` eagerly on `astro:page-load` (memoised across navigations), but the **cascade reveal only fires on viewport intersection** — the footer is below the fold on most pages, so animating on page-load would be wasted. The reveal sequence: 600ms dot-beat (`·······` placeholder) → split-flap cascade left-to-right across 7 per-digit slots. **Hover replays the cascade.** **Includes a deliberate `+1337` offset and 7-digit zero-padding** — a '90s hit-counter nostalgia wink, not a metrics bug.
+
+The script uses `AbortController` aborted on `astro:before-swap` to release the IntersectionObserver + hover listener cleanly between View Transition navigations (prevents the listener-leak pattern Astro docs warn about). To change/tune/disable any of this, edit the inline `<script>` at the bottom of `Footer.astro`.
+
+**Live copyright year**: `<span data-year>` is server-rendered with the build-time year as fallback, then overwritten client-side on each `astro:page-load`. Means the year ticks over without requiring a rebuild — Vercel doesn't have to redeploy on Jan 1 for the footer to update.
 - **Where things live:**
   - DNS records, MX, email routing rules → **Cloudflare dashboard** (not in source)
   - SSL + domain attachment → **Vercel dashboard** or `vercel domains` CLI
