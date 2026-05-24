@@ -1,5 +1,6 @@
 ---
-const year = new Date().getFullYear();
+// Build-time fallback for no-JS visitors; live-updated by inline script below
+const buildYear = new Date().getFullYear();
 ---
 
 <footer
@@ -17,7 +18,7 @@ const year = new Date().getFullYear();
     // built with astro · svelte · tailwind · cloudinary · vercel · web3forms
   </span>
   <span class="flex items-baseline gap-3">
-    <span>© ATAK · {year}</span>
+    <span>© ATAK · <span data-year>{buildYear}</span></span>
     <span class="text-mute">
       VISITORS ·
       <span data-visitor-count class="inline-flex items-baseline gap-px text-phosphor font-mono">
@@ -77,9 +78,19 @@ const year = new Date().getFullYear();
     tick();
   }
 
+  function updateYear() {
+    document.querySelectorAll('[data-year]').forEach((el) => {
+      el.textContent = String(new Date().getFullYear());
+    });
+  }
+
   async function updateVisitorCount() {
     try {
-      const res = await fetch('https://stats.ercan-atak.de/counter/TOTAL.json');
+      // Run fetch and a minimum dot-placeholder delay in parallel,
+      // so the loading dots are visible for a beat before the cascade fires.
+      const fetchPromise = fetch('https://stats.ercan-atak.de/counter/TOTAL.json');
+      const minDotDelay = new Promise((r) => setTimeout(r, 600));
+      const [res] = await Promise.all([fetchPromise, minDotDelay]);
       if (!res.ok) return;
       const data = await res.json();
       // +1337 offset is a deliberate '90s-counter-nostalgia wink; not a metrics bug
@@ -108,5 +119,6 @@ const year = new Date().getFullYear();
       /* silent — counter stays as placeholder */
     }
   }
+  document.addEventListener('astro:page-load', updateYear);
   document.addEventListener('astro:page-load', updateVisitorCount);
 </script>
