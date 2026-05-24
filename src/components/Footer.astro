@@ -18,6 +18,9 @@ const year = new Date().getFullYear();
   </span>
   <span class="flex items-baseline gap-3">
     <span>© ATAK · {year}</span>
+    <span class="text-mute">
+      VISITORS · <span data-visitor-count class="text-phosphor">····</span>
+    </span>
     <a
       href="/rss.xml"
       class="text-mute-2 hover:text-phosphor transition-colors tracking-[0.16em]"
@@ -26,3 +29,21 @@ const year = new Date().getFullYear();
     </a>
   </span>
 </footer>
+
+<script is:inline>
+  async function updateVisitorCount() {
+    try {
+      const res = await fetch('https://stats.ercan-atak.de/counter/TOTAL.json');
+      if (!res.ok) return;
+      const data = await res.json();
+      const count = parseInt(data.count_unique || '0', 10);
+      const padded = String(count).padStart(4, '0');
+      document.querySelectorAll('[data-visitor-count]').forEach((el) => {
+        el.textContent = padded;
+      });
+    } catch {
+      /* silent — counter stays as placeholder */
+    }
+  }
+  document.addEventListener('astro:page-load', updateVisitorCount);
+</script>
