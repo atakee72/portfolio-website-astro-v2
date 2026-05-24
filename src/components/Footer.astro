@@ -31,6 +31,41 @@ const year = new Date().getFullYear();
 </footer>
 
 <script is:inline>
+  let cachedPadded = null;
+  let isAnimating = false;
+
+  function reducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  // Split-flap cascade: each digit cycles 0-9 then settles, left-to-right
+  function animateCascade(el, padded) {
+    if (isAnimating) return;
+    isAnimating = true;
+    const len = padded.length;
+    const start = Date.now();
+    const tickMs = 50;
+    const settleStaggerMs = 80;
+    const firstSettleMs = 200;
+    function tick() {
+      const elapsed = Date.now() - start;
+      let display = '';
+      for (let i = 0; i < len; i++) {
+        const settleAt = firstSettleMs + i * settleStaggerMs;
+        display += elapsed >= settleAt ? padded[i] : Math.floor(Math.random() * 10);
+      }
+      el.textContent = display;
+      const finalSettleAt = firstSettleMs + (len - 1) * settleStaggerMs;
+      if (elapsed < finalSettleAt) {
+        setTimeout(tick, tickMs);
+      } else {
+        el.textContent = padded;
+        isAnimating = false;
+      }
+    }
+    tick();
+  }
+
   async function updateVisitorCount() {
     try {
       const res = await fetch('https://stats.ercan-atak.de/counter/TOTAL.json');
@@ -38,40 +73,27 @@ const year = new Date().getFullYear();
       const data = await res.json();
       // +1337 offset is a deliberate '90s-counter-nostalgia wink; not a metrics bug
       const count = parseInt(data.count_unique || '0', 10) + 1337;
-      const padded = String(count).padStart(7, '0');
+      cachedPadded = String(count).padStart(7, '0');
       const targets = document.querySelectorAll('[data-visitor-count]');
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      if (reduced) {
+      if (reducedMotion()) {
         targets.forEach((el) => {
-          el.textContent = padded;
+          el.textContent = cachedPadded;
         });
         return;
       }
 
-      // Split-flap cascade: each digit cycles 0-9 then settles, left-to-right
       targets.forEach((el) => {
-        const len = padded.length;
-        const start = Date.now();
-        const tickMs = 50;
-        const settleStaggerMs = 80;
-        const firstSettleMs = 200;
-        function tick() {
-          const elapsed = Date.now() - start;
-          let display = '';
-          for (let i = 0; i < len; i++) {
-            const settleAt = firstSettleMs + i * settleStaggerMs;
-            display += elapsed >= settleAt ? padded[i] : Math.floor(Math.random() * 10);
-          }
-          el.textContent = display;
-          const finalSettleAt = firstSettleMs + (len - 1) * settleStaggerMs;
-          if (elapsed < finalSettleAt) {
-            setTimeout(tick, tickMs);
-          } else {
-            el.textContent = padded;
-          }
+        animateCascade(el, cachedPadded);
+        // Re-trigger on hover (Easter egg, no cursor change to preserve subtlety)
+        if (!el.dataset.hoverWired) {
+          el.dataset.hoverWired = 'true';
+          el.addEventListener('mouseenter', () => {
+            if (cachedPadded && !reducedMotion()) {
+              animateCascade(el, cachedPadded);
+            }
+          });
         }
-        tick();
       });
     } catch {
       /* silent — counter stays as placeholder */
