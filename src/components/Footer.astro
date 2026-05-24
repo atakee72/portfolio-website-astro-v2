@@ -39,8 +39,39 @@ const year = new Date().getFullYear();
       // +1337 offset is a deliberate '90s-counter-nostalgia wink; not a metrics bug
       const count = parseInt(data.count_unique || '0', 10) + 1337;
       const padded = String(count).padStart(7, '0');
-      document.querySelectorAll('[data-visitor-count]').forEach((el) => {
-        el.textContent = padded;
+      const targets = document.querySelectorAll('[data-visitor-count]');
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (reduced) {
+        targets.forEach((el) => {
+          el.textContent = padded;
+        });
+        return;
+      }
+
+      // Split-flap cascade: each digit cycles 0-9 then settles, left-to-right
+      targets.forEach((el) => {
+        const len = padded.length;
+        const start = Date.now();
+        const tickMs = 50;
+        const settleStaggerMs = 80;
+        const firstSettleMs = 200;
+        function tick() {
+          const elapsed = Date.now() - start;
+          let display = '';
+          for (let i = 0; i < len; i++) {
+            const settleAt = firstSettleMs + i * settleStaggerMs;
+            display += elapsed >= settleAt ? padded[i] : Math.floor(Math.random() * 10);
+          }
+          el.textContent = display;
+          const finalSettleAt = firstSettleMs + (len - 1) * settleStaggerMs;
+          if (elapsed < finalSettleAt) {
+            setTimeout(tick, tickMs);
+          } else {
+            el.textContent = padded;
+          }
+        }
+        tick();
       });
     } catch {
       /* silent — counter stays as placeholder */
