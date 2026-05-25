@@ -264,6 +264,18 @@ Production: **https://ercan-atak.de** (apex canonical; `www` 308-redirects to ap
   - SPF + DKIM auto-added by Cloudflare (don't edit manually).
 - **Form** (`<ReachForm>`) posts to Web3Forms with an inlined per-form `access_key` (see `src/components/ReachForm.svelte` — public by design per Web3Forms docs, gitleaks-ignored). The Web3Forms account is set to deliver to `atakee+portfolio@gmail.com`, so both form submissions AND direct emails land at the same Gmail sub-address. One Gmail filter (`to:atakee+portfolio@gmail.com`) catches both.
 
+## Legal & compliance (DSGVO / DDG)
+
+The site is operated from Germany under a real name → triggers Impressumspflicht (DDG, the 2024 successor to TMG) and Datenschutzerklärung (DSGVO). Both pages exist; both are surfaced from the footer alongside the rss link.
+
+- **`/impressum`** — `src/pages/impressum.astro`. § 5 DDG required fields + § 18 (2) MStV + standard liability/copyright boilerplate. Bilingual (DE block, then `<hr>`, then EN block).
+- **`/datenschutz`** — `src/pages/datenschutz.astro`. Bilingual, processor-specific (Vercel, Web3Forms, Cloudflare Email Routing, Cloudinary, GoatCounter). Covers data flows, legal bases (Art. 6 DSGVO), DPF/SCC posture, data-subject rights (Art. 15–22), and right to complain (Art. 77 → BlnBDI Berlin).
+- **Address on Impressum** is intentionally truncated to `12049 Neukölln, Berlin` — strict § 5 DDG case law expects street + house number, but a non-commercial portfolio is a low Abmahnvektor and the privacy tradeoff was accepted. Future hardening: virtual-office service provides a forwarding address without exposing the home address.
+- **No cookie banner** — the site is genuinely cookie-free. GoatCounter is the only telemetry, and its cookieless hashed-IP + daily-rotating-salt design falls outside § 25 TDDDG. LocalStorage is used only for the theme toggle (functional). Don't add a banner; it would hurt UX with zero legal upside.
+- **Fonts are self-hosted** via `@fontsource/jetbrains-mono` + `@fontsource/space-grotesk` (weights 400 + 700). Imports live at the top of `src/styles/globals.css`. **Do NOT re-introduce `fonts.googleapis.com`** — LG München I 3 O 17493/20 (2022, still cited) treats Google-Fonts-via-CDN as an unconsented IP transfer to the US, and opportunistic claimants still send €100/pageview letters. If you need a new font weight, add another `@fontsource/<family>/<weight>.css` import — never the Google CDN link.
+- **Updating the DSE when a processor changes**: edit only `src/pages/datenschutz.astro`. Sections are processor-aligned, so swapping (e.g.) Web3Forms for Resend is one section's edit + the matching EN block.
+- **CMS forms** for Impressum/DSE are not wired in Sveltia. These are rarely-edited code pages, not content; if you do want to manage them via Sveltia later, add a `legal` collection and matching `config.yml` form.
+
 ## Analytics
 
 **Provider**: GoatCounter (hosted free tier — AGPL, EU-hosted by maintainer). Privacy-respecting, cookieless, no PII. Account: `atakee@goatcounter.com`, username `contact@ercan-atak.de`.

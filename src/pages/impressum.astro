@@ -1,0 +1,153 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+---
+
+<BaseLayout title="Impressum — Ercan Atak" description="Impressum / Legal notice for ercan-atak.de">
+  <Navbar />
+
+  <main
+    class="
+      px-4 pt-4 pb-6 md:px-6 md:pt-6 md:pb-7 lg:px-9 lg:pt-9 lg:pb-7
+      max-w-[1320px] mx-auto
+    "
+  >
+    <p class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-2 font-mono">
+      // META · IMPRESSUM / LEGAL NOTICE
+    </p>
+
+    <article
+      class="
+        prose prose-sm prose-invert max-w-3xl
+        prose-headings:font-display prose-headings:tracking-[-0.02em]
+        prose-h1:text-paper-hi prose-h1:text-2xl
+        prose-h2:text-paper prose-h2:text-base prose-h2:mt-8 prose-h2:mb-2
+        prose-p:text-paper-2 prose-p:leading-[1.6] prose-p:text-[13px]
+        prose-a:text-phosphor prose-a:no-underline hover:prose-a:underline
+        prose-hr:border-ink-3 prose-hr:my-10
+        prose-strong:text-paper
+      "
+    >
+      {/* ─── DE ────────────────────────────────────────────────── */}
+      <h1>Impressum</h1>
+
+      <h2>Angaben gemäß § 5 DDG</h2>
+      <p>
+        Ercan Atak<br />
+        12049 Neukölln, Berlin<br />
+        Deutschland
+      </p>
+
+      <h2>Kontakt</h2>
+      <p>
+        E-Mail:
+        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+      </p>
+
+      <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+      <p>Ercan Atak (Anschrift wie oben).</p>
+
+      <h2>EU-Streitschlichtung</h2>
+      <p>
+        Die Europäische Kommission stellt eine Plattform zur
+        Online-Streitbeilegung (OS) bereit:
+        <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">
+          https://ec.europa.eu/consumers/odr
+        </a>. Wir sind nicht verpflichtet und nicht bereit, an
+        Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+        teilzunehmen.
+      </p>
+
+      <h2>Haftung für Inhalte</h2>
+      <p>
+        Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene Inhalte
+        auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach
+        §§ 8 bis 10 DDG sind wir als Diensteanbieter jedoch nicht
+        verpflichtet, übermittelte oder gespeicherte fremde Informationen zu
+        überwachen oder nach Umständen zu forschen, die auf eine
+        rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung
+        oder Sperrung der Nutzung von Informationen nach den allgemeinen
+        Gesetzen bleiben hiervon unberührt.
+      </p>
+
+      <h2>Haftung für Links</h2>
+      <p>
+        Unser Angebot enthält Links zu externen Websites Dritter, auf deren
+        Inhalte wir keinen Einfluss haben. Deshalb können wir für diese
+        fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der
+        verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber
+        der Seiten verantwortlich.
+      </p>
+
+      <h2>Urheberrecht</h2>
+      <p>
+        Die durch den Seitenbetreiber erstellten Inhalte und Werke auf
+        diesen Seiten unterliegen dem deutschen Urheberrecht.
+        Vervielfältigung, Bearbeitung, Verbreitung und jede Art der
+        Verwertung außerhalb der Grenzen des Urheberrechts bedürfen der
+        schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.
+      </p>
+
+      <hr />
+
+      {/* ─── EN ────────────────────────────────────────────────── */}
+      <h1>Legal Notice</h1>
+
+      <h2>Information pursuant to § 5 DDG</h2>
+      <p>
+        Ercan Atak<br />
+        12049 Neukölln, Berlin<br />
+        Germany
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Email:
+        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+      </p>
+
+      <h2>Responsible for content per § 18 (2) MStV</h2>
+      <p>Ercan Atak (address as above).</p>
+
+      <h2>EU online dispute resolution</h2>
+      <p>
+        The European Commission provides a platform for online dispute
+        resolution (ODR):
+        <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">
+          https://ec.europa.eu/consumers/odr
+        </a>. We are neither obligated nor willing to participate in
+        dispute-resolution proceedings before a consumer arbitration board.
+      </p>
+
+      <h2>Liability for content</h2>
+      <p>
+        As a service provider we are responsible for our own content on
+        these pages under general laws pursuant to § 7 (1) DDG. Per §§ 8–10
+        DDG we are not obligated to monitor transmitted or stored
+        third-party information or to research circumstances indicating
+        illegal activity. Obligations to remove or block the use of
+        information under general laws remain unaffected.
+      </p>
+
+      <h2>Liability for links</h2>
+      <p>
+        Our site contains links to external third-party websites whose
+        contents we have no influence over. We therefore accept no
+        liability for these external contents. The respective provider or
+        operator of the linked pages is always responsible for their
+        contents.
+      </p>
+
+      <h2>Copyright</h2>
+      <p>
+        Content and works on these pages created by the site operator are
+        subject to German copyright law. Duplication, processing,
+        distribution and any kind of use outside the limits of copyright
+        require the written consent of the respective author or creator.
+      </p>
+    </article>
+  </main>
+
+  <Footer />
+</BaseLayout>

@@ -23,6 +23,8 @@
     "@astrojs/sitemap": "3.6.0",
     "@astrojs/svelte": "^7.2.5",
     "@astrojs/tailwind": "^6.0.2",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/space-grotesk": "^5.2.10",
     "astro": "^5.15.1",
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
