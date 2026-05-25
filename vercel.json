@@ -9,5 +9,16 @@
         { "type": "host", "value": "www.ercan-atak.de" }
       ]
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
   ]
 }
