@@ -2,9 +2,14 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
+import ObfuscatedEmail from '@/components/ObfuscatedEmail.astro';
+import ObfuscatedText from '@/components/ObfuscatedText.astro';
+
+const street = import.meta.env.IMPRESSUM_STREET || '[ADDRESS NOT CONFIGURED]';
+const addressBlock = `${street}\n12049 Berlin`;
 ---
 
-<BaseLayout title="Impressum — Ercan Atak" description="Impressum / Legal notice for ercan-atak.de">
+<BaseLayout title="Impressum — Ercan Atak" description="Impressum / Legal notice for ercan-atak.de" noindex>
   <Navbar />
 
   <main
@@ -35,14 +40,14 @@ import Footer from '@/components/Footer.astro';
       <h2>Angaben gemäß § 5 DDG</h2>
       <p>
         Ercan Atak<br />
-        12049 Neukölln, Berlin<br />
+        <ObfuscatedText text={addressBlock} /><br />
         Deutschland
       </p>
 
       <h2>Kontakt</h2>
       <p>
         E-Mail:
-        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+        <ObfuscatedEmail user="contact" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" />
       </p>
 
       <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
@@ -97,14 +102,14 @@ import Footer from '@/components/Footer.astro';
       <h2>Information pursuant to § 5 DDG</h2>
       <p>
         Ercan Atak<br />
-        12049 Neukölln, Berlin<br />
+        <ObfuscatedText text={addressBlock} /><br />
         Germany
       </p>
 
       <h2>Contact</h2>
       <p>
         Email:
-        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+        <ObfuscatedEmail user="contact" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" />
       </p>
 
       <h2>Responsible for content per § 18 (2) MStV</h2>

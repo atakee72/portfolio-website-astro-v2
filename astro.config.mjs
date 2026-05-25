@@ -13,7 +13,10 @@ export default defineConfig({
     tailwind({
       applyBaseStyles: false, // We'll use our own globals.css
     }),
-    sitemap(),
+    sitemap({
+      filter: (page) =>
+        !page.endsWith('/impressum/') && !page.endsWith('/datenschutz/'),
+    }),
   ],
   output: 'static',
   // TypeScript paths in tsconfig.json handle @ alias

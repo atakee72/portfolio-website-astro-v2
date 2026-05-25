@@ -10,6 +10,7 @@ interface Props {
   description?: string;
   ogImage?: string;
   ogType?: 'website' | 'article';
+  noindex?: boolean;
 }
 
 const {
@@ -17,6 +18,7 @@ const {
   description = 'Full-stack developer portfolio showcasing modern web development projects and blog posts',
   ogImage,
   ogType = 'website',
+  noindex = false,
 } = Astro.props;
 ---
 
@@ -27,6 +29,7 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
+    {noindex && <meta name="robots" content="noindex,nofollow,noarchive" />}
     <title>{title}</title>
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -52,7 +55,6 @@ const {
       '@type': 'Person',
       name: 'Ercan Atak',
       url: 'https://ercan-atak.de',
-      email: 'contact@ercan-atak.de',
       jobTitle: 'Full-Stack Developer',
       address: {
         '@type': 'PostalAddress',
@@ -79,6 +81,26 @@ const {
           window.goatcounter.count();
         }
       });
+    </script>
+    <script is:inline>
+      function obDecode(s) {
+        return String.fromCharCode.apply(null, s.split(',').map(Number));
+      }
+      function obUnmask() {
+        document.querySelectorAll('[data-ob-email]').forEach((el) => {
+          if (el.dataset.done) return;
+          const addr = obDecode(el.dataset.u) + '@' + obDecode(el.dataset.d);
+          el.setAttribute('href', 'mailto:' + addr);
+          el.textContent = addr;
+          el.dataset.done = '1';
+        });
+        document.querySelectorAll('[data-ob-text]').forEach((el) => {
+          if (el.dataset.done) return;
+          el.textContent = obDecode(el.dataset.c);
+          el.dataset.done = '1';
+        });
+      }
+      document.addEventListener('astro:page-load', obUnmask);
     </script>
   </head>
   <body>

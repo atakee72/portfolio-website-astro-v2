@@ -1,5 +1,7 @@
 User-agent: *
 Disallow: /lens/
+Disallow: /impressum
+Disallow: /datenschutz
 
 User-agent: GPTBot
 Disallow: /

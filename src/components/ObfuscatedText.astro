@@ -1,0 +1,24 @@
+---
+import { cn } from '@/lib/utils';
+
+interface Props {
+  text: string;
+  class?: string;
+  fallback?: string;
+}
+
+const {
+  text,
+  class: cls = '',
+  fallback = '[ JS required ]',
+} = Astro.props;
+
+const encode = (s: string) =>
+  Array.from(s).map((c) => c.charCodeAt(0)).join(',');
+---
+
+<span
+  data-ob-text
+  data-c={encode(text)}
+  class={cn('whitespace-pre-line', cls)}
+>{fallback}</span>

@@ -2,11 +2,13 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
+import ObfuscatedEmail from '@/components/ObfuscatedEmail.astro';
 ---
 
 <BaseLayout
   title="Datenschutzerklärung — Ercan Atak"
   description="Datenschutzerklärung / Privacy policy for ercan-atak.de"
+  noindex
 >
   <Navbar />
 
@@ -48,7 +50,7 @@ import Footer from '@/components/Footer.astro';
         12049 Neukölln, Berlin<br />
         Deutschland<br />
         E-Mail:
-        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+        <ObfuscatedEmail user="contact" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" />
       </p>
 
       <h2>2. Server-Logs (Vercel, USA)</h2>
@@ -78,8 +80,8 @@ import Footer from '@/components/Footer.astro';
       <h2>4. E-Mail-Weiterleitung (Cloudflare, USA)</h2>
       <p>
         Die Adressen
-        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a> und
-        <a href="mailto:info@ercan-atak.de">info@ercan-atak.de</a> werden
+        <ObfuscatedEmail user="contact" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" /> und
+        <ObfuscatedEmail user="info" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" /> werden
         über Cloudflare Email Routing an ein privates Postfach
         weitergeleitet. Dabei verarbeitet Cloudflare Inc. (101 Townsend St,
         San Francisco, CA 94107, USA) Metadaten und Inhalte Ihrer Nachricht
@@ -132,7 +134,7 @@ import Footer from '@/components/Footer.astro';
       </ul>
       <p>
         Eine formlose Mail an
-        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+        <ObfuscatedEmail user="contact" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" />
         genügt.
       </p>
 
@@ -174,7 +176,7 @@ import Footer from '@/components/Footer.astro';
         12049 Neukölln, Berlin<br />
         Germany<br />
         Email:
-        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+        <ObfuscatedEmail user="contact" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" />
       </p>
 
       <h2>2. Server logs (Vercel, USA)</h2>
@@ -202,9 +204,9 @@ import Footer from '@/components/Footer.astro';
       <h2>4. Email forwarding (Cloudflare, USA)</h2>
       <p>
         The addresses
-        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+        <ObfuscatedEmail user="contact" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" />
         and
-        <a href="mailto:info@ercan-atak.de">info@ercan-atak.de</a>
+        <ObfuscatedEmail user="info" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" />
         are forwarded via Cloudflare Email Routing to a private inbox.
         Cloudflare Inc. (101 Townsend St, San Francisco, CA 94107, USA)
         processes metadata and message contents solely for the purpose of
@@ -255,7 +257,7 @@ import Footer from '@/components/Footer.astro';
       </ul>
       <p>
         An informal email to
-        <a href="mailto:contact@ercan-atak.de">contact@ercan-atak.de</a>
+        <ObfuscatedEmail user="contact" domain="ercan-atak.de" class="text-phosphor no-underline hover:underline" />
         is sufficient.
       </p>
 
