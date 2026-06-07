@@ -48,7 +48,9 @@ const isHomepage = Astro.url.pathname === '/';
     BERLIN · 12049
   </span>
   <LiveClock client:idle class="text-mute-2 tracking-[0.12em] hidden md:inline" />
-  <span class="text-safelight font-bold tracking-[0.16em]">● REC</span>
+  <span class="text-safelight font-bold tracking-[0.16em]">
+    <span class="inline-block motion-safe:animate-pulse">●</span> REC
+  </span>
 
   <div class="lg:hidden">
     <MobileMenuBtn client:only="svelte" />

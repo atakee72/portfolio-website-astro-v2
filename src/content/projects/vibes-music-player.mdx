@@ -1,0 +1,65 @@
+---
+title: Vibes
+subtitle: Browser music player · analog-dusk UI
+publishedAt: 2026-06-07
+featured: false
+cover:
+  src: /assets/projects/desktop.png
+  alt: Vibes — desktop library view in the AFTERGLOW theme
+  cloud: false
+screenshots:
+  - src: /assets/projects/desktop-fullscreen.png
+    alt: Vibes — desktop full-screen now-playing view with VibeOrb
+    caption: full-screen now-playing — VibeOrb tints to the track's dominant colour
+    cloud: false
+  - src: /assets/projects/mobile.png
+    alt: Vibes — mobile library view
+    caption: mobile — sidebar collapses, controls reflow under lg
+    cloud: false
+  - src: /assets/projects/mobile-fullscreen.png
+    alt: Vibes — mobile full-screen now-playing view with circular visualizer
+    caption: mobile full-screen — orb plus circular Web Audio visualizer
+    cloud: false
+exif:
+  stack: Vite + React 18 + TypeScript + Tailwind + Web Audio API
+  year: '2026'
+  status: live
+  role: full-stack + design
+  tags:
+    - frontend
+    - audio
+    - pwa
+links:
+  github: https://github.com/atakee72/vibes-music-player
+  live: https://vibes-music-player-theta.vercel.app
+draft: false
+---
+
+## Problem
+
+Local audio files deserve a player that respects them: no upload, no
+account, no telemetry. Drop a folder, hear your music, see the tags and
+cover art the files already carry.
+
+## Build
+
+Vite + React 18 + TypeScript with a custom Tailwind "AFTERGLOW" token
+theme (self-hosted Fraunces / Inter / Geist Mono). `music-metadata`
+parses ID3 / Vorbis / FLAC; a Web Audio `AnalyserNode` drives a live
+frequency visualizer. Library persistence splits by capability —
+Chromium uses the File System Access API (zero duplication), Firefox
+and Safari store bytes in IndexedDB.
+
+## Architecture
+
+OS-level integration via the Media Session API (lock-screen artwork,
+Bluetooth keys, macOS Now Playing, Windows SMTC, Linux MPRIS). A
+**VibeOrb** lifts the current track's dominant colour into the
+background. Keyboard-first: `Space` play/pause, `←`/`→` seek, `/`
+search, `Esc` close. Motion respects `prefers-reduced-motion` end-to-end.
+
+## Reflection
+
+The whole point is that nothing leaves the machine. Designing storage
+around three different browser capabilities (rather than picking one
+and shimming the others) kept the privacy contract honest.

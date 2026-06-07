@@ -1,0 +1,117 @@
+---
+import CloudPhoto from './CloudPhoto.astro';
+
+interface Shot {
+  src: string;
+  alt: string;
+  cloud?: boolean;
+  caption?: string;
+}
+
+interface Props {
+  shots: Shot[];
+  mobileHeight?: number;
+  desktopHeight?: number;
+  breakout?: boolean;
+}
+
+const {
+  shots,
+  mobileHeight = 260,
+  desktopHeight = 400,
+  breakout = true,
+} = Astro.props;
+---
+
+{shots.length > 0 && (
+  <div
+    class:list={['relative', breakout && '-mx-4 md:-mx-6 lg:-mx-9']}
+    data-image-strip
+  >
+    <div
+      class="overflow-x-auto snap-x snap-mandatory"
+      data-image-strip-scroll
+    >
+      <div class="flex gap-3 px-4 md:px-6 lg:px-9 pb-3">
+        {shots.map((shot) => (
+          <figure class="m-0 flex-shrink-0 snap-start w-[85vw] md:w-auto">
+            {shot.cloud ? (
+              <CloudPhoto
+                cldPath={shot.src}
+                alt={shot.alt}
+                width={1200}
+                class="strip-img block object-contain border border-ink-3"
+              />
+            ) : (
+              <img
+                src={shot.src}
+                alt={shot.alt}
+                class="strip-img block object-contain border border-ink-3"
+              />
+            )}
+            {shot.caption && (
+              <figcaption class="text-[11px] text-mute-2 tracking-[0.10em] mt-2 font-mono w-0 min-w-full">
+                // {shot.caption}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+    </div>
+
+    {/* Arrows: desktop only — mobile users swipe. */}
+    <button
+      type="button"
+      data-image-strip-prev
+      aria-label="Previous image"
+      class="strip-arrow hidden md:flex absolute left-3 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center bg-ink-2/85 border border-ink-3 text-paper hover:text-phosphor hover:border-phosphor transition-colors font-mono text-sm backdrop-blur-sm"
+    >←</button>
+    <button
+      type="button"
+      data-image-strip-next
+      aria-label="Next image"
+      class="strip-arrow hidden md:flex absolute right-3 -translate-y-1/2 z-10 w-9 h-9 items-center justify-center bg-ink-2/85 border border-ink-3 text-paper hover:text-phosphor hover:border-phosphor transition-colors font-mono text-sm backdrop-blur-sm"
+    >→</button>
+
+    <p class="md:hidden text-[10px] text-mute-2 tracking-[0.18em] uppercase font-mono mt-1 px-1">
+      // swipe →
+    </p>
+  </div>
+)}
+
+<style define:vars={{ mh: `${mobileHeight}px`, dh: `${desktopHeight}px` }}>
+  .strip-img {
+    width: 100%;
+    height: var(--mh);
+  }
+  @media (min-width: 768px) {
+    .strip-img {
+      width: auto;
+      height: var(--dh);
+    }
+  }
+  .strip-arrow {
+    top: calc(var(--dh) / 2);
+  }
+</style>
+
+<script>
+  function wireImageStrips() {
+    document.querySelectorAll<HTMLElement>('[data-image-strip]').forEach((strip) => {
+      if (strip.dataset.wired) return;
+      const scroller = strip.querySelector<HTMLElement>('[data-image-strip-scroll]');
+      if (!scroller) return;
+      const step = () => Math.round(scroller.clientWidth * 0.85);
+      const prev = strip.querySelector<HTMLButtonElement>('[data-image-strip-prev]');
+      const next = strip.querySelector<HTMLButtonElement>('[data-image-strip-next]');
+      prev?.addEventListener('click', () =>
+        scroller.scrollBy({ left: -step(), behavior: 'smooth' })
+      );
+      next?.addEventListener('click', () =>
+        scroller.scrollBy({ left: step(), behavior: 'smooth' })
+      );
+      strip.dataset.wired = '1';
+    });
+  }
+  document.addEventListener('astro:page-load', wireImageStrips);
+</script>

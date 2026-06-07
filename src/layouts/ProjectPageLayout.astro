@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
 import CloudPhoto from '@/components/CloudPhoto.astro';
+import ImageStrip from '@/components/ImageStrip.astro';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -11,6 +12,11 @@ interface Props {
 const { project } = Astro.props;
 const { title, subtitle, cover, screenshots, exif, links } = project.data;
 const ogImage = !cover.cloud ? cover.src : undefined;
+
+const heroShots =
+  screenshots.length > 0
+    ? [{ src: cover.src, alt: cover.alt, cloud: cover.cloud, caption: undefined }, ...screenshots]
+    : [];
 const statusClass =
   exif.status === 'live'
     ? 'text-phosphor'
@@ -67,11 +73,15 @@ const statusClass =
           </div>
         )}
 
-        {/* Cloud images are pre-cropped at upload (via `pnpm prep`); local images get a fixed-height crop here. */}
-        {cover.cloud ? (
-          <CloudPhoto cldPath={cover.src} alt={cover.alt} width={1200} class="w-full border border-ink-3" />
+        {heroShots.length > 0 ? (
+          <ImageStrip shots={heroShots} />
         ) : (
-          <img src={cover.src} alt={cover.alt} class="w-full h-64 md:h-96 object-cover border border-ink-3" />
+          /* Fallback: no screenshots — render cover alone. Cloud images are pre-cropped at upload (via `pnpm prep`); local images get a fixed-height crop here. */
+          cover.cloud ? (
+            <CloudPhoto cldPath={cover.src} alt={cover.alt} width={1200} class="w-full border border-ink-3" />
+          ) : (
+            <img src={cover.src} alt={cover.alt} class="w-full h-64 md:h-96 object-cover border border-ink-3" />
+          )
         )}
       </header>
 
@@ -107,28 +117,6 @@ const statusClass =
         prose-pre:bg-ink-2 prose-pre:border prose-pre:border-ink-3 prose-pre:rounded-none">
         <slot />
       </div>
-
-      {screenshots.length > 0 && (
-        <section class="mt-12 flex flex-col gap-6">
-          <h2 class="text-[13px] text-mute-2 tracking-[0.18em] uppercase m-0">
-            // SCREENSHOTS
-          </h2>
-          {screenshots.map((shot) => (
-            <figure class="m-0">
-              {shot.cloud ? (
-                <CloudPhoto cldPath={shot.src} alt={shot.alt} width={1200} class="w-full border border-ink-3" />
-              ) : (
-                <img src={shot.src} alt={shot.alt} class="w-full border border-ink-3" />
-              )}
-              {shot.caption && (
-                <figcaption class="text-[11px] text-mute-2 tracking-[0.10em] mt-2 font-mono">
-                  // {shot.caption}
-                </figcaption>
-              )}
-            </figure>
-          ))}
-        </section>
-      )}
 
       <footer class="mt-16 pt-6 border-t border-ink-3 flex flex-wrap justify-between gap-3 text-[11px] tracking-[0.14em] uppercase">
         <a href="/work" class="text-paper hover:text-phosphor transition-colors">
