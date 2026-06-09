@@ -1,0 +1,78 @@
+---
+title: DigiScrape
+subtitle: Lead-gen SaaS for Turkish marketplaces · rebuild + secure + ship
+publishedAt: 2026-06-09
+featured: true
+cover:
+  src: /assets/projects/digiscrape-cover.png
+  alt: DigiScrape — Data Terminal dashboard
+  cloud: false
+screenshots: []
+exif:
+  stack: Astro + Svelte 5 + Tailwind v4 + Flask + Supabase Postgres + Playwright + iyzico + OpenRouter
+  year: '2026'
+  status: live
+  role: full-stack rebuild — collaboration
+  tags:
+    - saas
+    - fullstack
+    - supabase
+    - ai-analysis
+    - payments
+    - client-work
+links:
+  github: https://github.com/brk8888/digiscrape89
+  live: https://app.digitiva.com.tr
+draft: false
+---
+
+## Problem
+
+A working prototype that scraped Trendyol / Hepsiburada / Google Maps for
+seller leads, but stuck in "demo on localhost" territory: SQLite file,
+hand-rolled JWT auth, no payments, no deploy story, fragile scrapers.
+The owner needed it to become a real, sellable SaaS in Turkey.
+
+## Build
+
+Joined as a collaborator and led the rebuild end-to-end:
+
+- **Data layer:** migrated SQLite → Supabase Postgres behind a
+  sqlite3-compatible `psycopg` shim, so the ~155 existing call sites kept
+  working unchanged.
+- **Auth:** retired the local JWT login; trust **Supabase Auth ES256
+  tokens** via JWKS, onboard team members through the Supabase Admin API,
+  email confirmation flow through Supabase + Resend custom SMTP.
+- **Payments:** recurring iyzico subscriptions in TRY (Stripe doesn't
+  onboard Turkish businesses) — 3 tiers, webhook signature verification,
+  quota-on-read.
+- **AI Site Analysis:** OpenRouter-fronted LLM call with model fallbacks
+  (Claude Sonnet 4.6 → GPT-4o-mini → Gemini), produces a 0–100 site
+  score, strengths/weaknesses, a call-opener, and a pre-drafted outreach
+  email.
+- **Frontend:** rebuilt as an Astro + Svelte 5 + Tailwind v4 SPA against
+  a Pencil "Data Terminal" handoff. View Transitions for SPA-style
+  navigation, persisted rail/banner/toast across nav, dashboard charts
+  (funnel, capture trend, coverage, platform mix).
+- **Deploy:** Dockerized Oracle Cloud Always-Free ARM VM (Frankfurt),
+  Caddy for auto-HTTPS, Gunicorn (1 worker × 8 threads — scrapes run as
+  in-process daemons), session-persistence volume for headful scrapers
+  via xvfb.
+
+## Architecture
+
+Decoupled. Flask backend at the repo root (`/api/*`) and the frontend in
+its own `frontend/` app. In dev the frontend proxies `/api` → `:5000`;
+in prod Caddy serves the Astro `dist/` and reverse-proxies the API on
+the same origin. SSRF guard (`safe_fetch`) on every fetched URL.
+Pre-deploy security pass: untracked leaked scraper-session JWTs, fixed
+Postgres double-quoted SQL literals that were raising `UndefinedColumn`,
+plugged a connection-pool leak that drained after ~10 errored requests.
+
+## Reflection
+
+The owner's prototype proved the demand; the rebuild was about earning
+the right to charge for it. The most satisfying piece wasn't any one
+feature — it was the moment the failing-quietly bugs (pool drain, JWT
+sign-out race, post-nav locale flash) stopped, and the app started
+behaving like a product instead of a script.
