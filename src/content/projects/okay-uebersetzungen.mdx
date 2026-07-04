@@ -9,7 +9,7 @@ cover:
   cloud: false
 screenshots: []
 exif:
-  stack: Astro 6 + Tailwind 4 + Svelte 5 + TypeScript + Gemini Live + Cloudflare Pages
+  stack: Astro 6 + Tailwind 4 + Svelte 5 + Gemini Live + Cloudflare Pages/R2/KV/Turnstile + Sentry (EU)
   year: '2026'
   status: live
   role: full-stack · i18n · voice-AI
@@ -27,45 +27,60 @@ draft: false
 
 ## Problem
 
-A 50-year-old Berlin translation office (German ↔ Turkish specialty,
-office-based "vom Original" sworn translations) needed a real site —
-not a Wix template — that read as expert, intake-ready, and bilingual
-end-to-end. Strict German-jurisdiction GDPR rules out the obvious
-shortcuts: no Google Fonts CDN, no third-party trackers, no consent
-banners covering up a privacy mess.
+A Berlin translation office — German ↔ Turkish specialty, interpreter
+practice since 1971, GmbH since 1984, sworn "vom Original" translations
+handed over in person — needed a real site that read as expert and
+intake-ready, in both languages, without falling into the usual
+GDPR-shortcut traps: no Google Fonts CDN, no third-party trackers
+loaded up front, no consent banner covering up a privacy mess.
 
 ## Build
 
 Static Astro 6 with Tailwind 4 (tokens in `@theme`, no config file) and
-Svelte 5 islands for the few stateful pieces — FAQ accordion, document
-register, contact wizard, voice assistant. The whole site is bilingual
-DE / TR: shared UI-string dictionary for chrome, separate Turkish pages
-under `/tr/` for long-form copy, route-aware language switcher with
-`hreflang` alternates.
+Svelte 5 islands for the stateful pieces — FAQ accordion, document
+register, contact wizard, testimonials marquee, voice assistant. The
+whole site is bilingual DE / TR: shared UI-string dictionary for
+chrome, separate Turkish pages under `/tr/` for long-form copy,
+route-aware language switcher with `hreflang` alternates.
 
-The intake flow is a single OrderWizard (service → languages → document
-description with file upload ≤ 10 MB → quote-vs-order toggle → contact)
-that posts to Web3Forms — no booking calendar, one CTA target sitewide.
-The office map is a self-hosted PNG stitched from OSM tiles, not a live
-embed, so the contact page transfers zero data to a tile provider.
+The intake flow is a single OrderWizard (service → languages →
+document description with file upload → quote-vs-order toggle →
+phone-validated contact via `libphonenumber-js`). Documents go through
+**Cloudflare R2** with signed links (the old Web3Forms direct-upload
+path was capped and started returning HTTP 400 on real files). The
+submit endpoint is gated by **Cloudflare Turnstile** — invisible, no
+cookies, so no consent needed. Uploads carry magic-byte validation and
+per-IP rate limits stored in **Cloudflare KV**.
+
+The office map is a self-hosted PNG stitched from OSM tiles, not a
+live embed, so the contact page transfers zero data to a tile
+provider.
 
 ## Architecture
 
-GDPR-first: the default page loads **zero** third-party scripts and
-sets zero cookies, so there's no banner. The voice assistant
-(`CallAgent.svelte`) is the single exception — it's **consent-gated**.
-Until the user clicks accept, nothing loads: no SDK, no socket. On
-accept, a Cloudflare Pages Function mints an **ephemeral Gemini Live
-token** (the real `GEMINI_API_KEY` lives server-side, never in the
-browser), the `@google/genai` SDK lazy-loads, and a native-audio
-session opens. The agent stays general-info only, refuses PII, routes
-real orders into the OrderWizard, and stores nothing.
+GDPR-first, revisited: the default page still loads zero third-party
+*visitor-visible* scripts, so there's no cookie banner. Two subtleties
+under that:
 
-Self-hosted Inter / Manrope / Instrument Serif / Homemade Apple (woff2,
-preloaded above the fold). Hosting on Cloudflare Pages with cookie-less
-Web Analytics, security headers in `public/_headers`, sitemap + `llms.txt`
-for AEO. Bilingual JSON-LD (`LocalBusiness`, `Person`, `FaqPage`,
-`DefinedTerm` for the glossary).
+- **Voice assistant** (`CallAgent.svelte`) is **consent-gated**. Until
+  the user clicks accept, nothing loads. On accept, a Cloudflare Pages
+  Function mints an ephemeral Gemini Live token (`GEMINI_API_KEY` stays
+  server-side), the `@google/genai` SDK lazy-loads, and a native-audio
+  session opens. The agent stays general-info only, refuses PII,
+  routes real orders into the OrderWizard, stores nothing.
+- **Observability** is Sentry, **EU-region** — but shaped to the
+  privacy story. Server-side (Pages Functions) is unconditional and
+  invisible to visitors. The browser-side reporter is **custom,
+  dependency-free, and armed only after voice consent** — it exists
+  only to catch voice failures the user is already inside; no
+  page-load telemetry, no breadcrumbs, no SDK bundle.
+
+Self-hosted Inter / Manrope / Instrument Serif / Homemade Apple
+(woff2, preloaded above the fold). Cookie-less Cloudflare Web
+Analytics, security headers in `public/_headers`. Rich JSON-LD entity
+graph (`LocalBusiness` with `foundingDate`, `Person`, `FaqPage`,
+`DefinedTerm` for the glossary) plus `llms.txt` and freshness signals
+for the SEO/GEO program.
 
 ## Reflection
 
@@ -73,8 +88,9 @@ The original brief was an AI **phone** receptionist (telephony via n8n
 + IONOS). After exploring it, we shipped a consent-gated **in-browser**
 voice assistant instead — GDPR-cleaner, loads zero third parties until
 the user explicitly opts in, and works on any device with a microphone.
-The phone angle is parked, not dead; the chat-FAB stub next to the
-voice button is the mount point for a text-only sibling once the FAQ
-corpus is ready. The lesson was that "AI assistant" doesn't have to
-mean "telephony" — the right channel is the one your privacy story can
-actually defend.
+The lesson generalised: the same "no third party until the user is
+already inside a voluntary experience" pattern shaped the error-reporting
+decision too. Server-side observability sits where it doesn't touch
+the visitor; browser-side error capture only arms after they've
+accepted the voice channel. Privacy isn't a constraint you route
+around — it's a design that keeps working as the feature list grows.
