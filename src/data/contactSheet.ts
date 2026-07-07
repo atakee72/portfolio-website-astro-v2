@@ -14,14 +14,22 @@
 export type Frame =
   | { k: 'photo'; tone: 'a' | 'b' | 'd' | 'e' | 'g'; label: string; tag: string; slug?: string }
   | { k: 'paint'; tone: 'c' | 'f'; label: string; tag: string }
-  | { k: 'code'; text: string; tag: string };
+  | { k: 'code'; text: string; tag: string }
+  | { k: 'link'; src: string; alt: string; label: string; tag: string; href: string };
 
 export const contactSheet: Frame[] = [
   { k: 'photo', tone: 'a', label: 'TEMPELHOF · 18:42', tag: 'PORTRA 400', slug: 'animals' },
   { k: 'code', text: '// agents.dispatch()\n\nconst agents = [\n  goalFinder,\n  talentFinder,\n  jobScout,\n]\n\nrun({ thread, profile, tools })', tag: 'DISPATCH' },
   { k: 'photo', tone: 'b', label: 'BOSPORUS · 07:11', tag: '35MM' },
   { k: 'code', text: '$ pnpm build\n  ✓ 22 pages\n  ✓ 0 warnings', tag: 'BUILD OK' },
-  { k: 'photo', tone: 'd', label: 'KREUZBERG · NIGHT', tag: 'TRI-X 400' },
+  {
+    k: 'link',
+    src: '/assets/museum-cover.webp',
+    alt: 'Websites through the years — three restored sites from 1999–2006',
+    label: '1999 – 2006',
+    tag: 'WAYBACK',
+    href: 'https://atakee72.github.io/websites-through-the-years/',
+  },
   { k: 'paint', tone: 'c', label: 'POMEGRANATES · STUDIO', tag: 'OIL · 50×40' },
   { k: 'photo', tone: 'g', label: 'U-BAHN · 23:54', tag: 'PUSHED +1' },
   { k: 'paint', tone: 'f', label: 'AFTER BONNARD', tag: 'GOUACHE' },

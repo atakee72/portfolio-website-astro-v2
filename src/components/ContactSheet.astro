@@ -27,8 +27,9 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
 >
   {contactSheet.map((f, i) => {
     const isVisual = f.k === 'photo' || f.k === 'paint';
+    const isLink = f.k === 'link';
     const dialogId = `frame-${i + 1}`;
-    const Tag = isVisual ? 'button' : 'article';
+    const Tag = isVisual ? 'button' : isLink ? 'a' : 'article';
     const cover = resolvedCover(f);
     const bgStyle = cover
       ? undefined
@@ -41,6 +42,7 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
       <Tag
         {...(isVisual ? { type: 'button', 'data-enlarge-target': dialogId } : {})}
         {...(f.k === 'photo' && f.slug ? { 'data-roll-slug': f.slug } : {})}
+        {...(isLink ? { href: f.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
         class={
           'relative aspect-[4/3] border border-ink-3 overflow-hidden text-left appearance-none ' +
           'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] ' +
@@ -57,6 +59,16 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
           />
         )}
 
+        {f.k === 'link' && (
+          <img
+            src={f.src}
+            alt={f.alt}
+            loading="lazy"
+            decoding="async"
+            class="absolute inset-0 w-full h-full object-contain bg-[#0a0a09]"
+          />
+        )}
+
         <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
           {String(i + 1).padStart(2, '0')}A
         </span>
@@ -66,6 +78,7 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
             'absolute top-1.5 right-1.5 z-[3] text-[9px] tracking-[0.14em] px-1.5 py-0.5 bg-black/50 border',
             f.k === 'paint' ? 'text-safelight border-safelight'
               : f.k === 'code' ? 'text-phosphor border-phosphor'
+              : f.k === 'link' ? 'text-phosphor border-phosphor'
               : 'text-paper border-paper',
           ]}
         >
@@ -77,7 +90,12 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
             <pre class="m-0 text-[11px] text-phosphor leading-[1.5] whitespace-pre-wrap">{f.text}</pre>
           </div>
         ) : (
-          <span class="absolute left-2 bottom-2 z-[3] text-[10px] tracking-[0.16em] text-paper">
+          <span
+            class:list={[
+              'absolute left-2 bottom-2 z-[3] text-[10px] tracking-[0.16em] text-paper',
+              f.k === 'link' && 'bg-black/60 px-1.5 py-0.5',
+            ]}
+          >
             {f.label}
           </span>
         )}
