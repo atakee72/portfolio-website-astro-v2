@@ -257,19 +257,22 @@ Production: **https://ercan-atak.de** (apex canonical; `www` 308-redirects to ap
 
 - **Registrar:** Porkbun. **DNS host:** Cloudflare (zone, DNS-only / gray cloud — never proxy records that point to Vercel; the two CDNs conflict on TLS). **Hosting:** Vercel (project `developer-portefeuille-of-ercan-atak`).
 - **DNS records to know:** `CNAME @ → cname.vercel-dns.com` (Cloudflare flattens at apex), `CNAME www → cname.vercel-dns.com`. Both DNS-only.
-- **Email** via Cloudflare Email Routing (free):
-  - `contact@ercan-atak.de` → `atakee+portfolio@gmail.com`
-  - `info@ercan-atak.de` → `atakee+portfolio@gmail.com`
-  - Catch-all: **Drop** (silent — kills spam to `admin@`, `webmaster@`, etc.; legit typos also drop)
-  - SPF + DKIM auto-added by Cloudflare (don't edit manually).
-- **Form** (`<ReachForm>`) posts to Web3Forms with an inlined per-form `access_key` (see `src/components/ReachForm.svelte` — public by design per Web3Forms docs, gitleaks-ignored). The Web3Forms account is set to deliver to `atakee+portfolio@gmail.com`, so both form submissions AND direct emails land at the same Gmail sub-address. One Gmail filter (`to:atakee+portfolio@gmail.com`) catches both.
+- **Email hosting:** mailbox.org (Heinlein Support GmbH, Berlin) on the Standard plan (€3/mo). EU-hosted, no third-country transfer — chosen for DSGVO alignment. One inbox (`atakee@mailbox.org`) receives all domain mail via aliases:
+  - `mail@ercan-atak.de` — **canonical public address** (surfaced in About / legal pages / JSON-LD)
+  - `contact@ercan-atak.de` — reserved for ReachForm delivery target if switched
+  - `info@ercan-atak.de` — backward-compat for old contacts
+  - `ercan@`, `press@` — reserved identities
+  - No catch-all (spam magnet). All aliases route to the same inbox.
+- **Mail DNS records:** MX → `mxext1..4.mailbox.org` (priority 10, all equal); SPF → `v=spf1 include:mailbox.org ~all`; DKIM → 4× `MBO0001..4._domainkey` CNAMEs → `MBO000n._domainkey.mailbox.org.`; DMARC → `v=DMARC1; p=none; rua=mailto:mail@ercan-atak.de` (start soft, tighten to `quarantine` after a few weeks of clean reports).
+- **Legacy Cloudflare Email Routing (retired 2026-07-12):** previously forwarded `info@` / `contact@` → `atakee+portfolio@gmail.com`. Retired because Yahoo `p=reject` senders bounced through the forward (Gmail refused the ARC-sealed forward). Rules are still saved in the Cloudflare dashboard but the whole service is *disabled* (`status: unconfigured`) — one-call rollback if ever needed. Do NOT re-enable while mailbox.org MX is live; the two conflict.
+- **Form** (`<ReachForm>`) posts to Web3Forms with an inlined per-form `access_key` (see `src/components/ReachForm.svelte` — public by design per Web3Forms docs, gitleaks-ignored). The Web3Forms account still delivers to `atakee+portfolio@gmail.com` (unchanged by the mailbox.org migration). To route form submissions to the new inbox instead, change the delivery target in the Web3Forms dashboard to `contact@ercan-atak.de` — one Gmail filter no longer needed once done.
 
 ## Legal & compliance (DSGVO / DDG)
 
 The site is operated from Germany under a real name → triggers Impressumspflicht (DDG, the 2024 successor to TMG) and Datenschutzerklärung (DSGVO). Both pages exist; both are surfaced from the footer alongside the rss link.
 
 - **`/impressum`** — `src/pages/impressum.astro`. § 5 DDG required fields + § 18 (2) MStV + standard liability/copyright boilerplate. Bilingual (DE block, then `<hr>`, then EN block).
-- **`/datenschutz`** — `src/pages/datenschutz.astro`. Bilingual, processor-specific (Vercel, Web3Forms, Cloudflare Email Routing, Cloudinary, GoatCounter). Covers data flows, legal bases (Art. 6 DSGVO), DPF/SCC posture, data-subject rights (Art. 15–22), and right to complain (Art. 77 → BlnBDI Berlin).
+- **`/datenschutz`** — `src/pages/datenschutz.astro`. Bilingual, processor-specific (Vercel, Web3Forms, mailbox.org, Cloudinary, GoatCounter). Covers data flows, legal bases (Art. 6 DSGVO), DPF/SCC posture, data-subject rights (Art. 15–22), and right to complain (Art. 77 → BlnBDI Berlin). Section 4 was rewritten 2026-07-12 when the site moved from Cloudflare Email Routing (US) to mailbox.org (Berlin/EU) — the section now describes an EU processor with no Drittstaatentransfer.
 - **Address on Impressum** is the user's full street + house number per strict § 5 DDG (`ladungsfähige Anschrift`). Privacy exposure is mitigated three ways: (1) read from `IMPRESSUM_STREET` env var at build time (set in `.env.local` for dev + Vercel dashboard for prod — **never** committed to the public repo); (2) char-code-encoded in `data-c` by `<ObfuscatedText>` so it's not in static HTML either; (3) the whole page is `noindex` + sitemap-excluded + `robots.txt`-disallowed. To change the address: update `IMPRESSUM_STREET` in Vercel dashboard (use UI, not CLI — see [[feedback_vercel_env_rebuild]]) and `.env.local`. Postal code + city (`12049 Berlin`) stay hardcoded in `src/pages/impressum.astro` (not sensitive; already in /datenschutz, DPA references, etc.).
 - **Email + address obfuscation (scraper-safety pass)**: `src/components/ObfuscatedEmail.astro` (clickable `<a>` → `mailto:`) and `src/components/ObfuscatedText.astro` (`<span>` for multi-line text). Both encode the prop value as comma-joined char codes in data attributes; the decoder lives as an inline `<script is:inline>` in `BaseLayout.astro` that runs on `astro:page-load`. Defeats bulk regex/curl scrapers — the literal email + street never appear in static HTML. **Use these whenever you'd otherwise write a `mailto:` link or a PII string.** Do NOT add raw email strings back to JSON-LD, OG tags, or content collections. The inline `onclick="return this.dataset.done==='1'"` on `ObfuscatedEmail` is a race-condition guard that will need to migrate to an event listener when CSP is implemented (filed under deferred items).
 - **Legal pages are noindex + sitemap-excluded + robots-disallowed** — `/impressum` and `/datenschutz` are `noindex,nofollow,noarchive` via the `BaseLayout` prop; `astro.config.mjs` `sitemap({ filter })` keeps them out of `sitemap-0.xml`; `public/robots.txt` has explicit `Disallow:` entries. Three layers of belt-and-suspenders against well-behaved crawlers.
@@ -304,8 +307,9 @@ The script uses `AbortController` aborted on `astro:before-swap` to release the 
 
 **Live copyright year**: `<span data-year>` is server-rendered with the build-time year as fallback, then overwritten client-side on each `astro:page-load`. Means the year ticks over without requiring a rebuild — Vercel doesn't have to redeploy on Jan 1 for the footer to update.
 - **Where things live:**
-  - DNS records, MX, email routing rules → **Cloudflare dashboard** (not in source)
+  - DNS records → **Cloudflare dashboard** (not in source; can be edited via Cloudflare API too — I have MCP access)
+  - Mailbox aliases / inbox settings → **mailbox.org admin** at `office.mailbox.org` (not in source; user-only, needs the mailbox.org login)
   - SSL + domain attachment → **Vercel dashboard** or `vercel domains` CLI
   - `www → apex` redirect → `vercel.json` `redirects` rule with `has: host` matcher (source-controlled)
   - Sitemap / canonical URLs / og:url → `astro.config.mjs` `site:` field
-  - Surfaced `contact@` mailto in the UI → `About.astro` (under `$ reach`), `Footer.astro`, and JSON-LD `Person` schema in `BaseLayout.astro`
+  - Surfaced `mail@` mailto in the UI → `About.astro` (under `$ reach`), `impressum.astro`, `datenschutz.astro`, and JSON-LD `Person` schema in `BaseLayout.astro` — always via `<ObfuscatedEmail user="mail" domain="ercan-atak.de" />`, never a raw string
