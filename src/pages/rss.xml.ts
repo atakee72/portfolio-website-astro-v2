@@ -6,6 +6,7 @@ import {
   getAllRolls,
   getAllPaintings,
 } from '@/lib/content';
+import { albumForSeries } from '@/data/paintAlbums';
 
 export async function GET(context: APIContext) {
   const [posts, projects, rolls, paintings] = await Promise.all([
@@ -39,7 +40,9 @@ export async function GET(context: APIContext) {
     })),
     ...paintings.map((p) => ({
       title: p.data.title,
-      link: `/paints/${p.id}/`,
+      link: albumForSeries(p.data.series)
+        ? `/paints/${albumForSeries(p.data.series)!.slug}/${p.id}/`
+        : `/paints/`,
       pubDate: new Date(
         `${p.data.year.match(/\d{4}/)?.[0] ?? '1970'}-01-01`
       ),

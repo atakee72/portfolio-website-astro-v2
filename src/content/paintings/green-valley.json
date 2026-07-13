@@ -1,0 +1,16 @@
+{
+  "title": "Green Valley",
+  "year": "2022",
+  "medium": "Oil on canvas",
+  "subjects": [
+    "Landscape"
+  ],
+  "series": "Famous paintings",
+  "image": {
+    "cldPath": "paints/green-valley",
+    "alt": "Rolling green hills and a valley seen from above, blue horizon with distant city lights"
+  },
+  "tags": [],
+  "featured": false,
+  "draft": false
+}

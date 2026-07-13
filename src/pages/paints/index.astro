@@ -3,19 +3,24 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import CloudPhoto from '@/components/CloudPhoto.astro';
-import FilterStrip from '@/components/FilterStrip.astro';
 import { getAllPaintings } from '@/lib/content';
+import { paintAlbums } from '@/data/paintAlbums';
 
 const paintings = await getAllPaintings();
 
-const years = [...new Set(paintings.map((p) => p.data.year))].sort().reverse();
-const subjects = [...new Set(paintings.flatMap((p) => p.data.subjects))].sort();
-const media = [...new Set(paintings.map((p) => p.data.medium))].sort();
+// Albums with at least one published painting, newest series first
+// (registry order — curated, like the contact sheet).
+const albums = paintAlbums
+  .map((album) => ({
+    ...album,
+    count: paintings.filter((p) => p.data.series === album.series).length,
+  }))
+  .filter((a) => a.count > 0);
 ---
 
 <BaseLayout
   title="Paints — works on canvas, paper, and the rest"
-  description="Paintings — oil, acrylic, watercolour, drawing. Studio archive."
+  description="Paintings — oil, acrylic, watercolour, drawing. Studio archive, grouped in albums."
 >
   <Navbar />
 
@@ -39,14 +44,11 @@ const media = [...new Set(paintings.map((p) => p.data.medium))].sort();
     </h1>
 
     <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono mb-8">
-      // <span data-filter-count>{paintings.length}</span> painting{paintings.length === 1 ? '' : 's'}
+      // {albums.length} album{albums.length === 1 ? '' : 's'} ·
+      {paintings.length} painting{paintings.length === 1 ? '' : 's'}
     </p>
 
-    <FilterStrip name="year" tags={years} label="// year" />
-    <FilterStrip name="subject" tags={subjects} label="// subject" />
-    <FilterStrip name="medium" tags={media} label="// medium" />
-
-    {paintings.length === 0 ? (
+    {albums.length === 0 ? (
       <div
         class="
           bg-ink-2 border border-ink-3 px-4 py-3.5 font-mono text-[13px]
@@ -55,38 +57,30 @@ const media = [...new Set(paintings.map((p) => p.data.medium))].sort();
       >
         <span class="text-safelight">$</span> ls -1 paintings/
         <br />
-        <span class="text-mute-2">// no paintings catalogued yet — studio queue</span>
+        <span class="text-mute-2">// no albums catalogued yet — studio queue</span>
       </div>
     ) : (
-      <ul
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 list-none p-0 m-0"
-        data-filter-target
-      >
-        {paintings.map((p) => (
-          <li
-            data-filter-item
-            data-filter-year={p.data.year}
-            data-filter-subject={p.data.subjects.join('|')}
-            data-filter-medium={p.data.medium}
-          >
+      <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 list-none p-0 m-0">
+        {albums.map((album) => (
+          <li>
             <a
-              href={`/paints/${p.id}`}
-              class="block relative aspect-square border border-ink-3 overflow-hidden bg-ink-2 transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-visible:scale-[1.02]"
+              href={`/paints/${album.slug}`}
+              class="block relative aspect-[4/3] border border-ink-3 overflow-hidden bg-ink-2 transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-visible:scale-[1.02]"
             >
               <CloudPhoto
-                cldPath={p.data.image.cldPath}
-                alt={p.data.image.alt}
-                width={1000}
+                cldPath={album.cover}
+                alt={album.coverAlt}
+                width={1200}
                 class="absolute inset-0 w-full h-full"
               />
-              <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5 uppercase">
-                {p.data.medium}
+              <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
+                ALBUM · {album.count}
               </span>
               <div
                 class="absolute left-2 right-2 bottom-2 z-[3] flex justify-between items-end gap-2 text-[11px] tracking-[0.16em] text-paper"
               >
-                <span class="truncate">{p.data.title}</span>
-                <span class="text-mute-2 shrink-0">{p.data.year}</span>
+                <span>{album.title}</span>
+                <span class="text-mute-2">{album.years}</span>
               </div>
             </a>
           </li>

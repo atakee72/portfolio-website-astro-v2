@@ -1,0 +1,16 @@
+{
+  "title": "Brick House",
+  "year": "2022",
+  "medium": "Watercolour & ink",
+  "subjects": [
+    "Landscape"
+  ],
+  "series": "Famous paintings",
+  "image": {
+    "cldPath": "paints/brick-house",
+    "alt": "Abandoned red-brick house overgrown with thicket, rendered in watercolour with ink spatter"
+  },
+  "tags": [],
+  "featured": false,
+  "draft": false
+}

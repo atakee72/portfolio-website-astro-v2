@@ -4,24 +4,30 @@ import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import CloudPhoto from '@/components/CloudPhoto.astro';
 import { getAllPaintings } from '@/lib/content';
+import { paintAlbums } from '@/data/paintAlbums';
 import { getCldImageUrl } from 'astro-cloudinary/helpers';
 
 export async function getStaticPaths() {
-  const paintings = await getAllPaintings();
-  const total = paintings.length;
-  return paintings.map((painting, i) => ({
-    params: { slug: painting.id },
-    props: {
-      painting,
-      prev: paintings[(i - 1 + total) % total],
-      next: paintings[(i + 1) % total],
-      idx: i,
-      total,
-    },
-  }));
+  const all = await getAllPaintings();
+  // Prev/next cycle within each album, not across the whole collection.
+  return paintAlbums.flatMap((album) => {
+    const paintings = all.filter((p) => p.data.series === album.series);
+    const total = paintings.length;
+    return paintings.map((painting, i) => ({
+      params: { album: album.slug, slug: painting.id },
+      props: {
+        album,
+        painting,
+        prev: paintings[(i - 1 + total) % total],
+        next: paintings[(i + 1) % total],
+        idx: i,
+        total,
+      },
+    }));
+  });
 }
 
-const { painting, prev, next, total } = Astro.props;
+const { album, painting, prev, next, total } = Astro.props;
 const { data } = painting;
 
 const metaParts: string[] = [];
@@ -30,9 +36,9 @@ if (data.dimensions) metaParts.push(data.dimensions);
 metaParts.push(data.year);
 const metaLine = metaParts.join(' · ');
 
-const prevHref = `/paints/${prev.id}`;
-const nextHref = `/paints/${next.id}`;
-const permalinkHref = `/paints/${painting.id}`;
+const prevHref = `/paints/${album.slug}/${prev.id}`;
+const nextHref = `/paints/${album.slug}/${next.id}`;
+const permalinkHref = `/paints/${album.slug}/${painting.id}`;
 
 const ogImage = getCldImageUrl({
   src: data.image.cldPath,
@@ -66,6 +72,8 @@ const pageDescription = data.description
       <a href="/" class="hover:text-phosphor transition-colors">// home</a>
       &nbsp;/&nbsp;
       <a href="/paints" class="hover:text-phosphor transition-colors">paints</a>
+      &nbsp;/&nbsp;
+      <a href={`/paints/${album.slug}`} class="hover:text-phosphor transition-colors">{album.slug}</a>
       &nbsp;/&nbsp;{painting.id}
     </p>
 
@@ -79,7 +87,7 @@ const pageDescription = data.description
       {metaLine}{data.series && ` · ${data.series}`}
     </p>
 
-    <div class="relative mx-auto max-w-[1100px] border border-ink-3 overflow-hidden bg-ink-2">
+    <div class="relative mx-auto max-w-[720px] border border-ink-3 overflow-hidden bg-ink-2">
       <CloudPhoto
         cldPath={data.image.cldPath}
         alt={data.image.alt}
@@ -160,8 +168,8 @@ const pageDescription = data.description
     )}
 
     <div class="mt-8 flex justify-between items-center text-[12px] tracking-[0.14em] text-mute-2 font-mono">
-      <a href="/paints" class="hover:text-phosphor transition-colors">
-        ← back to paints
+      <a href={`/paints/${album.slug}`} class="hover:text-phosphor transition-colors">
+        ← back to {album.title.toLowerCase()}
       </a>
       <span>{data.year}</span>
     </div>

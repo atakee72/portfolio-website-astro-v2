@@ -1,0 +1,119 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+import CloudPhoto from '@/components/CloudPhoto.astro';
+import FilterStrip from '@/components/FilterStrip.astro';
+import { getAllPaintings } from '@/lib/content';
+import { paintAlbums, type PaintAlbum } from '@/data/paintAlbums';
+import type { Painting } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const paintings = await getAllPaintings();
+  return paintAlbums
+    .map((album) => ({
+      params: { album: album.slug },
+      props: {
+        album,
+        paintings: paintings.filter((p) => p.data.series === album.series),
+      },
+    }))
+    .filter(({ props }) => props.paintings.length > 0);
+}
+
+interface Props {
+  album: PaintAlbum;
+  paintings: Painting[];
+}
+
+const { album, paintings } = Astro.props;
+
+const years = [...new Set(paintings.map((p) => p.data.year))].sort().reverse();
+const subjects = [...new Set(paintings.flatMap((p) => p.data.subjects))].sort();
+const media = [...new Set(paintings.map((p) => p.data.medium))].sort();
+---
+
+<BaseLayout
+  title={`${album.title} — Paints`}
+  description={album.description}
+>
+  <Navbar />
+
+  <main
+    class="
+      px-4 pt-4 pb-6 md:px-6 md:pt-6 md:pb-7 lg:px-9 lg:pt-9 lg:pb-7
+      max-w-[1320px] mx-auto
+    "
+  >
+    <p
+      class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-5 font-mono"
+    >
+      <a href="/" class="hover:text-phosphor transition-colors">// home</a>
+      &nbsp;/&nbsp;
+      <a href="/paints" class="hover:text-phosphor transition-colors">paints</a>
+      &nbsp;/&nbsp;{album.slug}
+    </p>
+
+    <h1
+      class="m-0 font-display font-bold text-paper-hi text-[clamp(32px,5.5vw,64px)] tracking-[-0.03em] leading-[0.95] mb-3"
+    >
+      {album.title}
+    </h1>
+
+    <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono uppercase mb-2">
+      // {album.series} · {album.years} · {album.dimensions} ·
+      <span data-filter-count>{paintings.length}</span> painting{paintings.length === 1 ? '' : 's'}
+    </p>
+
+    <p class="text-[13px] text-paper-2 leading-[1.6] max-w-[640px] m-0 mb-8">
+      {album.description}
+    </p>
+
+    <FilterStrip name="year" tags={years} label="// year" />
+    <FilterStrip name="subject" tags={subjects} label="// subject" />
+    <FilterStrip name="medium" tags={media} label="// medium" />
+
+    <ul
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 list-none p-0 m-0"
+      data-filter-target
+    >
+      {paintings.map((p) => (
+        <li
+          data-filter-item
+          data-filter-year={p.data.year}
+          data-filter-subject={p.data.subjects.join('|')}
+          data-filter-medium={p.data.medium}
+        >
+          <a
+            href={`/paints/${album.slug}/${p.id}`}
+            class="block relative aspect-square border border-ink-3 overflow-hidden bg-ink-2 transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-visible:scale-[1.02]"
+          >
+            <CloudPhoto
+              cldPath={p.data.image.cldPath}
+              alt={p.data.image.alt}
+              width={1000}
+              class="absolute inset-0 w-full h-full"
+            />
+            <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5 uppercase">
+              {p.data.medium}
+            </span>
+            <div
+              class="absolute left-2 right-2 bottom-2 z-[3] flex justify-between items-end gap-2 text-[11px] tracking-[0.16em] text-paper"
+            >
+              <span class="truncate">{p.data.title}</span>
+              <span class="text-mute-2 shrink-0">{p.data.year}</span>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="mt-8 text-[12px] tracking-[0.14em] text-mute-2 font-mono">
+      <a href="/paints" class="hover:text-phosphor transition-colors">
+        ← all albums
+      </a>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
