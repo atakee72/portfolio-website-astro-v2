@@ -103,10 +103,11 @@ Anchor hrefs are root-relative (`/#home`, `/#sheet`, etc.) so they work from any
 - **Do not import `react-icons` (or any React component) into `.astro` templates** — there is no React in this project, and even if there were, `react-icons` triggers SSR hook-call warnings. Inline SVGs instead (see how `SocialMedia.astro` does it).
 - **Two unused leftovers were removed during the Astro migration**: any reference to `public/assets/index.js`, `next-themes`, or `react-magic-motion` is stale.
 - **Tailwind arbitrary-value classes with CSS variables work** (e.g., `text-[var(--brand)]`). Used in `SocialMedia.astro` for per-icon hover colors.
-- **`CloudPhoto.astro` lays a transparent anti-download overlay at `z-10`** over every image. Anything interactive that sits inside `.frame` in the lightbox (close button, copy-link, prev/next, caption row with "see full roll →" link) MUST be `z-20+` or its clicks get eaten silently. Same trap on contact-sheet cells if you ever add an interactive child to the photo button.
+- **`CloudPhoto.astro` lays a transparent anti-download overlay at `z-10`** over every image. ANY interactive element positioned over a `CloudPhoto` (lightbox close/copy/prev/next, detail-page arrows, caption-row links) MUST be `z-20+` or its clicks get eaten silently — the overlay wins the hit-test and nothing happens, no error. This bit twice: the lens lightbox and the paints detail page (arrows shipped at `z-[3]` → dead mouse clicks while keyboard nav worked).
+- **JS-driven navigation must route through the View Transitions router.** `window.location.href = url` forces a full page load; call the target anchor's `.click()` (or `navigate()` from `astro:transitions/client`) instead. Bit the keyboard arrow nav on both lens photo pages and paints detail pages. The paints detail image frame carries `transition:name="painting-frame"` so prev/next morphs in place.
 - **Cloudinary text overlays only support a fixed set of fonts** (Arial, Courier, Times, Verdana, Helvetica, Georgia, etc.). Custom fonts like "JetBrains Mono" return HTTP 400 with `x-cld-error: Unsupported font family ...` and a broken-image GIF. The watermark in `CloudPhoto.astro` uses `Courier`. To debug image issues fast: `curl -I` the Cloudinary URL and check headers.
 - **Sveltia commits straight to GitHub via API** — it never touches your local working tree. **Always `git pull` before editing files Sveltia might have edited** (`src/content/blog/*.mdx`, `src/content/rolls/*.json`) to avoid diverging streams.
-- **Contact-sheet cells auto-resolve `slug` to roll cover.** Set `slug: 'my-roll'` on a photo cell in `src/data/contactSheet.ts` and `ContactSheet.astro` looks up the matching `src/content/rolls/<slug>.json`, renders the cover via `<CloudPhoto>`, and surfaces a "see full roll →" CTA in the lightbox. Cells without a slug keep their placeholder gradient.
+- **Contact-sheet cells auto-resolve content links.** In `src/data/contactSheet.ts`: photo cells with `slug: 'my-roll'` resolve to that roll's cover + "see full roll →" lightbox CTA; paint cells with `painting: 'painting-id'` resolve to that painting's image + "view painting →" CTA (href via `albumForSeries`); `link` cells render a static image as an outbound `<a target="_blank">` (used for the website-museum tile). Cells without any of these keep their placeholder gradient. On mobile (no lightbox), slug/painting cells tap-navigate directly.
 
 ## Common Tasks
 
@@ -155,7 +156,7 @@ If you ever need to bypass the hook (rare — usually means rotating the secret 
 
 The homepage (`src/pages/index.astro`) deliberately caps each section to keep the page from growing unboundedly as content lands:
 
-- **Contact sheet** (`ContactSheet.astro`) — **hardcoded 9 cells** in `src/data/contactSheet.ts`. Curated highlight area, not a feed. Composition: 5 photo + 2 paint + 2 code (current; one photo cell was swapped to code for the RUNES card). Set `slug: '<roll>'` on a photo cell to auto-resolve to that roll's cover image and add a "see full roll →" CTA in the lightbox.
+- **Contact sheet** (`ContactSheet.astro`) — **hardcoded 9 cells** in `src/data/contactSheet.ts`. Curated highlight area, not a feed. Current composition: 3 photo + 2 paint (both linked to real paintings) + 3 code + 1 link (website-museum tile). Photo cells take `slug: '<roll>'`, paint cells take `painting: '<id>'` — both auto-resolve cover images and add lightbox CTAs.
 - **Blog** — capped at **6 most recent** posts (`BLOG_HOME_CAP` in `index.astro`). Overflow goes to `/blog/index.astro`. Signpost link "see all entries →" appears in the section header only when there's actual overflow (`hasMore` prop).
 - **Work** — capped at **6** projects (`HOME_CAP` in `ExifWork.astro`). Overflow goes to `/work/index.astro`. Same signpost pattern.
 
@@ -250,6 +251,17 @@ Setting menu drifts; current path is something like Settings → Security → "R
 - The `/photojockeysblog/` path is intentionally obscure (replaces conventional `/admin/`) to cut bot probes. **Not** listed in `robots.txt` — the page itself emits `<meta name="robots" content="noindex,nofollow,noarchive">` instead.
 - Real security still comes from the PAT, not URL obscurity.
 - Cloudinary `api_key` is exposed in `config.yml` by design — per Decap CMS docs it's safe to publish. Only `api_secret` (used by `sync-exif.mjs` server-side) must stay private.
+
+## Paintings pipeline (albums)
+
+Paintings live in `src/content/paintings/*.json` (Zod schema in `config.ts`, Sveltia form in `config.yml` — keep both in sync). Images are Cloudinary `paints/<painting-id>` public IDs, rendered through `CloudPhoto` (watermark + EXIF-strip apply).
+
+- **Albums** group paintings by their `series` field. The registry is `src/data/paintAlbums.ts` — slug, title, years, dimensions, description, cover. **New album = shared `series` value on its paintings + one registry entry.** Paintings whose series has no registry entry don't render anywhere.
+- **Routes**: `/paints` (album cards) → `/paints/<album>` (gallery + year/subject/medium filters) → `/paints/<album>/<painting>` (detail; prev/next cycles within the album; frame morphs via `transition:name="painting-frame"`). RSS links use `albumForSeries()`.
+- **Adding paintings — two paths**:
+  1. **Sveltia** (Paintings collection) — works, but the Cloudinary media-library widget can fail to open in Firefox (tracking protection blocks the iframe). Chrome/Edge, or disable ETP for the site.
+  2. **Direct** — upload images via Cloudinary console (or API), then write the JSON files by hand/Claude. The Admin API creds in `.env.local` allow listing/renaming: rename Instagram-noise filenames to clean `paints/<id>` public IDs before writing entries (see git history: `rename-paints.mjs` pattern — signed POST to `/image/rename`).
+- Two contact-sheet paint cells link to real paintings via `painting: '<id>'`.
 
 ## Domain & email
 

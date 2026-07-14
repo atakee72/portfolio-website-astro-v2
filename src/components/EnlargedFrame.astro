@@ -13,6 +13,9 @@ interface Props {
   caption?: string;
   exifLine?: string;
   rollSlug?: string;
+  /** Generic CTA link in the caption row (e.g. paint cells → painting page). */
+  ctaHref?: string;
+  ctaLabel?: string;
   permalinkHref?: string;
   showNav?: boolean;
 }
@@ -27,6 +30,8 @@ const {
   caption,
   exifLine,
   rollSlug,
+  ctaHref,
+  ctaLabel,
   permalinkHref,
   showNav = false,
 } = Astro.props;
@@ -200,6 +205,14 @@ const bgStyle = imageCldPath
             class="bg-ink-2 border border-ink-3 px-3 py-2 hover:text-paper transition-colors shrink-0"
           >
             see full roll →
+          </a>
+        )}
+        {ctaHref && (
+          <a
+            href={ctaHref}
+            class="bg-ink-2 border border-ink-3 px-3 py-2 hover:text-paper transition-colors shrink-0"
+          >
+            {ctaLabel ?? 'view →'}
           </a>
         )}
       </div>

@@ -1,11 +1,13 @@
 ---
 import { contactSheet, photoBg, paintBg } from '@/data/contactSheet';
-import { getAllRolls } from '@/lib/content';
+import { getAllRolls, getAllPaintings } from '@/lib/content';
+import { albumForSeries } from '@/data/paintAlbums';
 import EnlargedFrame from './EnlargedFrame.astro';
 import CloudPhoto from './CloudPhoto.astro';
 
 // Resolve photo-cell slugs to their roll cover image at build time.
-// Cells without a slug keep the placeholder gradient.
+// Paint cells with a `painting` id resolve to that painting's image the
+// same way. Cells without either keep the placeholder gradient.
 const rolls = await getAllRolls();
 const coverBySlug = new Map(
   rolls.map((r) => [
@@ -14,8 +16,25 @@ const coverBySlug = new Map(
   ]),
 );
 
-const resolvedCover = (f: (typeof contactSheet)[number]) =>
-  f.k === 'photo' && f.slug ? coverBySlug.get(f.slug) : undefined;
+const paintings = await getAllPaintings();
+const paintingById = new Map(paintings.map((p) => [p.id, p]));
+
+const resolvedCover = (f: (typeof contactSheet)[number]) => {
+  if (f.k === 'photo' && f.slug) return coverBySlug.get(f.slug);
+  if (f.k === 'paint' && f.painting) {
+    const p = paintingById.get(f.painting);
+    if (p) return { cldPath: p.data.image.cldPath, alt: p.data.image.alt };
+  }
+  return undefined;
+};
+
+// /paints/<album>/<painting> permalink for linked paint cells.
+const paintingHref = (f: (typeof contactSheet)[number]) => {
+  if (f.k !== 'paint' || !f.painting) return undefined;
+  const p = paintingById.get(f.painting);
+  const album = p && albumForSeries(p.data.series);
+  return album ? `/paints/${album.slug}/${f.painting}` : undefined;
+};
 ---
 
 <section
@@ -42,6 +61,7 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
       <Tag
         {...(isVisual ? { type: 'button', 'data-enlarge-target': dialogId } : {})}
         {...(f.k === 'photo' && f.slug ? { 'data-roll-slug': f.slug } : {})}
+        {...(f.k === 'paint' && paintingHref(f) ? { 'data-paint-href': paintingHref(f) } : {})}
         {...(isLink ? { href: f.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
         class={
           'relative aspect-[4/3] border border-ink-3 overflow-hidden text-left appearance-none ' +
@@ -111,6 +131,8 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
         id={`frame-${i + 1}`}
         frame={f}
         rollSlug={f.k === 'photo' ? f.slug : undefined}
+        ctaHref={paintingHref(f)}
+        ctaLabel="view painting →"
         imageCldPath={cover?.cldPath}
         imageAlt={cover?.alt}
       />
@@ -182,10 +204,16 @@ const resolvedCover = (f: (typeof contactSheet)[number]) =>
       const trigger = target.closest('[data-enlarge-target]') as HTMLElement | null;
       if (trigger) {
         if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
-          // No modal on mobile — but if this cell is linked to a roll,
-          // tap-navigate straight to it so the affordance isn't lost.
+          // No modal on mobile — but if this cell is linked to a roll or
+          // a painting, tap-navigate straight to it so the affordance
+          // isn't lost.
           const rollSlug = trigger.getAttribute('data-roll-slug');
-          if (rollSlug) window.location.href = `/lens/${rollSlug}/`;
+          if (rollSlug) {
+            window.location.href = `/lens/${rollSlug}/`;
+            return;
+          }
+          const paintHref = trigger.getAttribute('data-paint-href');
+          if (paintHref) window.location.href = paintHref;
           return;
         }
         const id = trigger.getAttribute('data-enlarge-target');

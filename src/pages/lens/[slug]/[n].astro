@@ -226,13 +226,15 @@ const permalinkHref = `/lens/${roll.id}/${n}`;
         const prev = document.querySelector('[data-photo-prev]') as HTMLAnchorElement | null;
         if (prev) {
           e.preventDefault();
-          window.location.href = prev.href;
+          // click() routes through the View Transitions router (soft swap);
+          // window.location.href would force a full page load.
+          prev.click();
         }
       } else if (e.key === 'ArrowRight') {
         const next = document.querySelector('[data-photo-next]') as HTMLAnchorElement | null;
         if (next) {
           e.preventDefault();
-          window.location.href = next.href;
+          next.click();
         }
       }
     });

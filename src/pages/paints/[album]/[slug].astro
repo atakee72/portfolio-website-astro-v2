@@ -87,7 +87,10 @@ const pageDescription = data.description
       {metaLine}{data.series && ` · ${data.series}`}
     </p>
 
-    <div class="relative mx-auto max-w-[720px] border border-ink-3 overflow-hidden bg-ink-2">
+    <div
+      class="relative mx-auto max-w-[720px] border border-ink-3 overflow-hidden bg-ink-2"
+      transition:name="painting-frame"
+    >
       <CloudPhoto
         cldPath={data.image.cldPath}
         alt={data.image.alt}
@@ -102,7 +105,7 @@ const pageDescription = data.description
             href={prevHref}
             data-painting-prev
             aria-label="Previous painting"
-            class="absolute left-3 top-1/2 -translate-y-1/2 z-[3] w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
+            class="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4" aria-hidden="true">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"></path>
@@ -112,7 +115,7 @@ const pageDescription = data.description
             href={nextHref}
             data-painting-next
             aria-label="Next painting"
-            class="absolute right-3 top-1/2 -translate-y-1/2 z-[3] w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
+            class="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4" aria-hidden="true">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"></path>
@@ -125,7 +128,7 @@ const pageDescription = data.description
         type="button"
         data-copy-link={permalinkHref}
         aria-label="Copy link to this painting"
-        class="copy-link-btn absolute top-3 right-3 z-[3] w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
+        class="copy-link-btn absolute top-3 right-3 z-20 w-9 h-9 flex items-center justify-center border border-ink-3 bg-ink-2 text-paper hover:text-phosphor transition-colors"
       >
         <svg class="copy-icon w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"></path>
@@ -136,7 +139,7 @@ const pageDescription = data.description
         <span class="copied-label">copied</span>
       </button>
 
-      <div class="absolute left-3 right-3 bottom-3 z-[3] flex justify-between items-end gap-3 text-[12px] tracking-[0.16em] text-paper">
+      <div class="absolute left-3 right-3 bottom-3 z-20 flex justify-between items-end gap-3 text-[12px] tracking-[0.16em] text-paper">
         <div class="bg-ink-2 border border-ink-3 px-3 py-2">
           <div>{data.medium}</div>
           {data.dimensions && (
@@ -249,13 +252,15 @@ const pageDescription = data.description
         const prev = document.querySelector('[data-painting-prev]') as HTMLAnchorElement | null;
         if (prev) {
           e.preventDefault();
-          window.location.href = prev.href;
+          // click() routes through the View Transitions router (soft swap);
+          // window.location.href would force a full page load.
+          prev.click();
         }
       } else if (e.key === 'ArrowRight') {
         const next = document.querySelector('[data-painting-next]') as HTMLAnchorElement | null;
         if (next) {
           e.preventDefault();
-          window.location.href = next.href;
+          next.click();
         }
       }
     });
