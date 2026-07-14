@@ -247,7 +247,7 @@ Setting menu drifts; current path is something like Settings → Security → "R
 `CloudPhoto.astro` enforces `oncontextmenu="return false"`, `draggable="false"`, and a transparent overlay so the inner `<img>` is never the click target. Theater, not protection — DevTools still wins. Real protection = watermark + web-sized ceiling.
 
 ### Sveltia CMS — operational notes
-- Version pinned to `@sveltia/cms@0.160.1` in `public/photojockeysblog/index.html`. Bump deliberately after reviewing release notes.
+- Version pinned to `@sveltia/cms@0.170.9` in `public/photojockeysblog/index.html`. Bump deliberately after reviewing release notes. (0.160.1→0.170.9 on 2026-07-14: Cloudinary auth was broken upstream before 0.165.2 and 0.170.9 — sveltia-cms issues #781/#823 — plus an XSS fix in 0.167.3.)
 - The `/photojockeysblog/` path is intentionally obscure (replaces conventional `/admin/`) to cut bot probes. **Not** listed in `robots.txt` — the page itself emits `<meta name="robots" content="noindex,nofollow,noarchive">` instead.
 - Real security still comes from the PAT, not URL obscurity.
 - Cloudinary `api_key` is exposed in `config.yml` by design — per Decap CMS docs it's safe to publish. Only `api_secret` (used by `sync-exif.mjs` server-side) must stay private.
@@ -259,7 +259,7 @@ Paintings live in `src/content/paintings/*.json` (Zod schema in `config.ts`, Sve
 - **Albums** group paintings by their `series` field. The registry is `src/data/paintAlbums.ts` — slug, title, years, dimensions, description, cover. **New album = shared `series` value on its paintings + one registry entry.** Paintings whose series has no registry entry don't render anywhere.
 - **Routes**: `/paints` (album cards) → `/paints/<album>` (gallery + year/subject/medium filters) → `/paints/<album>/<painting>` (detail; prev/next cycles within the album; frame morphs via `transition:name="painting-frame"`). RSS links use `albumForSeries()`.
 - **Adding paintings — two paths**:
-  1. **Sveltia** (Paintings collection) — works, but the Cloudinary media-library widget can fail to open in Firefox (tracking protection blocks the iframe). Chrome/Edge, or disable ETP for the site.
+  1. **Sveltia** (Paintings collection) — the Cloudinary media-library auth loop ("Activate Cloudinary" never progresses) was an upstream Sveltia bug fixed in 0.165.2/0.170.9; we run ≥0.170.9 since 2026-07-14. If it still fails, secondary suspect is Firefox tracking protection blocking the Cloudinary iframe cookie (disable ETP for the site, or Chrome/Edge).
   2. **Direct** — upload images via Cloudinary console (or API), then write the JSON files by hand/Claude. The Admin API creds in `.env.local` allow listing/renaming: rename Instagram-noise filenames to clean `paints/<id>` public IDs before writing entries (see git history: `rename-paints.mjs` pattern — signed POST to `/image/rename`).
 - Two contact-sheet paint cells link to real paintings via `painting: '<id>'`.
 
