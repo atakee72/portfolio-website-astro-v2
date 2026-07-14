@@ -1,5 +1,15 @@
 import { defineCollection, z } from 'astro:content';
 
+// Normalize a Cloudinary reference to a bare public_id (e.g. `paints/x`).
+// Sveltia's media widget stores full delivery URLs (with folder, version and
+// extension); scripts and hand-written entries store bare public_ids. Accept
+// both so a widget-picked image can never break rendering or EXIF lookup.
+const cldPath = z.string().transform((v) =>
+  v
+    .replace(/^https?:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/(?:v\d+\/)?/, '')
+    .replace(/\.(jpe?g|png|webp|gif|avif|tiff?)$/i, '')
+);
+
 const rollsCollection = defineCollection({
   type: 'data',
   schema: z.object({
@@ -8,13 +18,13 @@ const rollsCollection = defineCollection({
     location: z.string(),
     tags: z.array(z.string()).default([]),
     cover: z.object({
-      cldPath: z.string(),
+      cldPath,
       alt: z.string(),
     }),
     photos: z
       .array(
         z.object({
-          cldPath: z.string(),
+          cldPath,
           alt: z.string(),
           caption: z.string().optional(),
           exif: z
@@ -116,24 +126,47 @@ const projectsCollection = defineCollection({
   }),
 });
 
+// One file per ALBUM (like rolls): the entry holds all its paintings.
+// The file's id is the URL segment (/paints/<album>), each painting's
+// `id` is the detail-page segment (/paints/<album>/<id>).
 const paintingsCollection = defineCollection({
   type: 'data',
-  schema: z.object({
-    title: z.string(),
-    year: z.string(),
-    medium: z.string(),
-    subjects: z.array(z.string()).default([]),
-    dimensions: z.string().optional(),
-    series: z.string().optional(),
-    description: z.string().optional(),
-    image: z.object({
-      cldPath: z.string(),
-      alt: z.string(),
-    }),
-    tags: z.array(z.string()).default([]),
-    featured: z.boolean().default(false),
-    draft: z.boolean().default(false),
-  }),
+  schema: z
+    .object({
+      title: z.string(),
+      years: z.string(),
+      dimensions: z.string().optional(),
+      description: z.string().optional(),
+      cover: z.object({
+        cldPath,
+        alt: z.string(),
+      }),
+      paintings: z
+        .array(
+          z.object({
+            id: z
+              .string()
+              .regex(/^[a-z0-9-]+$/, 'lowercase letters, digits, dashes only'),
+            title: z.string(),
+            year: z.string(),
+            medium: z.string(),
+            subjects: z.array(z.string()).default([]),
+            dimensions: z.string().optional(),
+            description: z.string().optional(),
+            image: z.object({
+              cldPath,
+              alt: z.string(),
+            }),
+            tags: z.array(z.string()).default([]),
+          })
+        )
+        .min(1),
+      draft: z.boolean().default(false),
+    })
+    .refine(
+      (a) => new Set(a.paintings.map((p) => p.id)).size === a.paintings.length,
+      { message: 'painting ids must be unique within the album' }
+    ),
 });
 
 export const collections = {

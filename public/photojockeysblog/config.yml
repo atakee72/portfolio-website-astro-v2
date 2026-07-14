@@ -7,7 +7,11 @@ publish_mode: simple
 
 media_library:
   name: cloudinary
-  output_filename_only: true
+  # false ⇒ the widget stores the full delivery URL, which keeps the folder
+  # path (filename-only loses it — a paints/lens image would 404). cldPath
+  # fields are normalized back to bare public_ids by src/content/config.ts;
+  # blog mainImage renders the full URL directly.
+  output_filename_only: false
   config:
     cloud_name: djgxiadrc
     api_key: '284812788854479'
@@ -110,46 +114,63 @@ collections:
       - { name: draft, label: Draft, widget: boolean, required: false, default: true, hint: 'Drafts are hidden on the live site.' }
 
   - name: paintings
-    label: Paintings
-    label_singular: Painting
+    label: Painting Albums
+    label_singular: Album
     folder: src/content/paintings
     extension: json
     format: json
     create: true
     slug: '{{slug}}'
-    summary: '{{fields.title}} ({{fields.year}})'
-    sortable_fields: ['year', 'title']
+    summary: '{{fields.title}} ({{fields.years}})'
     fields:
-      - { name: title, label: Title, widget: string, required: true }
-      - { name: year, label: Year, widget: string, required: true, hint: 'e.g. 2024 or 2022–2024' }
-      - { name: medium, label: Medium, widget: string, required: true, hint: 'e.g. Oil on canvas, Watercolour, Acrylic, Drawing, Mixed media, Gouache' }
-      - name: subjects
-        label: Subjects
-        widget: list
-        required: false
-        default: []
-        field: { name: subject, label: Subject, widget: string }
-        hint: 'e.g. Nude, Portrait, Landscape, Still life'
-      - { name: dimensions, label: Dimensions, widget: string, required: false, hint: 'e.g. 70×50 cm' }
-      - { name: series, label: Series, widget: string, required: false, hint: 'Optional thematic grouping (latent — will enable /paints/series/<name> later)' }
+      - { name: title, label: Album title, widget: string, required: true, hint: 'e.g. My Early Paintings' }
+      - { name: years, label: Years, widget: string, required: true, hint: 'e.g. 2022–2025' }
+      - { name: dimensions, label: Dimensions, widget: string, required: false, hint: 'e.g. mostly A3' }
       - { name: description, label: Description, widget: text, required: false }
-      - name: image
-        label: Image
+      - name: cover
+        label: Cover
         widget: object
         required: true
-        hint: 'Click to open Cloudinary library.'
         fields:
           - { name: cldPath, label: Cloudinary image, widget: image, required: true }
           - { name: alt, label: Alt text, widget: string, required: true }
-      - name: tags
-        label: Extra tags
+      - name: paintings
+        label: Paintings
+        label_singular: Painting
         widget: list
-        required: false
-        default: []
-        field: { name: tag, label: Tag, widget: string }
-        hint: 'Free-form (e.g. exhibited, sold, in-progress)'
-      - { name: featured, label: Featured, widget: boolean, required: false, default: false }
-      - { name: draft, label: Draft, widget: boolean, required: false, default: false }
+        required: true
+        min: 1
+        summary: '{{fields.title}} ({{fields.year}})'
+        hint: 'One item per work. Drag rows to reorder — this is the display and prev/next order.'
+        fields:
+          - { name: id, label: ID (URL slug), widget: string, required: true, pattern: ['^[a-z0-9-]+$', 'lowercase letters, digits and dashes only'], hint: 'e.g. boy-with-woodcock — becomes /paints/<album>/<id>. Don’t change after publishing.' }
+          - { name: title, label: Title, widget: string, required: true }
+          - { name: year, label: Year, widget: string, required: true, hint: 'e.g. 2024 or 2022–2024' }
+          - { name: medium, label: Medium, widget: string, required: true, hint: 'e.g. Oil on canvas, Watercolour, Acrylic, Drawing, Mixed media, Gouache' }
+          - name: subjects
+            label: Subjects
+            widget: list
+            required: false
+            default: []
+            field: { name: subject, label: Subject, widget: string }
+            hint: 'e.g. Nude, Portrait, Landscape, Still life'
+          - { name: dimensions, label: Dimensions, widget: string, required: false, hint: 'e.g. 70×50 cm' }
+          - { name: description, label: Description, widget: text, required: false }
+          - name: image
+            label: Image
+            widget: object
+            required: true
+            fields:
+              - { name: cldPath, label: Cloudinary image, widget: image, required: true }
+              - { name: alt, label: Alt text, widget: string, required: true }
+          - name: tags
+            label: Extra tags
+            widget: list
+            required: false
+            default: []
+            field: { name: tag, label: Tag, widget: string }
+            hint: 'Free-form (e.g. exhibited, sold, in-progress)'
+      - { name: draft, label: Draft, widget: boolean, required: false, default: false, hint: 'Drafts hide the whole album on the live site.' }
 
   - name: projects
     label: Case Studies

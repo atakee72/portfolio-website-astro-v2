@@ -1,0 +1,139 @@
+{
+  "title": "My Early Paintings",
+  "years": "2022–2025",
+  "dimensions": "mostly A3",
+  "description": "The earliest attempts at painting consisted largely of reproductions of works by famous artists.",
+  "cover": {
+    "cldPath": "paints/boy-with-woodcock",
+    "alt": "Blue monochrome watercolour portrait of a young man holding a woodcock"
+  },
+  "paintings": [
+    {
+      "id": "at-the-window",
+      "title": "At the Window",
+      "year": "2025",
+      "medium": "Pastel",
+      "subjects": [
+        "Interior"
+      ],
+      "image": {
+        "cldPath": "paints/at-the-window",
+        "alt": "Figure bent over a desk beside a tall window, orange wall and dark lamp in the foreground"
+      },
+      "tags": []
+    },
+    {
+      "id": "boy-with-woodcock",
+      "title": "Boy with Woodcock",
+      "year": "2022",
+      "medium": "Watercolour",
+      "subjects": [
+        "Portrait"
+      ],
+      "image": {
+        "cldPath": "paints/boy-with-woodcock",
+        "alt": "Blue monochrome watercolour portrait of a young man holding a woodcock against a washed sky"
+      },
+      "tags": []
+    },
+    {
+      "id": "pears-on-red-cloth",
+      "title": "Pears on Red Cloth",
+      "year": "2025",
+      "medium": "Pastel",
+      "subjects": [
+        "Still life"
+      ],
+      "image": {
+        "cldPath": "paints/pears-on-red-cloth",
+        "alt": "Still life of two pears, an apple and a melon arranged on a red cloth"
+      },
+      "tags": []
+    },
+    {
+      "id": "man-in-red-hat",
+      "title": "Man in a Red Hat",
+      "year": "2024",
+      "medium": "Watercolour & ink",
+      "subjects": [
+        "Portrait"
+      ],
+      "image": {
+        "cldPath": "paints/man-in-red-hat",
+        "alt": "Seated man in a red hat and rust-coloured jacket against a green-yellow ground"
+      },
+      "tags": []
+    },
+    {
+      "id": "old-man-in-black-hat",
+      "title": "Old Man in a Black Hat",
+      "year": "2024",
+      "medium": "Watercolour & charcoal",
+      "subjects": [
+        "Portrait"
+      ],
+      "image": {
+        "cldPath": "paints/old-man-in-black-hat",
+        "alt": "Weathered old man in a wide black hat and green coat against a pale blue ground"
+      },
+      "tags": []
+    },
+    {
+      "id": "winter-birches",
+      "title": "Winter Birches",
+      "year": "2022",
+      "medium": "Acrylic",
+      "subjects": [
+        "Landscape"
+      ],
+      "image": {
+        "cldPath": "paints/winter-birches",
+        "alt": "Winter landscape of bare birch trunks in snow before a dark hillside and grey sky"
+      },
+      "tags": []
+    },
+    {
+      "id": "brick-house",
+      "title": "Brick House",
+      "year": "2022",
+      "medium": "Watercolour & ink",
+      "subjects": [
+        "Landscape"
+      ],
+      "image": {
+        "cldPath": "paints/brick-house",
+        "alt": "Abandoned red-brick house overgrown with thicket, rendered in watercolour with ink spatter"
+      },
+      "tags": []
+    },
+    {
+      "id": "mountain-clearing",
+      "title": "Mountain Clearing",
+      "year": "2022",
+      "medium": "Watercolour",
+      "subjects": [
+        "Landscape"
+      ],
+      "image": {
+        "cldPath": "paints/mountain-clearing",
+        "alt": "Mountain peak seen between two groups of trees over a warm autumn meadow"
+      },
+      "tags": []
+    },
+    {
+      "id": "green-valley",
+      "title": "Green Valley",
+      "year": "2022",
+      "medium": "Oil on canvas",
+      "subjects": [
+        "Landscape"
+      ],
+      "image": {
+        "cldPath": "paints/green-valley",
+        "alt": "Rolling green hills and a valley seen from above, blue horizon with distant city lights"
+      },
+      "tags": []
+    }
+  ],
+  "draft": false
+}

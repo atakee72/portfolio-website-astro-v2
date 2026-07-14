@@ -3,18 +3,17 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import CloudPhoto from '@/components/CloudPhoto.astro';
-import { getAllPaintings } from '@/lib/content';
-import { paintAlbums } from '@/data/paintAlbums';
+import { getAllPaintAlbums } from '@/lib/content';
 import { getCldImageUrl } from 'astro-cloudinary/helpers';
 
 export async function getStaticPaths() {
-  const all = await getAllPaintings();
-  // Prev/next cycle within each album, not across the whole collection.
-  return paintAlbums.flatMap((album) => {
-    const paintings = all.filter((p) => p.data.series === album.series);
+  const albums = await getAllPaintAlbums();
+  // Prev/next cycle within each album, in curated array order.
+  return albums.flatMap((album) => {
+    const paintings = album.data.paintings;
     const total = paintings.length;
     return paintings.map((painting, i) => ({
-      params: { album: album.slug, slug: painting.id },
+      params: { album: album.id, slug: painting.id },
       props: {
         album,
         painting,
@@ -28,7 +27,7 @@ export async function getStaticPaths() {
 }
 
 const { album, painting, prev, next, total } = Astro.props;
-const { data } = painting;
+const data = painting;
 
 const metaParts: string[] = [];
 metaParts.push(data.medium);
@@ -36,9 +35,9 @@ if (data.dimensions) metaParts.push(data.dimensions);
 metaParts.push(data.year);
 const metaLine = metaParts.join(' · ');
 
-const prevHref = `/paints/${album.slug}/${prev.id}`;
-const nextHref = `/paints/${album.slug}/${next.id}`;
-const permalinkHref = `/paints/${album.slug}/${painting.id}`;
+const prevHref = `/paints/${album.id}/${prev.id}`;
+const nextHref = `/paints/${album.id}/${next.id}`;
+const permalinkHref = `/paints/${album.id}/${painting.id}`;
 
 const ogImage = getCldImageUrl({
   src: data.image.cldPath,
@@ -73,7 +72,7 @@ const pageDescription = data.description
       &nbsp;/&nbsp;
       <a href="/paints" class="hover:text-phosphor transition-colors">paints</a>
       &nbsp;/&nbsp;
-      <a href={`/paints/${album.slug}`} class="hover:text-phosphor transition-colors">{album.slug}</a>
+      <a href={`/paints/${album.id}`} class="hover:text-phosphor transition-colors">{album.id}</a>
       &nbsp;/&nbsp;{painting.id}
     </p>
 
@@ -84,7 +83,7 @@ const pageDescription = data.description
     </h1>
 
     <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono mb-8">
-      {metaLine}{data.series && ` · ${data.series}`}
+      {metaLine} · {album.data.title}
     </p>
 
     <div
@@ -148,7 +147,7 @@ const pageDescription = data.description
             </div>
           )}
           <div class="text-mute-2 font-mono text-[11px] tracking-[0.08em] mt-1">
-            {data.year}{data.series && ` · ${data.series}`}
+            {data.year} · {album.data.title}
           </div>
         </div>
       </div>
@@ -171,8 +170,8 @@ const pageDescription = data.description
     )}
 
     <div class="mt-8 flex justify-between items-center text-[12px] tracking-[0.14em] text-mute-2 font-mono">
-      <a href={`/paints/${album.slug}`} class="hover:text-phosphor transition-colors">
-        ← back to {album.title.toLowerCase()}
+      <a href={`/paints/${album.id}`} class="hover:text-phosphor transition-colors">
+        ← back to {album.data.title.toLowerCase()}
       </a>
       <span>{data.year}</span>
     </div>

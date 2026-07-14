@@ -4,16 +4,15 @@ import {
   getAllBlogPosts,
   getAllProjects,
   getAllRolls,
-  getAllPaintings,
+  getAllPaintAlbums,
 } from '@/lib/content';
-import { albumForSeries } from '@/data/paintAlbums';
 
 export async function GET(context: APIContext) {
-  const [posts, projects, rolls, paintings] = await Promise.all([
+  const [posts, projects, rolls, albums] = await Promise.all([
     getAllBlogPosts(),
     getAllProjects(),
     getAllRolls(),
-    getAllPaintings(),
+    getAllPaintAlbums(),
   ]);
 
   const items: RSSFeedItem[] = [
@@ -38,17 +37,15 @@ export async function GET(context: APIContext) {
       description: `${r.data.location} · ${r.data.photos.length} frames`,
       categories: [...r.data.tags, 'lens'],
     })),
-    ...paintings.map((p) => ({
-      title: p.data.title,
-      link: albumForSeries(p.data.series)
-        ? `/paints/${albumForSeries(p.data.series)!.slug}/${p.id}/`
-        : `/paints/`,
-      pubDate: new Date(
-        `${p.data.year.match(/\d{4}/)?.[0] ?? '1970'}-01-01`
-      ),
-      description: p.data.description ?? `${p.data.medium} · ${p.data.year}`,
-      categories: [...p.data.tags, ...p.data.subjects, 'paints'],
-    })),
+    ...albums.flatMap((album) =>
+      album.data.paintings.map((p) => ({
+        title: p.title,
+        link: `/paints/${album.id}/${p.id}/`,
+        pubDate: new Date(`${p.year.match(/\d{4}/)?.[0] ?? '1970'}-01-01`),
+        description: p.description ?? `${p.medium} · ${p.year}`,
+        categories: [...p.tags, ...p.subjects, 'paints'],
+      }))
+    ),
   ].sort(
     (a, b) =>
       new Date(b.pubDate as Date).valueOf() -

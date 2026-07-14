@@ -138,33 +138,22 @@ export async function getProjectBySlug(slug: string) {
   return projects.find((p) => p.slug === slug);
 }
 
-export async function getAllPaintings() {
-  const paintings = await getCollection('paintings', ({ data }) => {
+// One entry per ALBUM; paintings live inside as an ordered array
+// (curated order — reorder in Sveltia, like roll photos).
+export async function getAllPaintAlbums() {
+  return getCollection('paintings', ({ data }) => {
     if (import.meta.env.PROD) {
       return data.draft !== true;
     }
     return true;
   });
-
-  return paintings.sort((a, b) => {
-    if (a.data.featured !== b.data.featured) {
-      return a.data.featured ? -1 : 1;
-    }
-    const yearA = parseInt(a.data.year.match(/\d{4}/)?.[0] ?? '0', 10);
-    const yearB = parseInt(b.data.year.match(/\d{4}/)?.[0] ?? '0', 10);
-    return yearB - yearA;
-  });
-}
-
-export async function getPaintingBySlug(slug: string) {
-  const paintings = await getCollection('paintings');
-  return paintings.find((p) => p.id === slug);
 }
 
 export type BlogPost = CollectionEntry<'blog'>;
 export type Roll = CollectionEntry<'rolls'>;
 export type Project = CollectionEntry<'projects'>;
-export type Painting = CollectionEntry<'paintings'>;
+export type PaintAlbum = CollectionEntry<'paintings'>;
+export type Painting = PaintAlbum['data']['paintings'][number];
 export type Testimonial = {
   name: string;
   company: string;

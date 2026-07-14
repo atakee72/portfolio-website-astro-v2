@@ -1,7 +1,6 @@
 ---
 import { contactSheet, photoBg, paintBg } from '@/data/contactSheet';
-import { getAllRolls, getAllPaintings } from '@/lib/content';
-import { albumForSeries } from '@/data/paintAlbums';
+import { getAllRolls, getAllPaintAlbums, type Painting } from '@/lib/content';
 import EnlargedFrame from './EnlargedFrame.astro';
 import CloudPhoto from './CloudPhoto.astro';
 
@@ -16,14 +15,23 @@ const coverBySlug = new Map(
   ]),
 );
 
-const paintings = await getAllPaintings();
-const paintingById = new Map(paintings.map((p) => [p.id, p]));
+const albums = await getAllPaintAlbums();
+const paintingById = new Map<string, { painting: Painting; albumSlug: string }>();
+for (const album of albums) {
+  for (const p of album.data.paintings) {
+    paintingById.set(p.id, { painting: p, albumSlug: album.id });
+  }
+}
 
 const resolvedCover = (f: (typeof contactSheet)[number]) => {
   if (f.k === 'photo' && f.slug) return coverBySlug.get(f.slug);
   if (f.k === 'paint' && f.painting) {
-    const p = paintingById.get(f.painting);
-    if (p) return { cldPath: p.data.image.cldPath, alt: p.data.image.alt };
+    const hit = paintingById.get(f.painting);
+    if (hit)
+      return {
+        cldPath: hit.painting.image.cldPath,
+        alt: hit.painting.image.alt,
+      };
   }
   return undefined;
 };
@@ -31,9 +39,8 @@ const resolvedCover = (f: (typeof contactSheet)[number]) => {
 // /paints/<album>/<painting> permalink for linked paint cells.
 const paintingHref = (f: (typeof contactSheet)[number]) => {
   if (f.k !== 'paint' || !f.painting) return undefined;
-  const p = paintingById.get(f.painting);
-  const album = p && albumForSeries(p.data.series);
-  return album ? `/paints/${album.slug}/${f.painting}` : undefined;
+  const hit = paintingById.get(f.painting);
+  return hit ? `/paints/${hit.albumSlug}/${f.painting}` : undefined;
 };
 ---
 

@@ -3,19 +3,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import CloudPhoto from '@/components/CloudPhoto.astro';
-import { getAllPaintings } from '@/lib/content';
-import { paintAlbums } from '@/data/paintAlbums';
+import { getAllPaintAlbums } from '@/lib/content';
 
-const paintings = await getAllPaintings();
-
-// Albums with at least one published painting, newest series first
-// (registry order — curated, like the contact sheet).
-const albums = paintAlbums
-  .map((album) => ({
-    ...album,
-    count: paintings.filter((p) => p.data.series === album.series).length,
-  }))
-  .filter((a) => a.count > 0);
+const albums = await getAllPaintAlbums();
+const totalPaintings = albums.reduce(
+  (sum, a) => sum + a.data.paintings.length,
+  0
+);
 ---
 
 <BaseLayout
@@ -45,7 +39,7 @@ const albums = paintAlbums
 
     <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono mb-8">
       // {albums.length} album{albums.length === 1 ? '' : 's'} ·
-      {paintings.length} painting{paintings.length === 1 ? '' : 's'}
+      {totalPaintings} painting{totalPaintings === 1 ? '' : 's'}
     </p>
 
     {albums.length === 0 ? (
@@ -64,23 +58,23 @@ const albums = paintAlbums
         {albums.map((album) => (
           <li>
             <a
-              href={`/paints/${album.slug}`}
+              href={`/paints/${album.id}`}
               class="block relative aspect-[4/3] border border-ink-3 overflow-hidden bg-ink-2 transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-visible:scale-[1.02]"
             >
               <CloudPhoto
-                cldPath={album.cover}
-                alt={album.coverAlt}
+                cldPath={album.data.cover.cldPath}
+                alt={album.data.cover.alt}
                 width={1200}
                 class="absolute inset-0 w-full h-full"
               />
               <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
-                ALBUM · {album.count}
+                ALBUM · {album.data.paintings.length}
               </span>
               <div
                 class="absolute left-2 right-2 bottom-2 z-[3] flex justify-between items-end gap-2 text-[11px] tracking-[0.16em] text-paper"
               >
-                <span>{album.title}</span>
-                <span class="text-mute-2">{album.years}</span>
+                <span>{album.data.title}</span>
+                <span class="text-mute-2">{album.data.years}</span>
               </div>
             </a>
           </li>

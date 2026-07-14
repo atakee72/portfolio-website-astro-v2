@@ -4,38 +4,31 @@ import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import CloudPhoto from '@/components/CloudPhoto.astro';
 import FilterStrip from '@/components/FilterStrip.astro';
-import { getAllPaintings } from '@/lib/content';
-import { paintAlbums, type PaintAlbum } from '@/data/paintAlbums';
-import type { Painting } from '@/lib/content';
+import { getAllPaintAlbums, type PaintAlbum } from '@/lib/content';
 
 export async function getStaticPaths() {
-  const paintings = await getAllPaintings();
-  return paintAlbums
-    .map((album) => ({
-      params: { album: album.slug },
-      props: {
-        album,
-        paintings: paintings.filter((p) => p.data.series === album.series),
-      },
-    }))
-    .filter(({ props }) => props.paintings.length > 0);
+  const albums = await getAllPaintAlbums();
+  return albums.map((album) => ({
+    params: { album: album.id },
+    props: { album },
+  }));
 }
 
 interface Props {
   album: PaintAlbum;
-  paintings: Painting[];
 }
 
-const { album, paintings } = Astro.props;
+const { album } = Astro.props;
+const paintings = album.data.paintings;
 
-const years = [...new Set(paintings.map((p) => p.data.year))].sort().reverse();
-const subjects = [...new Set(paintings.flatMap((p) => p.data.subjects))].sort();
-const media = [...new Set(paintings.map((p) => p.data.medium))].sort();
+const years = [...new Set(paintings.map((p) => p.year))].sort().reverse();
+const subjects = [...new Set(paintings.flatMap((p) => p.subjects))].sort();
+const media = [...new Set(paintings.map((p) => p.medium))].sort();
 ---
 
 <BaseLayout
-  title={`${album.title} — Paints`}
-  description={album.description}
+  title={`${album.data.title} — Paints`}
+  description={album.data.description ?? album.data.title}
 >
   <Navbar />
 
@@ -51,23 +44,25 @@ const media = [...new Set(paintings.map((p) => p.data.medium))].sort();
       <a href="/" class="hover:text-phosphor transition-colors">// home</a>
       &nbsp;/&nbsp;
       <a href="/paints" class="hover:text-phosphor transition-colors">paints</a>
-      &nbsp;/&nbsp;{album.slug}
+      &nbsp;/&nbsp;{album.id}
     </p>
 
     <h1
       class="m-0 font-display font-bold text-paper-hi text-[clamp(32px,5.5vw,64px)] tracking-[-0.03em] leading-[0.95] mb-3"
     >
-      {album.title}
+      {album.data.title}
     </h1>
 
     <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono uppercase mb-2">
-      // {album.series} · {album.years} · {album.dimensions} ·
+      // {album.data.years}{album.data.dimensions && ` · ${album.data.dimensions}`} ·
       <span data-filter-count>{paintings.length}</span> painting{paintings.length === 1 ? '' : 's'}
     </p>
 
-    <p class="text-[13px] text-paper-2 leading-[1.6] max-w-[640px] m-0 mb-8">
-      {album.description}
-    </p>
+    {album.data.description && (
+      <p class="text-[13px] text-paper-2 leading-[1.6] max-w-[640px] m-0 mb-8">
+        {album.data.description}
+      </p>
+    )}
 
     <FilterStrip name="year" tags={years} label="// year" />
     <FilterStrip name="subject" tags={subjects} label="// subject" />
@@ -80,28 +75,28 @@ const media = [...new Set(paintings.map((p) => p.data.medium))].sort();
       {paintings.map((p) => (
         <li
           data-filter-item
-          data-filter-year={p.data.year}
-          data-filter-subject={p.data.subjects.join('|')}
-          data-filter-medium={p.data.medium}
+          data-filter-year={p.year}
+          data-filter-subject={p.subjects.join('|')}
+          data-filter-medium={p.medium}
         >
           <a
-            href={`/paints/${album.slug}/${p.id}`}
+            href={`/paints/${album.id}/${p.id}`}
             class="block relative aspect-square border border-ink-3 overflow-hidden bg-ink-2 transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-visible:scale-[1.02]"
           >
             <CloudPhoto
-              cldPath={p.data.image.cldPath}
-              alt={p.data.image.alt}
+              cldPath={p.image.cldPath}
+              alt={p.image.alt}
               width={1000}
               class="absolute inset-0 w-full h-full"
             />
             <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5 uppercase">
-              {p.data.medium}
+              {p.medium}
             </span>
             <div
               class="absolute left-2 right-2 bottom-2 z-[3] flex justify-between items-end gap-2 text-[11px] tracking-[0.16em] text-paper"
             >
-              <span class="truncate">{p.data.title}</span>
-              <span class="text-mute-2 shrink-0">{p.data.year}</span>
+              <span class="truncate">{p.title}</span>
+              <span class="text-mute-2 shrink-0">{p.year}</span>
             </div>
           </a>
         </li>
