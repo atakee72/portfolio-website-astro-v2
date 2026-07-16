@@ -11,6 +11,7 @@
       "medium": "Coffee ground",
       "subjects": [],
       "dimensions": "Mini",
+      "description": "",
       "image": {
         "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784228309/Paints%20with%20coffee/626288485_18033935072571391_8566957643244472525_n_yeqphf.jpg",
         "alt": "A girl leaning against the window with her hands"
@@ -32,6 +33,20 @@
       "tags": [
         "nude"
       ]
+    },
+    {
+      "id": "half-naked-woman-standing",
+      "title": "A half-naked woman standing",
+      "year": "2025",
+      "medium": "Coffee ground",
+      "subjects": [],
+      "dimensions": "Mini",
+      "description": "A half-naked woman standing with her back turned",
+      "image": {
+        "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784228308/Paints%20with%20coffee/619490403_18032101967772973_2763018750128880250_n_zxxpti.jpg",
+        "alt": "A half-naked woman standing"
+      },
+      "tags": []
     }
   ],
   "draft": false
