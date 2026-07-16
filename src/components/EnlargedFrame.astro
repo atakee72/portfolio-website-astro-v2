@@ -326,6 +326,9 @@ const bgStyle = imageCldPath
       // Force layout so the transition runs from the hidden state.
       void modal.offsetWidth;
       modal.setAttribute('data-open', '');
+      // Lock background scroll while the modal is open (inert alone
+      // doesn't stop wheel/touch scrolling on the document).
+      document.documentElement.style.overflow = 'hidden';
       const closeBtn = modal.querySelector('[data-close]') as HTMLButtonElement | null;
       closeBtn?.focus();
       inertedSiblings = [];
@@ -351,9 +354,20 @@ const bgStyle = imageCldPath
       }, 230);
       for (const el of inertedSiblings) el.removeAttribute('inert');
       inertedSiblings = [];
+      document.documentElement.style.overflow = '';
       lastTrigger?.focus();
       activeModal = null;
     };
+
+    // Navigating away with the modal open (e.g. its CTA link) skips
+    // closeModal, and <html> persists across View Transitions — release
+    // the scroll lock and stale state before every swap.
+    document.addEventListener('astro:before-swap', () => {
+      document.documentElement.style.overflow = '';
+      inertedSiblings = [];
+      activeModal = null;
+      lastTrigger = null;
+    });
 
     // Only triggers the viewer can currently see — filter strips hide grid
     // items with display:none, and hidden items must not join the cycle.
