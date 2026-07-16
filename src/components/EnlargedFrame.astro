@@ -172,7 +172,8 @@ const bgStyle = imageCldPath
           width={2000}
           loading="eager"
           class="absolute inset-0 w-full h-full"
-          imgClass={fitContain ? 'h-full object-contain' : undefined}
+          imgClass={fitContain ? 'h-full' : undefined}
+          objectFit={fitContain ? 'contain' : undefined}
         />
       )}
 

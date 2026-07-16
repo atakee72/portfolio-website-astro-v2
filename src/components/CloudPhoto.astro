@@ -8,8 +8,14 @@ interface Props {
   width?: number;
   height?: number;
   class?: string;
-  /** Extra classes for the inner <img> (e.g. `h-full object-contain`). */
+  /** Extra classes for the inner <img> (e.g. `h-full`). */
   imgClass?: string;
+  /**
+   * How the image fills its box. The underlying unpic <Image> writes this as
+   * an INLINE style (default `cover`), so a Tailwind `object-*` class can
+   * never override it — use this prop instead.
+   */
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   sizes?: string;
   loading?: 'eager' | 'lazy';
 }
@@ -21,6 +27,7 @@ const {
   height,
   class: className,
   imgClass,
+  objectFit,
   sizes,
   loading = 'lazy',
 } = Astro.props;
@@ -56,6 +63,7 @@ const overlays = [
     loading={loading}
     quality={80}
     format="auto"
+    {...(objectFit ? { objectFit } : {})}
     overlays={overlays}
     rawTransformations={['fl_strip_profile']}
     draggable="false"
