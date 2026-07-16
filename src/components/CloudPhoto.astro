@@ -8,6 +8,8 @@ interface Props {
   width?: number;
   height?: number;
   class?: string;
+  /** Extra classes for the inner <img> (e.g. `h-full object-contain`). */
+  imgClass?: string;
   sizes?: string;
   loading?: 'eager' | 'lazy';
 }
@@ -18,6 +20,7 @@ const {
   width = 2000,
   height,
   class: className,
+  imgClass,
   sizes,
   loading = 'lazy',
 } = Astro.props;
@@ -57,7 +60,7 @@ const overlays = [
     rawTransformations={['fl_strip_profile']}
     draggable="false"
     oncontextmenu="return false"
-    class="block w-full h-auto select-none pointer-events-none"
+    class={cn('block w-full h-auto select-none pointer-events-none', imgClass)}
   />
   <div
     class="absolute inset-0 z-10"
