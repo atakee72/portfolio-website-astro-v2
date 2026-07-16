@@ -4,11 +4,19 @@ import { defineCollection, z } from 'astro:content';
 // Sveltia's media widget stores full delivery URLs (with folder, version and
 // extension); scripts and hand-written entries store bare public_ids. Accept
 // both so a widget-picked image can never break rendering or EXIF lookup.
-const cldPath = z.string().transform((v) =>
-  v
+const cldPath = z.string().transform((v) => {
+  let s = v
     .replace(/^https?:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/(?:v\d+\/)?/, '')
-    .replace(/\.(jpe?g|png|webp|gif|avif|tiff?)$/i, '')
-);
+    .replace(/\.(jpe?g|png|webp|gif|avif|tiff?)$/i, '');
+  // Delivery URLs are percent-encoded (folders with spaces → %20). Public IDs
+  // must hold the raw characters or the URL builder double-encodes (%2520 → 404).
+  try {
+    s = decodeURIComponent(s);
+  } catch {
+    // Not valid percent-encoding (e.g. a literal % in a bare ID) — keep as-is.
+  }
+  return s;
+});
 
 const rollsCollection = defineCollection({
   type: 'data',
