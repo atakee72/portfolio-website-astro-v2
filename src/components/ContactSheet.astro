@@ -16,6 +16,7 @@ const coverBySlug = new Map(
 );
 
 const albums = await getAllPaintAlbums();
+const albumById = new Map(albums.map((a) => [a.id, a]));
 const paintingById = new Map<string, { painting: Painting; albumSlug: string }>();
 for (const album of albums) {
   for (const p of album.data.paintings) {
@@ -25,6 +26,10 @@ for (const album of albums) {
 
 const resolvedCover = (f: (typeof contactSheet)[number]) => {
   if (f.k === 'photo' && f.slug) return coverBySlug.get(f.slug);
+  if (f.k === 'paint' && f.album) {
+    const a = albumById.get(f.album);
+    if (a) return a.data.cover ?? a.data.paintings[0].image;
+  }
   if (f.k === 'paint' && f.painting) {
     const hit = paintingById.get(f.painting);
     if (hit)
@@ -36,12 +41,18 @@ const resolvedCover = (f: (typeof contactSheet)[number]) => {
   return undefined;
 };
 
-// /paints/<album>/<painting> permalink for linked paint cells.
-const paintingHref = (f: (typeof contactSheet)[number]) => {
-  if (f.k !== 'paint' || !f.painting) return undefined;
-  const hit = paintingById.get(f.painting);
-  return hit ? `/paints/${hit.albumSlug}/${f.painting}` : undefined;
+// Permalink for linked paint cells: album page or single-painting page.
+const paintHref = (f: (typeof contactSheet)[number]) => {
+  if (f.k !== 'paint') return undefined;
+  if (f.album && albumById.has(f.album)) return `/paints/${f.album}`;
+  if (f.painting) {
+    const hit = paintingById.get(f.painting);
+    if (hit) return `/paints/${hit.albumSlug}/${f.painting}`;
+  }
+  return undefined;
 };
+const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
+  f.k === 'paint' && f.album ? 'view album →' : 'view painting →';
 ---
 
 <section
@@ -62,7 +73,7 @@ const paintingHref = (f: (typeof contactSheet)[number]) => {
       f.k === 'photo' && f.slug
         ? `/lens/${f.slug}/`
         : f.k === 'paint'
-          ? paintingHref(f)
+          ? paintHref(f)
           : undefined;
     const bgStyle = cover
       ? undefined
@@ -144,8 +155,8 @@ const paintingHref = (f: (typeof contactSheet)[number]) => {
         id={`frame-${i + 1}`}
         frame={f}
         rollSlug={f.k === 'photo' ? f.slug : undefined}
-        ctaHref={paintingHref(f)}
-        ctaLabel="view painting →"
+        ctaHref={paintHref(f)}
+        ctaLabel={paintCtaLabel(f)}
         imageCldPath={cover?.cldPath}
         imageAlt={cover?.alt}
       />

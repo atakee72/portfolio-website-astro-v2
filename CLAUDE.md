@@ -107,7 +107,7 @@ Anchor hrefs are root-relative (`/#home`, `/#sheet`, etc.) so they work from any
 - **JS-driven navigation must route through the View Transitions router.** `window.location.href = url` forces a full page load; call the target anchor's `.click()` (or `navigate()` from `astro:transitions/client`) instead. Bit the keyboard arrow nav on both lens photo pages and paints detail pages. The paints detail image frame carries `transition:name="painting-frame"` so prev/next morphs in place.
 - **Cloudinary text overlays only support a fixed set of fonts** (Arial, Courier, Times, Verdana, Helvetica, Georgia, etc.). Custom fonts like "JetBrains Mono" return HTTP 400 with `x-cld-error: Unsupported font family ...` and a broken-image GIF. The watermark in `CloudPhoto.astro` uses `Courier`. To debug image issues fast: `curl -I` the Cloudinary URL and check headers.
 - **Sveltia commits straight to GitHub via API** — it never touches your local working tree. **Always `git pull` before editing files Sveltia might have edited** (`src/content/blog/*.mdx`, `src/content/rolls/*.json`) to avoid diverging streams.
-- **Contact-sheet cells auto-resolve content links.** In `src/data/contactSheet.ts`: photo cells with `slug: 'my-roll'` resolve to that roll's cover + "see full roll →" lightbox CTA; paint cells with `painting: 'painting-id'` resolve to that painting's image + "view painting →" CTA (id looked up across all painting albums); `link` cells render a static image as an outbound `<a target="_blank">` (used for the website-museum tile). Cells without any of these keep their placeholder gradient. On mobile (no lightbox), slug/painting cells tap-navigate directly.
+- **Contact-sheet cells auto-resolve content links.** In `src/data/contactSheet.ts`: photo cells with `slug: 'my-roll'` resolve to that roll's cover + "see full roll →" lightbox CTA; paint cells with `album: '<album-slug>'` resolve to that album's cover + "view album →" CTA (or `painting: '<id>'` for a single work + "view painting →"; album wins if both); `link` cells render a static image as an outbound `<a target="_blank">` (used for the website-museum tile). Cells without any of these keep their placeholder gradient. On mobile (no lightbox), slug/painting cells tap-navigate directly.
 
 ## Common Tasks
 
@@ -156,7 +156,7 @@ If you ever need to bypass the hook (rare — usually means rotating the secret 
 
 The homepage (`src/pages/index.astro`) deliberately caps each section to keep the page from growing unboundedly as content lands:
 
-- **Contact sheet** (`ContactSheet.astro`) — **hardcoded 9 cells** in `src/data/contactSheet.ts`. Curated highlight area, not a feed. Current composition: 3 photo + 2 paint (both linked to real paintings) + 3 code + 1 link (website-museum tile). Photo cells take `slug: '<roll>'`, paint cells take `painting: '<id>'` — both auto-resolve cover images and add lightbox CTAs.
+- **Contact sheet** (`ContactSheet.astro`) — **hardcoded 9 cells** in `src/data/contactSheet.ts`. Curated highlight area, not a feed. Current composition: 3 photo + 2 paint (both showing album covers) + 3 code + 1 link (website-museum tile). Photo cells take `slug: '<roll>'`, paint cells take `album: '<slug>'` (or `painting: '<id>'` for a single work) — all auto-resolve cover images and add lightbox CTAs.
 - **Blog** — capped at **6 most recent** posts (`BLOG_HOME_CAP` in `index.astro`). Overflow goes to `/blog/index.astro`. Signpost link "see all entries →" appears in the section header only when there's actual overflow (`hasMore` prop).
 - **Work** — capped at **6** projects (`HOME_CAP` in `ExifWork.astro`). Overflow goes to `/work/index.astro`. Same signpost pattern.
 
@@ -262,7 +262,7 @@ Setting menu drifts; current path is something like Settings → Security → "R
 - **Adding paintings — two paths**:
   1. **Sveltia** (Painting Albums collection) — open the album entry, add an item to the Paintings list, pick the image via the Cloudinary widget (works since the 0.170.9 bump; if it fails, suspect Firefox tracking protection). New album = "+ New" in the same collection.
   2. **Direct** — upload images via Cloudinary console (or API), then edit the album JSON by hand/Claude. The Admin API creds in `.env.local` allow listing/renaming: rename Instagram-noise filenames to clean `paints/<id>` public IDs before writing entries (see git history: `rename-paints.mjs` pattern — signed POST to `/image/rename`).
-- Two contact-sheet paint cells link to real paintings via `painting: '<id>'` (looked up across all albums at build time).
+- Two contact-sheet paint cells show album covers via `album: '<slug>'` (cover resolves with the same first-painting fallback); `painting: '<id>'` still works for single-work cells.
 
 ## Domain & email
 
