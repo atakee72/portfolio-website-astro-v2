@@ -128,12 +128,13 @@ collections:
       - { name: dimensions, label: Dimensions, widget: string, required: false, hint: 'e.g. mostly A3' }
       - { name: description, label: Description, widget: text, required: false }
       - name: cover
-        label: Cover
+        label: Cover (optional)
         widget: object
-        required: true
+        required: false
+        hint: 'Leave empty — the first painting in the list is the cover. Only set this to override.'
         fields:
-          - { name: cldPath, label: Cloudinary image, widget: image, required: true }
-          - { name: alt, label: Alt text, widget: string, required: true }
+          - { name: cldPath, label: Cloudinary image, widget: image, required: false }
+          - { name: alt, label: Alt text, widget: string, required: false }
       - name: paintings
         label: Paintings
         label_singular: Painting

@@ -145,10 +145,14 @@ const paintingsCollection = defineCollection({
       years: z.string(),
       dimensions: z.string().optional(),
       description: z.string().optional(),
-      cover: z.object({
-        cldPath,
-        alt: z.string(),
-      }),
+      // Optional override — the album card falls back to the first
+      // painting's image, so every cover is viewable inside the album.
+      cover: z
+        .object({
+          cldPath,
+          alt: z.string(),
+        })
+        .optional(),
       paintings: z
         .array(
           z.object({
