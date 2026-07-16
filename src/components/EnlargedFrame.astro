@@ -7,6 +7,8 @@ interface Props {
   id: string;
   frame?: Extract<Frame, { k: 'photo' | 'paint' }>;
   imageCldPath?: string;
+  /** Local /assets/... image instead of a Cloudinary one (e.g. museum tile). */
+  imageSrc?: string;
   imageAlt?: string;
   label?: string;
   tag?: string;
@@ -16,6 +18,8 @@ interface Props {
   /** Generic CTA link in the caption row (e.g. paint cells → painting page). */
   ctaHref?: string;
   ctaLabel?: string;
+  /** Open the CTA in a new tab (external links). */
+  ctaExternal?: boolean;
   permalinkHref?: string;
   showNav?: boolean;
   /** Letterbox the image (whole artwork visible) instead of cropping to 4:3. */
@@ -26,6 +30,7 @@ const {
   id,
   frame,
   imageCldPath,
+  imageSrc,
   imageAlt,
   label,
   tag,
@@ -34,6 +39,7 @@ const {
   rollSlug,
   ctaHref,
   ctaLabel,
+  ctaExternal = false,
   permalinkHref,
   showNav = false,
   fitContain = false,
@@ -43,7 +49,7 @@ const resolvedLabel = label ?? frame?.label;
 const resolvedTag = tag ?? frame?.tag;
 const tagIsSafelight = frame?.k === 'paint';
 
-const bgStyle = imageCldPath
+const bgStyle = imageCldPath || imageSrc
   ? undefined
   : frame
     ? frame.k === 'photo'
@@ -177,6 +183,16 @@ const bgStyle = imageCldPath
         />
       )}
 
+      {imageSrc && (
+        <img
+          src={imageSrc}
+          alt={imageAlt ?? resolvedLabel ?? ''}
+          loading="eager"
+          decoding="async"
+          class="absolute inset-0 w-full h-full object-contain bg-[#0a0a09]"
+        />
+      )}
+
       {resolvedTag && (
         <span
           class:list={[
@@ -215,6 +231,9 @@ const bgStyle = imageCldPath
         {ctaHref && (
           <a
             href={ctaHref}
+            {...(ctaExternal
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
             class="bg-ink-2 border border-ink-3 px-3 py-2 hover:text-paper transition-colors shrink-0"
           >
             {ctaLabel ?? 'view →'}
@@ -410,8 +429,15 @@ const bgStyle = imageCldPath
       if (trigger) {
         if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
           // No modal on mobile — tap-navigate to the linked page instead.
+          // External URLs open a new tab so the visitor keeps this site.
           const permalink = trigger.getAttribute('data-permalink');
-          if (permalink) window.location.href = permalink;
+          if (permalink) {
+            if (/^https?:\/\//.test(permalink)) {
+              window.open(permalink, '_blank', 'noopener');
+            } else {
+              window.location.href = permalink;
+            }
+          }
           return;
         }
         const id = trigger.getAttribute('data-enlarge-target');

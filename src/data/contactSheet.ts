@@ -18,7 +18,18 @@ export type Frame =
   | { k: 'photo'; tone: 'a' | 'b' | 'd' | 'e' | 'g'; label: string; tag: string; slug?: string }
   | { k: 'paint'; tone: 'c' | 'f'; label: string; tag: string; painting?: string; album?: string }
   | { k: 'code'; text: string; tag: string }
-  | { k: 'link'; src: string; alt: string; label: string; tag: string; href: string };
+  | {
+      k: 'link';
+      src: string;
+      alt: string;
+      label: string;
+      tag: string;
+      href: string;
+      /** Intro shown in the lightbox so visitors know what they'd open. */
+      note?: string;
+      /** CTA label in the lightbox (the external link itself). */
+      cta?: string;
+    };
 
 export const contactSheet: Frame[] = [
   { k: 'photo', tone: 'a', label: 'TEMPELHOF · 18:42', tag: 'PORTRA 400', slug: 'animals' },
@@ -32,6 +43,8 @@ export const contactSheet: Frame[] = [
     label: '1999 – 2006',
     tag: 'WAYBACK',
     href: 'https://atakee72.github.io/websites-through-the-years/',
+    note: 'A little museum of my early web: three personal sites I built between 1999 and 2006, restored and browsable again exactly as they were.',
+    cta: 'visit the museum ↗',
   },
   { k: 'paint', tone: 'c', label: 'MY EARLY PAINTINGS · 2022–2025', tag: 'ALBUM', album: 'my-early-paintings' },
   { k: 'photo', tone: 'g', label: 'U-BAHN · 23:54', tag: 'PUSHED +1' },

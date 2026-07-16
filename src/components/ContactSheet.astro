@@ -63,18 +63,21 @@ const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
   "
 >
   {contactSheet.map((f, i) => {
-    const isVisual = f.k === 'photo' || f.k === 'paint';
-    const isLink = f.k === 'link';
+    // Link cells open the lightbox too (preview + intro before the
+    // external CTA) — the visitor decides whether to leave the site.
+    const isVisual = f.k === 'photo' || f.k === 'paint' || f.k === 'link';
     const dialogId = `frame-${i + 1}`;
-    const Tag = isVisual ? 'button' : isLink ? 'a' : 'article';
+    const Tag = isVisual ? 'button' : 'article';
     const cover = resolvedCover(f);
-    // Mobile tap target (no lightbox there): roll page or painting page.
+    // Mobile tap target (no lightbox there): roll, painting, or external URL.
     const permalink =
       f.k === 'photo' && f.slug
         ? `/lens/${f.slug}/`
         : f.k === 'paint'
           ? paintHref(f)
-          : undefined;
+          : f.k === 'link'
+            ? f.href
+            : undefined;
     const bgStyle = cover
       ? undefined
       : f.k === 'photo'
@@ -86,7 +89,6 @@ const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
       <Tag
         {...(isVisual ? { type: 'button', 'data-enlarge-target': dialogId } : {})}
         {...(isVisual && permalink ? { 'data-permalink': permalink } : {})}
-        {...(isLink ? { href: f.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
         class={
           'relative aspect-[4/3] border border-ink-3 overflow-hidden text-left appearance-none ' +
           'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] ' +
@@ -148,6 +150,21 @@ const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
   })}
 
   {contactSheet.map((f, i) => {
+    if (f.k === 'link') {
+      return (
+        <EnlargedFrame
+          id={`frame-${i + 1}`}
+          imageSrc={f.src}
+          imageAlt={f.alt}
+          label={f.label}
+          tag={f.tag}
+          caption={f.note}
+          ctaHref={f.href}
+          ctaLabel={f.cta ?? 'open ↗'}
+          ctaExternal
+        />
+      );
+    }
     if (f.k !== 'photo' && f.k !== 'paint') return null;
     const cover = resolvedCover(f);
     return (
