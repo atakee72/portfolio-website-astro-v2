@@ -1,0 +1,29 @@
+{
+  "title": "Painting with Coffee and Spoon",
+  "years": "2025",
+  "dimensions": "Mini",
+  "description": "Painted only with coffee ground (with a little Nesquik :) and a tee spoon 🖌️🎨🫟🖼️",
+  "cover": {
+    "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784228309/Paints%20with%20coffee/626288485_18033935072571391_8566957643244472525_n_yeqphf.jpg",
+    "alt": "A girl leaning against the window with her hands"
+  },
+  "paintings": [
+    {
+      "id": "a-woman-looking-up",
+      "title": "A woman looking up",
+      "year": "2025",
+      "medium": "Coffee ground",
+      "subjects": [],
+      "dimensions": "Mini",
+      "description": "A woman looking up",
+      "image": {
+        "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784228309/Paints%20with%20coffee/628146884_18090989072068894_7121007570835082500_n_fsk19t.jpg",
+        "alt": "A woman looking up"
+      },
+      "tags": [
+        "nude"
+      ]
+    }
+  ],
+  "draft": false
+}
