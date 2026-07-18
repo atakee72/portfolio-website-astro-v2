@@ -396,6 +396,9 @@ const bgStyle = imageCldPath || imageSrc
 
     const navigate = (delta: number) => {
       if (!activeModal) return;
+      // Arrow nav only where arrows are visible (showNav) — on the
+      // contact sheet the frames are unrelated, so cycling is off.
+      if (!activeModal.querySelector('[data-nav-prev]')) return;
       const triggers = visibleTriggers();
       if (triggers.length < 2) return;
       const currentId = activeModal.getAttribute('data-modal-id');
