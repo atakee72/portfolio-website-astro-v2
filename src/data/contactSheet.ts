@@ -47,7 +47,7 @@ export const contactSheet: Frame[] = [
     cta: 'visit the museum ↗',
   },
   { k: 'paint', tone: 'c', label: 'MY EARLY PAINTINGS · 2022–2025', tag: 'ALBUM', album: 'my-early-paintings' },
-  { k: 'photo', tone: 'g', label: 'U-BAHN · 23:54', tag: 'PUSHED +1' },
+  { k: 'photo', tone: 'g', label: 'U-BAHN · 23:54', tag: 'PUSHED +1', slug: 'u-bahn' },
   { k: 'paint', tone: 'f', label: 'COFFEE & SPOON · 2025', tag: 'ALBUM', album: 'painting-with-coffee-and-spoon' },
   { k: 'code', text: '// react\nconst [n, setN] = useState(0);\n\n// svelte\nlet n = $state(0);', tag: 'RUNES' },
 ];
