@@ -167,11 +167,11 @@ for (let i = 0; i < jpegs.length; i++) {
 }
 
 const today = new Date().toISOString().slice(0, 10);
+// No explicit cover — roll cards fall back to the first photo.
 const roll = {
   title: '',
   date: today,
   location: '',
-  cover: { cldPath: photos[0].cldPath, alt: '' },
   photos,
   draft: true,
 };

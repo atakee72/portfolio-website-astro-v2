@@ -112,6 +112,7 @@ const exifLine = (exif: typeof photos[number]['exif']) => {
         exifLine={exifLine(photo.exif)}
         permalinkHref={`/lens/${roll.id}/${n}`}
         showNav={photos.length > 1}
+        fitContain
       />
     );
   })}

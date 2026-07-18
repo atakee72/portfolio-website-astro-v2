@@ -25,10 +25,14 @@ const rollsCollection = defineCollection({
     date: z.coerce.date(),
     location: z.string(),
     tags: z.array(z.string()).default([]),
-    cover: z.object({
-      cldPath,
-      alt: z.string(),
-    }),
+    // Optional override — roll cards fall back to the first photo,
+    // so the cover is always viewable inside the roll (same as albums).
+    cover: z
+      .object({
+        cldPath,
+        alt: z.string(),
+      })
+      .optional(),
     photos: z
       .array(
         z.object({

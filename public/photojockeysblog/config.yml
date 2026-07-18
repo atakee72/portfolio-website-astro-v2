@@ -89,13 +89,13 @@ collections:
         field: { name: tag, label: Tag, widget: string }
         hint: 'Filterable tags (e.g., berlin, 35mm, ektar).'
       - name: cover
-        label: Cover
+        label: Cover (optional)
         widget: object
-        required: true
-        hint: 'The image used as the roll thumbnail.'
+        required: false
+        hint: 'Leave empty — the first photo in the list is the cover. Only set this to override.'
         fields:
-          - { name: cldPath, label: Cloudinary image, widget: image, required: true }
-          - { name: alt, label: Alt text, widget: string, required: true }
+          - { name: cldPath, label: Cloudinary image, widget: image, required: false }
+          - { name: alt, label: Alt text, widget: string, required: false }
       - name: photos
         label: Photos
         widget: list

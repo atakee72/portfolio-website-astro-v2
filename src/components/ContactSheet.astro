@@ -9,10 +9,10 @@ import CloudPhoto from './CloudPhoto.astro';
 // same way. Cells without either keep the placeholder gradient.
 const rolls = await getAllRolls();
 const coverBySlug = new Map(
-  rolls.map((r) => [
-    r.id,
-    { cldPath: r.data.cover.cldPath, alt: r.data.cover.alt },
-  ]),
+  rolls.map((r) => {
+    const cover = r.data.cover ?? r.data.photos[0];
+    return [r.id, { cldPath: cover.cldPath, alt: cover.alt }];
+  }),
 );
 
 const albums = await getAllPaintAlbums();
