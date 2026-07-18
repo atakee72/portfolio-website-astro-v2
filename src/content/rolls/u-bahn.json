@@ -1,0 +1,41 @@
+{
+  "title": "U-Bahn",
+  "date": "2026-07-18T15:53",
+  "location": "Berlin",
+  "tags": [
+    "Berlin",
+    "U-Bahn",
+    "urban"
+  ],
+  "cover": {
+    "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784242441/u-bahn/624849763_18086208353_n_cok4p1.webp",
+    "alt": "Young man in Berlin metro"
+  },
+  "photos": [
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784242441/u-bahn/61967051801_n_rnb9yf.webp",
+      "alt": "Stairs in metro Hermann street",
+      "caption": "Stairs in metro U8 Hermann street",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784242441/u-bahn/62206334103_n_qhsgh1.jpg",
+      "alt": "Children before metro station Parchimer Allee",
+      "caption": "Children before metro station Parchimer Allee",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784242441/u-bahn/625424104_n_smce9t.webp",
+      "alt": "Man going out from metro at Alexander Platz",
+      "caption": "Man going out from metro at Alexander Platz",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784242441/u-bahn/63205386_n_lye20s.webp",
+      "alt": "Doves sitting at metro Hallesches Tor",
+      "caption": "Doves sitting at metro Hallesches Tor",
+      "exif": {}
+    }
+  ],
+  "draft": true
+}
