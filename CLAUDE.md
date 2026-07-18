@@ -209,6 +209,13 @@ What it does:
 4. Writes `src/content/rolls/<slug>.json` with `draft: true` and
    blank title/location/alts — for Sveltia to fill in.
 
+Roll `cover` is OPTIONAL (same as painting albums, since 2026-07-18):
+cards fall back to the first photo, so the cover is always viewable
+inside the roll. Only set `cover` to override. Lightbox images are
+letterboxed everywhere (`fitContain` — lens rolls, paints, contact
+sheet); keyboard arrow nav fires only in lightboxes that render nav
+arrows (rolls/albums yes, contact sheet no — its frames are unrelated).
+
 Then: `git commit && git push` the JSON → refresh Sveltia →
 the draft roll appears in the Rolls collection → fill text fields →
 Save & Publish.
