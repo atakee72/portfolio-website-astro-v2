@@ -20,11 +20,35 @@ interface Props {
 }
 
 const { album } = Astro.props;
-const paintings = album.data.paintings;
+const catalogued = album.data.paintings;
 
-const years = [...new Set(paintings.map((p) => p.year))].sort().reverse();
-const subjects = [...new Set(paintings.flatMap((p) => p.subjects))].sort();
-const media = [...new Set(paintings.map((p) => p.medium))].sort();
+// The cover is always viewable inside the album: if it points at a
+// catalogued painting it's already shown; if it's a standalone image
+// (Sveltia's Cover field set to something not in the Paintings list),
+// prepend a display-only cell so it isn't lost. Such a cell has no
+// detail page — it opens the lightbox and taps back to the album.
+// cldPaths are normalized to bare public_ids by the Zod transform.
+const cover = album.data.cover;
+const coverInList =
+  cover && catalogued.some((p) => p.image.cldPath === cover.cldPath);
+const coverCell: Painting | null =
+  cover && !coverInList
+    ? {
+        id: '__cover',
+        title: cover.alt || album.data.title,
+        year: '',
+        medium: '',
+        subjects: [],
+        image: cover,
+        tags: [],
+      }
+    : null;
+const paintings = coverCell ? [coverCell, ...catalogued] : catalogued;
+const hasDetail = (p: Painting) => p.id !== '__cover';
+
+const years = [...new Set(catalogued.map((p) => p.year))].sort().reverse();
+const subjects = [...new Set(catalogued.flatMap((p) => p.subjects))].sort();
+const media = [...new Set(catalogued.map((p) => p.medium))].sort();
 
 const detailHref = (p: Painting) => `/paints/${album.id}/${p.id}`;
 const captionLine = (p: Painting) =>
@@ -60,7 +84,7 @@ const captionLine = (p: Painting) =>
 
     <p class="text-[12px] text-mute-2 tracking-[0.14em] font-mono uppercase mb-2">
       // {album.data.years}{album.data.dimensions && ` · ${album.data.dimensions}`} ·
-      <span data-filter-count>{paintings.length}</span> painting{paintings.length === 1 ? '' : 's'}
+      <span data-filter-count>{catalogued.length}</span> painting{catalogued.length === 1 ? '' : 's'}
     </p>
 
     {album.data.description && (
@@ -87,7 +111,7 @@ const captionLine = (p: Painting) =>
           <button
             type="button"
             data-enlarge-target={`paint-${i + 1}`}
-            data-permalink={detailHref(p)}
+            data-permalink={hasDetail(p) ? detailHref(p) : `/paints/${album.id}`}
             class="block w-full relative aspect-square border border-ink-3 overflow-hidden bg-ink-2 appearance-none text-left transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-visible:scale-[1.02]"
           >
             <CloudPhoto
@@ -97,7 +121,7 @@ const captionLine = (p: Painting) =>
               class="absolute inset-0 w-full h-full"
             />
             <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5 uppercase">
-              {p.medium}
+              {hasDetail(p) ? p.medium : 'cover'}
             </span>
             <div
               class="absolute left-2 right-2 bottom-2 z-[3] flex justify-between items-end gap-2 text-[11px] tracking-[0.16em] text-paper"
@@ -123,9 +147,9 @@ const captionLine = (p: Painting) =>
       imageCldPath={p.image.cldPath}
       imageAlt={p.image.alt}
       label={p.title}
-      caption={captionLine(p)}
-      permalinkHref={detailHref(p)}
-      ctaHref={detailHref(p)}
+      caption={hasDetail(p) ? captionLine(p) : undefined}
+      permalinkHref={hasDetail(p) ? detailHref(p) : undefined}
+      ctaHref={hasDetail(p) ? detailHref(p) : undefined}
       ctaLabel="view painting →"
       showNav={paintings.length > 1}
       fitContain
