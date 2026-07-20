@@ -15,7 +15,18 @@ export async function getStaticPaths() {
 }
 
 const { roll } = Astro.props;
-const photos = roll.data.photos;
+// The cover is always viewable inside the roll: if it points at a photo
+// already in the list, we show that photo; if it's a standalone image
+// (Sveltia's Cover field, not re-added to Photos), prepend it so it
+// isn't lost. cldPaths are normalized to bare public_ids by the Zod
+// transform, so this comparison is reliable.
+const cover = roll.data.cover;
+const inList =
+  cover && roll.data.photos.some((p) => p.cldPath === cover.cldPath);
+const photos =
+  cover && !inList
+    ? [{ cldPath: cover.cldPath, alt: cover.alt, caption: undefined, exif: {} }, ...roll.data.photos]
+    : roll.data.photos;
 
 const fmtDate = (d: Date) =>
   d.toLocaleDateString('en-GB', {
