@@ -97,16 +97,34 @@ export async function getRollBySlug(slug: string) {
   return rolls.find((r) => r.id === slug);
 }
 
+// The display sequence for a roll: an explicitly-set cover that isn't
+// already one of the photos is prepended as frame 1 so it's viewable
+// inside the roll. THE ONE SOURCE OF TRUTH for photo order/numbering —
+// the grid, the detail routes, and prev/next must all use this, or the
+// grid and detail pages disagree (off-by-one). cldPaths are normalized
+// to bare public_ids by the Zod transform, so the comparison is safe.
+export function rollPhotos(
+  roll: Awaited<ReturnType<typeof getAllRolls>>[number]
+) {
+  const { cover, photos } = roll.data;
+  if (cover && !photos.some((p) => p.cldPath === cover.cldPath)) {
+    return [{ cldPath: cover.cldPath, alt: cover.alt, caption: undefined, exif: {} }, ...photos];
+  }
+  return photos;
+}
+
 export async function getAllPhotoEntries() {
   const rolls = await getAllRolls();
-  return rolls.flatMap((roll) =>
-    roll.data.photos.map((photo, i) => ({
+  return rolls.flatMap((roll) => {
+    const list = rollPhotos(roll);
+    return list.map((photo, i) => ({
       rollSlug: roll.id,
       roll,
       n: i + 1,
       photo,
-    }))
-  );
+      total: list.length,
+    }));
+  });
 }
 
 export async function getAllProjects() {

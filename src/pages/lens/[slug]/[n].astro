@@ -8,9 +8,9 @@ import { getCldImageUrl } from 'astro-cloudinary/helpers';
 
 export async function getStaticPaths() {
   const entries = await getAllPhotoEntries();
-  return entries.map(({ rollSlug, roll, n, photo }) => ({
+  return entries.map(({ rollSlug, roll, n, photo, total }) => ({
     params: { slug: rollSlug, n: String(n) },
-    props: { roll, n, photo, total: roll.data.photos.length },
+    props: { roll, n, photo, total },
   }));
 }
 
