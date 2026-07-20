@@ -33,6 +33,7 @@ collections:
       - { name: title, label: Title, widget: string, required: true }
       - { name: description, label: Description, widget: text, required: true, hint: 'One-line summary shown in lists and meta tags.' }
       - { name: publishedAt, label: Published, widget: datetime, required: true, default: '' }
+      - { name: updatedAt, label: Last updated, widget: datetime, required: false, hint: 'Set when you substantially revise a post — shown as "updated" and fed to search/AI as dateModified.' }
       - name: author
         label: Author
         widget: object

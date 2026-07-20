@@ -11,6 +11,9 @@ interface Props {
   ogImage?: string;
   ogType?: 'website' | 'article';
   noindex?: boolean;
+  /** Extra schema.org JSON-LD for this page (object or array), rendered
+      alongside the sitewide Person graph. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const {
@@ -19,7 +22,16 @@ const {
   ogImage,
   ogType = 'website',
   noindex = false,
+  jsonLd,
 } = Astro.props;
+
+// Canonical URL — absolute, no query/hash, trailing slash normalized.
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const extraJsonLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+// schema.org JSON-LD injected via set:html must escape `<` so a value
+// containing `</script>` can't break out of the tag.
+const ldJson = (obj: unknown) =>
+  JSON.stringify(obj).replace(/</g, '\\u003c');
 ---
 
 <!DOCTYPE html>
@@ -30,6 +42,7 @@ const {
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     {noindex && <meta name="robots" content="noindex,nofollow,noarchive" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
     <title>{title}</title>
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -50,7 +63,7 @@ const {
       href="/rss.xml"
     />
     <ViewTransitions />
-    <script type="application/ld+json" set:html={JSON.stringify({
+    <script type="application/ld+json" set:html={ldJson({
       '@context': 'https://schema.org',
       '@type': 'Person',
       name: 'Ercan Atak',
@@ -68,6 +81,9 @@ const {
         'https://www.instagram.com/a_t_a_k_e_e/',
       ],
     })} />
+    {extraJsonLd.map((obj) => (
+      <script type="application/ld+json" set:html={ldJson(obj)} />
+    ))}
     <script
       is:inline
       data-goatcounter="https://stats.ercan-atak.de/count"
