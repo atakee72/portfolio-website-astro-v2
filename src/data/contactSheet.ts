@@ -34,7 +34,7 @@ export type Frame =
 export const contactSheet: Frame[] = [
   { k: 'photo', tone: 'a', label: 'TEMPELHOF · 18:42', tag: 'PORTRA 400', slug: 'animals' },
   { k: 'code', text: '// agents.dispatch()\n\nconst agents = [\n  goalFinder,\n  talentFinder,\n  jobScout,\n]\n\nrun({ thread, profile, tools })', tag: 'DISPATCH' },
-  { k: 'photo', tone: 'b', label: 'BOSPORUS · 07:11', tag: '35MM' },
+  { k: 'photo', tone: 'b', label: 'BOSPORUS · 07:11', tag: '35MM', slug: 'bosphorus' },
   { k: 'code', text: '$ pnpm build\n  ✓ 22 pages\n  ✓ 0 warnings', tag: 'BUILD OK' },
   {
     k: 'link',
