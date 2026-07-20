@@ -63,13 +63,9 @@ const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
   "
 >
   {contactSheet.map((f, i) => {
-    // Link cells open the lightbox too (preview + intro before the
-    // external CTA) — the visitor decides whether to leave the site.
-    const isVisual = f.k === 'photo' || f.k === 'paint' || f.k === 'link';
     const dialogId = `frame-${i + 1}`;
-    const Tag = isVisual ? 'button' : 'article';
     const cover = resolvedCover(f);
-    // Mobile tap target (no lightbox there): roll, painting, or external URL.
+    // Roll / painting / external URL this cell points at.
     const permalink =
       f.k === 'photo' && f.slug
         ? `/lens/${f.slug}/`
@@ -78,6 +74,14 @@ const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
           : f.k === 'link'
             ? f.href
             : undefined;
+    const ctaLabel =
+      f.k === 'photo'
+        ? 'see full roll →'
+        : f.k === 'paint'
+          ? paintCtaLabel(f)
+          : f.k === 'link'
+            ? (f.cta ?? 'open ↗')
+            : undefined;
     const bgStyle = cover
       ? undefined
       : f.k === 'photo'
@@ -85,57 +89,70 @@ const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
         : f.k === 'paint'
           ? paintBg(f.tone)
           : undefined;
-    return (
-      <Tag
-        {...(isVisual ? { type: 'button', 'data-enlarge-target': dialogId } : {})}
-        {...(isVisual && permalink ? { 'data-permalink': permalink } : {})}
-        class={
-          'relative aspect-[4/3] border border-ink-3 overflow-hidden text-left appearance-none ' +
-          'transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] ' +
-          'hover:scale-[1.02] focus-within:scale-[1.02] focus-visible:scale-[1.02]'
-        }
-        style={bgStyle}
+
+    const indexBadge = (
+      <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
+        {String(i + 1).padStart(2, '0')}A
+      </span>
+    );
+    const tagBadge = (
+      <span
+        class:list={[
+          'absolute top-1.5 right-1.5 z-[3] text-[9px] tracking-[0.14em] px-1.5 py-0.5 bg-black/50 border',
+          f.k === 'paint' ? 'text-safelight border-safelight'
+            : 'text-phosphor border-phosphor',
+        ]}
       >
-        {cover && (
-          <CloudPhoto
-            cldPath={cover.cldPath}
-            alt={cover.alt}
-            width={800}
-            class="absolute inset-0 w-full h-full"
-          />
-        )}
+        {f.tag}
+      </span>
+    );
 
-        {f.k === 'link' && (
-          <img
-            src={f.src}
-            alt={f.alt}
-            loading="lazy"
-            decoding="async"
-            class="absolute inset-0 w-full h-full object-contain bg-[#0a0a09]"
-          />
-        )}
-
-        <span class="absolute top-1.5 left-1.5 z-[3] text-[10px] text-phosphor tracking-[0.12em] bg-black/60 px-1.5 py-0.5">
-          {String(i + 1).padStart(2, '0')}A
-        </span>
-
-        <span
-          class:list={[
-            'absolute top-1.5 right-1.5 z-[3] text-[9px] tracking-[0.14em] px-1.5 py-0.5 bg-black/50 border',
-            f.k === 'paint' ? 'text-safelight border-safelight'
-              : f.k === 'code' ? 'text-phosphor border-phosphor'
-              : f.k === 'link' ? 'text-phosphor border-phosphor'
-              : 'text-paper border-paper',
-          ]}
-        >
-          {f.tag}
-        </span>
-
-        {f.k === 'code' ? (
+    // Code cells are non-interactive panels — no lightbox, no reveal.
+    if (f.k === 'code') {
+      return (
+        <article class="relative aspect-[4/3] border border-ink-3 overflow-hidden">
+          {indexBadge}
+          {tagBadge}
           <div class="absolute inset-0 bg-[#0a0a09] pt-6 px-3.5 pb-3.5">
             <pre class="m-0 text-[11px] text-phosphor leading-[1.5] whitespace-pre-wrap">{f.text}</pre>
           </div>
-        ) : (
+        </article>
+      );
+    }
+
+    // Visual cells: desktop taps open the lightbox (EnlargedFrame);
+    // narrow screens reveal an in-cell layer with the caption + CTA
+    // instead of a cramped modal (wiring in the script below).
+    return (
+      <div
+        class="cell relative aspect-[4/3] border border-ink-3 overflow-hidden transition-transform duration-200 ease-[cubic-bezier(.2,.8,.2,1)] hover:scale-[1.02] focus-within:scale-[1.02]"
+        style={bgStyle}
+      >
+        <button
+          type="button"
+          data-enlarge-target={dialogId}
+          {...(permalink ? { 'data-permalink': permalink } : {})}
+          class="absolute inset-0 w-full h-full appearance-none text-left cursor-pointer"
+        >
+          {cover && (
+            <CloudPhoto
+              cldPath={cover.cldPath}
+              alt={cover.alt}
+              width={800}
+              class="absolute inset-0 w-full h-full"
+            />
+          )}
+          {f.k === 'link' && (
+            <img
+              src={f.src}
+              alt={f.alt}
+              loading="lazy"
+              decoding="async"
+              class="absolute inset-0 w-full h-full object-contain bg-[#0a0a09]"
+            />
+          )}
+          {indexBadge}
+          {tagBadge}
           <span
             class:list={[
               'absolute left-2 bottom-2 z-[3] text-[10px] tracking-[0.16em] text-paper',
@@ -144,8 +161,25 @@ const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
           >
             {f.label}
           </span>
+        </button>
+
+        {permalink && (
+          <div class="reveal-layer absolute inset-0 z-20 flex flex-col justify-end gap-2 p-3 bg-gradient-to-t from-black/90 via-black/70 to-black/25">
+            {f.k === 'link' && f.note && (
+              <p class="m-0 text-[11px] leading-[1.5] text-paper-2 line-clamp-5">{f.note}</p>
+            )}
+            <span class="text-[10px] tracking-[0.16em] text-mute-2 uppercase">{f.label}</span>
+            <a
+              data-cta
+              href={permalink}
+              {...(f.k === 'link' ? { target: '_blank', rel: 'noopener' } : {})}
+              class="self-start text-[12px] tracking-[0.14em] text-phosphor border border-phosphor px-2.5 py-1 hover:bg-phosphor hover:text-black transition-colors"
+            >
+              {ctaLabel}
+            </a>
+          </div>
         )}
-      </Tag>
+      </div>
     );
   })}
 
@@ -182,4 +216,72 @@ const paintCtaLabel = (f: (typeof contactSheet)[number]) =>
   })}
 </section>
 
-<!-- Modal wiring lives in EnlargedFrame.astro (one shared script). -->
+<!-- Lightbox (desktop) wiring lives in EnlargedFrame.astro (one shared script). -->
+
+<style>
+  /* Reveal layer is a mobile-only affordance: on wider screens the cell
+     opens the lightbox instead, so the layer never shows there. */
+  .reveal-layer {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+  .cell.is-revealed .reveal-layer {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  @media (min-width: 641px) {
+    .reveal-layer {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  // On narrow screens, one tap reveals the cell's caption + CTA in place
+  // rather than opening a cramped lightbox. Runs in the capture phase and
+  // stops the event so EnlargedFrame's document-level handler never fires
+  // for these cells; desktop taps fall through to open the lightbox.
+  function setupReveal() {
+    const section = document.getElementById('sheet');
+    if (!section || section.dataset.revealWired) return;
+    section.dataset.revealWired = '1';
+
+    const mq = window.matchMedia('(max-width: 640px)');
+    const closeAll = () =>
+      section
+        .querySelectorAll('.cell.is-revealed')
+        .forEach((c) => c.classList.remove('is-revealed'));
+
+    section.addEventListener(
+      'click',
+      (e) => {
+        if (!mq.matches) return; // desktop → let the lightbox handler run
+        const target = e.target as Element;
+        if (target.closest('[data-cta]')) return; // let the CTA navigate
+        const cell = target.closest('.cell');
+        if (!cell || !cell.querySelector('.reveal-layer')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const wasOpen = cell.classList.contains('is-revealed');
+        closeAll();
+        if (!wasOpen) cell.classList.add('is-revealed');
+      },
+      true,
+    );
+
+    const onDocClick = (e: MouseEvent) => {
+      if (!mq.matches) return;
+      if ((e.target as Element).closest?.('#sheet .cell')) return;
+      closeAll();
+    };
+    document.addEventListener('click', onDocClick);
+    document.addEventListener(
+      'astro:before-swap',
+      () => document.removeEventListener('click', onDocClick),
+      { once: true },
+    );
+  }
+
+  document.addEventListener('astro:page-load', setupReveal);
+</script>
