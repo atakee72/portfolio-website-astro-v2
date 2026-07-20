@@ -430,8 +430,15 @@ const bgStyle = imageCldPath || imageSrc
 
       const trigger = target.closest('[data-enlarge-target]') as HTMLElement | null;
       if (trigger) {
-        if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
-          // No modal on mobile — tap-navigate to the linked page instead.
+        // Suppress the lightbox on small screens (touch devices OR narrow
+        // viewports — the pointer check alone misses narrow desktop windows
+        // and some tablets). A cramped modal is worse than the full-screen
+        // detail page, so tap-navigate there instead.
+        const isSmall =
+          window.matchMedia('(hover: none) and (pointer: coarse)').matches ||
+          window.matchMedia('(max-width: 640px)').matches;
+        if (isSmall) {
+          // No modal on small screens — tap-navigate to the linked page.
           // External URLs open a new tab so the visitor keeps this site.
           const permalink = trigger.getAttribute('data-permalink');
           if (permalink) {
