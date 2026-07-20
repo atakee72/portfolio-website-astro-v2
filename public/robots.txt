@@ -3,6 +3,7 @@ Disallow: /lens/
 Disallow: /impressum
 Disallow: /datenschutz
 
+# AI training crawlers — blocked (don't train models on this site).
 User-agent: GPTBot
 Disallow: /
 
@@ -14,3 +15,23 @@ Disallow: /
 
 User-agent: Google-Extended
 Disallow: /
+
+# AI citation / retrieval crawlers — allowed so the site can be cited in
+# AI answers (ChatGPT search, Perplexity, etc.). Same private-path
+# exclusions as the general rule; these bots don't feed model training.
+User-agent: OAI-SearchBot
+Disallow: /lens/
+Disallow: /impressum
+Disallow: /datenschutz
+
+User-agent: ChatGPT-User
+Disallow: /lens/
+Disallow: /impressum
+Disallow: /datenschutz
+
+User-agent: PerplexityBot
+Disallow: /lens/
+Disallow: /impressum
+Disallow: /datenschutz
+
+Sitemap: https://ercan-atak.de/sitemap-index.xml
