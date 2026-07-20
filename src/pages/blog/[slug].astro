@@ -1,9 +1,12 @@
 ---
-import { getCollection } from 'astro:content';
 import BlogPostLayout from '@/layouts/BlogPostLayout.astro';
+import { getAllBlogPosts } from '@/lib/content';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  // getAllBlogPosts() prod-filters drafts (visible in dev only), so draft
+  // detail pages aren't built or reachable in production — matches the
+  // /work [slug] convention and how the blog index already filters.
+  const posts = await getAllBlogPosts();
   return posts.map((post) => ({
     params: { slug: post.slug },
     props: { post },

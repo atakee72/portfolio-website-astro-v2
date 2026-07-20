@@ -1,0 +1,77 @@
+---
+title: 'Migrating my portfolio from Next.js + Sanity to Astro 5'
+description: 'Why I moved a personal portfolio off Next.js 14 and Sanity to a static Astro 5 site — the zero-JS architecture, the GDPR wins, and what actually changed.'
+publishedAt: 2026-07-20
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Astro
+  - Web Performance
+  - Architecture
+stack:
+  - Astro
+  - Svelte
+  - Tailwind CSS
+  - TypeScript
+  - MDX
+draft: true
+---
+
+I moved my portfolio from **Next.js 14 + Sanity** to a **static Astro 5** site, and the short version is: the new site ships almost no JavaScript, has no external CMS, and drops every third-party network call that used to make GDPR compliance a chore. Content that once lived in a hosted Sanity dataset now lives in the repo as MDX and JSON, validated at build time. The only interactive JavaScript that reaches the browser is four small Svelte islands; everything else is server-rendered HTML with zero client runtime.
+
+This post is the honest account of why I did it and what the trade-offs were — not a "Framework A beats Framework B" pitch. If you run a content-light personal site on a React meta-framework and a hosted CMS, most of this will apply to you.
+
+## Why leave Next.js + Sanity at all?
+
+The old stack worked. The problem was that it was **heavier than the job required**. A portfolio with a handful of blog posts, some project write-ups, and image galleries doesn't need a React runtime on every page, and it doesn't need a hosted headless CMS with its own API, auth, and monthly moving parts.
+
+Three things pushed the migration:
+
+1. **JavaScript I wasn't using.** Next.js hydrates pages by default. Most of my pages are text and images — there was nothing to hydrate. I was paying a runtime tax for interactivity that only existed in two or three places.
+2. **A CMS I was renting for content I owned.** Sanity is a good product, but my content is a dozen files. Putting them behind an external API meant a network dependency at build time and a second place to reason about schemas.
+3. **GDPR overhead.** Operating a site under a real name from Germany means an *Impressum* and a *Datenschutzerklärung*, and every third-party call you make is something you have to disclose and justify. Fewer external calls is not just faster — it's less legal surface.
+
+## The architecture: server-first, islands rarely
+
+Astro's model is the whole reason this works. Pages are `.astro` components that render to HTML at build time and ship **zero JavaScript** unless you explicitly opt in. Where I genuinely need the browser — a live clock, a mobile menu, the contact form, a custom cursor — I use a **Svelte 5 island** hydrated with the narrowest directive that fits:
+
+- `client:only` for things that depend entirely on browser APIs (localStorage, `document`),
+- `client:visible` to defer a below-the-fold form until it scrolls into view,
+- `client:idle` for non-critical touches that can wait for the main thread.
+
+The result is four islands total. Every other component is static HTML. There is no framework runtime on the critical path.
+
+## Content collections replaced the CMS
+
+Instead of Sanity, content lives in **Astro content collections**: MDX for blog posts, JSON for the photography rolls, testimonials, and paintings. Each collection has a **Zod schema**, so a missing field or a wrong type fails the build instead of shipping broken. Adding a post is creating a file with the right frontmatter — it appears automatically, sorted and validated.
+
+For the parts I want to edit without touching the repo, I wired a **git-based CMS** (Sveltia) that commits Markdown and JSON straight to GitHub. It's a thin editing layer over the same files — not a separate content backend. The source of truth is still the repository.
+
+## The GDPR wins were the real payoff
+
+This is the part I underestimated. Going static let me remove entire categories of compliance risk:
+
+- **Self-hosted fonts.** No Google Fonts CDN. A German court (LG München I, 3 O 17493/20) ruled that loading Google Fonts from Google's servers transmits a visitor's IP to the US without consent — and opportunistic claimants still send €100-per-pageview letters over it. I self-host the two font families locally; the browser never talks to Google.
+- **Cookieless analytics.** I use a privacy-respecting, cookieless analytics setup with no persistent identifiers, which falls outside the German cookie-consent rules (§ 25 TDDDG). The site is genuinely cookie-free, so there is **no cookie banner** — and adding one would be pure UX cost with zero legal upside.
+- **Fewer processors to disclose.** Every third-party call is a line in the privacy policy. Static hosting plus local content means the list is short and honest.
+
+None of this is exotic. It's what you get "for free" when the default is to send nothing to the browser and nowhere off-origin.
+
+## What I gave up
+
+Honesty section, because every migration has one:
+
+- **No on-demand rendering.** Static output means content updates require a rebuild. For a portfolio that's a non-issue; for a news site it would be. Where I need freshness (image EXIF, a visitor counter), I fetch at build time or hydrate a tiny island.
+- **A migration is still work.** Moving content out of Sanity, rebuilding every page as `.astro`, and rewiring the few interactive bits took real effort. The payoff is ongoing (every page load, forever), but the cost is upfront.
+- **React muscle memory.** Astro and Svelte are not React. The concepts transfer, but the syntax and the hydration model don't. Budget a little ramp-up.
+
+## Would I recommend it?
+
+For a **content-light, interaction-light personal site** — a portfolio, a résumé site, a small blog — yes, without hesitation. The static-by-default model matches the shape of the work, the zero-JS baseline is a real performance and privacy win, and owning your content as files in a repo is simpler than renting it from an API.
+
+For an app with real interactivity on most pages, the calculus changes and a framework that hydrates by default may earn its keep. The point isn't that static wins — it's that **the runtime should match the page**. My pages are mostly text and photographs, so mostly they ship none.
+
+---
+
+*Last note: this whole site is the reference implementation. If you're curious how a specific piece works, the [work section](/work) and the rest of the [journal](/blog) go into the details.*
