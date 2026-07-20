@@ -1,0 +1,70 @@
+{
+  "title": "Bosphorus",
+  "date": "2026-07-20T16:08",
+  "location": "Istanbul",
+  "tags": [
+    "Istanbul",
+    "Bosphorus"
+  ],
+  "cover": {
+    "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554631/bosphorus/mendirek_fb3tfq.jpg",
+    "alt": "Breakwater in bosphorus"
+  },
+  "photos": [
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554633/bosphorus/iskele_ahiuta.jpg",
+      "alt": "A passenger ferry at the pier",
+      "caption": "A passenger ferry at the pier",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554632/bosphorus/vapur2_lri9es.jpg",
+      "alt": "On the ferry heading for Karaköy",
+      "caption": "On the ferry heading for Karaköy",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554632/bosphorus/duba_f8fzkb.jpg",
+      "alt": "A huge buoy in the Bosphorus",
+      "caption": "A huge buoy in the Bosphorus",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554631/bosphorus/galata_fhbkud.jpg",
+      "alt": "Galata bridge at night",
+      "caption": "Galata bridge at night",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554632/bosphorus/mend_zodffi.jpg",
+      "alt": "Breakwaters in Bosphorus",
+      "caption": "Breakwaters in Bosphorus",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554629/bosphorus/denizin-kenari_cgfpef.jpg",
+      "alt": "A young man relaxing on the banks of the Bosphorus",
+      "caption": "A young man relaxing on the banks of the Bosphorus",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554632/bosphorus/masalla_va1mhm.jpg",
+      "alt": "A small, cute fishing boat",
+      "caption": "A small, cute fishing boat",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554632/bosphorus/g%C3%BCn-batimi_quqn4s.jpg",
+      "alt": "Sunset over the Bosphorus",
+      "caption": "Sunset over the Bosphorus",
+      "exif": {}
+    },
+    {
+      "cldPath": "https://res.cloudinary.com/djgxiadrc/image/upload/v1784554629/bosphorus/vapur_rsexjd.jpg",
+      "alt": "Ferries and boats enjoying the sunset",
+      "caption": "Ferries and boats enjoying the sunset",
+      "exif": {}
+    }
+  ],
+  "draft": false
+}
