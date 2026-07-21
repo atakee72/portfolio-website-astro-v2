@@ -15,7 +15,7 @@ stack:
   - Tailwind CSS
   - TypeScript
   - MDX
-draft: true
+draft: false
 ---
 
 I moved my portfolio from **Next.js 14 + Sanity** to a **static Astro 5** site, and the short version is: the new site ships almost no JavaScript, has no external CMS, and drops every third-party network call that used to make GDPR compliance a chore. Content that once lived in a hosted Sanity dataset now lives in the repo as MDX and JSON, validated at build time. The only interactive JavaScript that reaches the browser is four small Svelte islands; everything else is server-rendered HTML with zero client runtime.
