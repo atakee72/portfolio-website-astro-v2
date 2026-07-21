@@ -132,6 +132,15 @@ Edit `site:` in `astro.config.mjs`.
 ### RSS feed
 Combined feed at `/rss.xml` spans all four collections (blog, work, lens, paints), sorted by date desc. Generated at build time by `src/pages/rss.xml.ts` using `@astrojs/rss`. Summary-only — uses each collection's `description`/`subtitle`/equivalent, not full MDX body. Surfaced via `<link rel="alternate">` in `BaseLayout.astro` and a visible `rss` link in `Footer.astro`. To change scope or per-collection mapping, edit that one file.
 
+### SEO & GEO layer
+- **Per-page JSON-LD** rides on a `jsonLd?: object | object[]` prop on `BaseLayout.astro` (rendered alongside the sitewide `Person` graph). `BlogPostLayout.astro` passes `[BlogPosting, BreadcrumbList]`; linkposts (`externalUrl` set) reference the original via `sameAs` instead of claiming authorship. **All JSON-LD is injected through the `ldJson()` helper that escapes `<` → `<`** — a CMS title containing `</script>` would otherwise break out of the tag.
+- **Canonical**: `BaseLayout` emits `<link rel="canonical">` (absolute, from `Astro.site` + pathname) on every non-`noindex` page.
+- **`updatedAt`** is an optional blog field (schema in `config.ts` + Sveltia form in `config.yml` — **keep both in sync**) → visible "updated" date + `dateModified` in JSON-LD (the freshness signal GEO rewards).
+- **`public/llms.txt`** — static fact sheet for AI crawlers; facts already on the site only, don't invent bio details. Google explicitly doesn't use it — a near-zero-cost speculative bet, not an established channel.
+- **`robots.txt` policy**: AI **training** bots blocked (GPTBot, ClaudeBot, CCBot, Google-Extended → `Disallow: /`); AI **citation/retrieval** bots allowed with the same private-path exclusions as `*` (OAI-SearchBot, ChatGPT-User, PerplexityBot). Googlebot (AI Overviews) already covered by `*`. `Sitemap:` directive points at `sitemap-index.xml`.
+- **GEO writing (per-post, not scaffolding)**: answer the query in the first ~200 words, add stats/quotes/cited sources (measurable +25–28% AI-citation lift), clean `<h2>` structure, "last updated" on refresh.
+- **Gotcha — blog `[slug]` MUST prod-filter drafts.** `src/pages/blog/[slug].astro` `getStaticPaths` uses `getAllBlogPosts()` (prod-filters `draft: true`), NOT raw `getCollection('blog')` — the raw version built draft detail pages that were publicly reachable in prod (the index list already hid them, so it was invisible until a real draft existed). Same convention as `/work [slug]`.
+
 ## Testing
 No tests configured. The build pipeline runs `astro check` (covers type errors across `.astro`, `.svelte`, `.ts`) before producing output.
 
