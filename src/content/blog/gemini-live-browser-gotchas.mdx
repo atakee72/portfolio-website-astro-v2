@@ -1,0 +1,73 @@
+---
+title: 'Gemini Live in the browser: five things that bite'
+description: 'Five undocumented gotchas from shipping a consent-gated Gemini Live voice assistant in the browser, plus the privacy posture that made it ship at all.'
+publishedAt: 2026-07-21
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - AI
+  - Voice
+  - Development
+stack:
+  - Gemini
+  - Cloudflare
+  - Astro
+  - Svelte
+draft: true
+---
+
+I shipped a consent-gated voice assistant for a real client site — a Berlin translation office — using Gemini Live's native audio model through the `@google/genai` SDK, hosted on Cloudflare Pages with the ephemeral token minted by a Pages Function. Nothing about it was exotic on paper: browser client, WebSocket connection, mic in, audio out. In practice it broke in five specific, undocumented ways before it worked, plus one UX problem the docs simply don't warn you about. None of these are edge cases — they're the default path, and every one of them cost real debugging time. This post is that list, in the order I hit them, so you don't have to.
+
+## Gotcha 1: ephemeral tokens need `v1alpha` on both ends
+
+Minting an ephemeral token server-side isn't enough. You have to pass `httpOptions: { apiVersion: 'v1alpha' }` when you create the token **and** when you construct the client in the browser:
+
+```js
+new GoogleGenAI({ apiKey: token, httpOptions: { apiVersion: 'v1alpha' } });
+```
+
+Miss it on the client side and the token still looks valid — it's just that the Live WebSocket 404s the moment you try to connect. The failure mode gives you nothing to go on: a valid-looking token and a dead socket. The fix is one line, but nothing points you at it until you already suspect the API version.
+
+## Gotcha 2: the realtime audio field changed shape
+
+Streaming mic audio used to go through `{ media: {...} }` (`media_chunks`). That field is deprecated. The current call is:
+
+```js
+session.sendRealtimeInput({
+  audio: { data, mimeType: 'audio/pcm;rate=16000' },
+});
+```
+
+Use the old shape and the connection doesn't error immediately — it closes later, mid-session, with code `1007` and the reason `realtime_input.media_chunks is deprecated`. That's a silent failure until the exact moment you actually stream audio, which means it can pass every check you run before a real user opens their mic.
+
+## Gotcha 3: `onopen` lies
+
+This is the one that cost the most time. The Live API fires `onopen` even when the model you asked for is broken, deprecated, or invalid. The socket opens fine; the failure only shows up on first real use. If you gate your UI on `onopen`, you'll show a working assistant that silently fails the first time someone speaks.
+
+The fix: don't resolve your connect promise on `onopen`. Resolve it on the **first `onmessage`** — that's the only real proof the model is functioning — and reject on error, close, or a timeout that fires before that first message arrives. That single change also buys you clean model fallback: catch the rejection and retry `connect()` against a fallback model. Just remember to mint the token with `uses: 2`, or the retry has no token left to use.
+
+## Gotcha 4: Cloudflare Pages Functions don't run under `astro dev`
+
+The token-minting Function, and the server-only env var it reads, only exist when you run `wrangler pages dev dist` — not under plain `astro dev`. Locally, the secret goes in `.dev.vars` (gitignored). For production, `wrangler pages secret put` sets it — but production and preview are **separate environments**. The CLI command targets production by default; setting the preview secret needs either the dashboard or an explicit `--environment preview`. Forget that and preview deploys mint tokens against an empty secret while production works fine, which is a confusing thing to debug from a PR preview link.
+
+## Gotcha 5: `Permissions-Policy: microphone=()` kills the mic everywhere
+
+If you're locking down permissions headers site-wide — a reasonable default — it's easy to write `microphone=()` and ship it. That disables `getUserMedia` for the entire site, not just the assistant. The fix is `microphone=(self)`. While you're in there, the Gemini host also needs to be in CSP `connect-src` — both the `https://` and `wss://` forms, since the SDK opens a WebSocket for the Live session on top of the regular HTTPS calls.
+
+## The bonus, and the privacy posture that worked
+
+One more thing that isn't a bug so much as a limitation: native-audio models mispronounce proper nouns from other languages badly. On a bilingual German/Turkish site, a Turkish brand name read aloud with German phonetics is a bad first impression. Phonetic-spelling hacks in the prompt are a losing game. The reliable fix is simpler — never have the model say the name at all. Greet generically in the system prompt instead of trying to coach pronunciation.
+
+The part I'd actually defend, though, is the privacy shape of the whole feature:
+
+- **Consent gate before anything loads.** The SDK — about 341 KB — is lazy-imported only after the visitor explicitly accepts. The default page ships zero third parties.
+- **Server-minted ephemeral token.** The real API key never reaches the browser.
+- **No transcription config.** Nothing gets stored.
+- **The provider is named in the privacy policy.** No hiding a third-party voice model behind vague language.
+
+None of that was hard to build. It just had to be a decision made before the first line of client code, not a retrofit — and it's the reason a voice AI feature could ship on a GDPR-conscious client site at all.
+
+---
+
+*The full build — Astro, Tailwind, Svelte islands, and this voice assistant — is written up in [the Okay Übersetzungen case study](/work/okay-uebersetzungen). More on the stack choices in [the journal](/blog).*

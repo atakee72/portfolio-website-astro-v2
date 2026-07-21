@@ -1,0 +1,53 @@
+---
+title: 'SEO and GEO for a musician''s website: structured data, honest schema, and a weekly rebuild'
+description: 'What shipping SEO and GEO for a Berlin musician''s Astro + headless WordPress site actually involved — MusicEvent JSON-LD, a sitemap that silently never existed, and a build that now fails loud instead of failing quiet.'
+publishedAt: 2026-07-21
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - SEO
+  - GEO
+  - Case Notes
+stack:
+  - Astro
+  - WordPress
+  - Cloudflare
+draft: true
+---
+
+I recently did an SEO and GEO (generative engine optimization) pass on a real client site — a **Berlin musician's** website: Astro front-end, headless WordPress backend, hosted on **Cloudflare Pages**. The headline lesson wasn't a schema trick or a meta tag. It was that most of what broke discoverability here wasn't visible in a browser at all: a sitemap URL that returned HTTP 200 while serving the wrong content, a build that went green while silently shipping an empty page, structured data that would have validated fine while claiming things the CMS never said. The fixes were small. Finding them required checking content, not status codes, and treating the build pipeline itself as part of the SEO surface — not just the markup it produces.
+
+## Structured data that doesn't lie
+
+The artist's site has a Gigs section, so the obvious GEO move is `MusicEvent` structured data — the kind of markup that lets Google (and increasingly, AI answer engines) describe upcoming shows directly. I built `EventsJsonLd.astro`, which at **build time** fetches the same GraphQL events query the visible Gigs section already uses. Apollo's `InMemoryCache` dedupes the two calls into one network request, so there's no extra cost. The component filters to future `startDate` and emits a `MusicEvent` array — validated at 5 valid events in Google's Rich Results test.
+
+Two things mattered more than getting a green checkmark. First, each event's performer needed an inline `name`, not just an `@id` reference — Google's validator doesn't reliably resolve `@id` links across separate JSON-LD script blocks, so every event has to stand alone. Second, and more important: **never fabricate schema fields.** Image and description are conditional on the CMS actually providing them. Offers carry a URL and `InStock` availability, but no invented price. I deliberately left out `organizer` and `endDate` rather than guess. Optional-field warnings in the validator are fine. A field that's technically valid but factually wrong isn't a warning you'll see — it's just wrong, and it stays wrong until someone notices.
+
+One more thing worth flagging for anyone doing this themselves: `JSON.stringify` dropped straight into a `<script>` tag doesn't escape `<`. A CMS-supplied title containing `</script>` breaks out of the block. I escape `<` as `\u003c` before it hits the page.
+
+## The sitemap that didn't exist
+
+`robots.txt` advertised a `sitemap-index.xml`. Nothing on the site generated it. Nobody had noticed, because Cloudflare Pages' SPA fallback served the homepage HTML — with a **200 status** — for any path that didn't match a real route, including the sitemap URL. A status-code check would have shown a clean 200 and moved on. The lesson: **check content, not status codes.** The fix was mechanical once found — `@astrojs/sitemap` — but the bug had been invisible to exactly the kind of monitoring that's supposed to catch it.
+
+## Builds that fail loud
+
+The bigger structural problem: during one build, the container transiently failed to reach the WordPress backend — a plain "fetch failed." The site's fetch utility swallowed the error instead of surfacing it, so the build finished, deployed, and went **green** with an empty Gigs section and no event JSON-LD at all. Silent content loss, in production, with nothing in the pipeline complaining. The fix was to change what "graceful" means depending on environment: in production builds, a fetch failure now throws, the build exits non-zero, and Cloudflare keeps serving the last good deploy instead of a broken new one. In dev, it still degrades gracefully — you don't want a flaky local network killing your dev server. The asymmetry is the point.
+
+## Freshness without babysitting it
+
+The events JSON-LD only refreshes when a build runs, and builds only ran on content edits — so if nobody touched the CMS for a couple of weeks, upcoming-show data could go stale even though nothing was technically broken. The fix was a Cloudflare Pages deploy hook (a secret URL, created via the API), stored as a GitHub Actions secret and called from the site's existing weekly backend health-check workflow, which already ran every Monday. The health check now **gates** the rebuild: if the backend is unreachable, the workflow opens a GitHub issue and skips the rebuild rather than deploying stale-on-top-of-broken; if the backend is healthy, it triggers a fresh deploy. One workflow, two jobs, no new babysitting.
+
+## Search-engine registration has its own quirks
+
+None of these are bugs, but they cost time if you don't expect them. Google Search Console shows "Couldn't fetch" right after a sitemap submission — a known placeholder state, not a failure. Bing's "Import from GSC" only works for URL-prefix properties; Domain properties have to be added manually. And the follow-up emails Google sends about "structured data issues" after registration were, in this case, just the same optional-field warnings from the Rich Results test — noise, not an alarm to chase.
+
+## The speculative, near-zero-cost bet
+
+I also shipped an `llms.txt` fact sheet — a plain-text summary containing only facts already published on the site, nothing added for the crawler's benefit. Whether any AI crawler actually reads it is **unconfirmed**; Google has said outright it doesn't use it. I'm treating it as a cheap, honest bet rather than a strategy: it costs almost nothing to maintain and can't hurt, but it isn't where the real GEO work happens. The actual work is upstream of it — crawlable, accurate, on-page HTML that both search engines and answer engines can read directly. Everything above this section is that work; the `llms.txt` file is a footnote to it, not a substitute.
+
+Smaller, unglamorous win in the same pass: the site was loading **13 Google Font families**; only 3 were actually used in production CSS. Trimming the other 10 was a five-minute fix with a real, measurable payload cost attached to it.
+
+---
+
+*More build-pipeline and Astro notes live in the [journal](/blog); the systems I build for a living are in [work](/work).*

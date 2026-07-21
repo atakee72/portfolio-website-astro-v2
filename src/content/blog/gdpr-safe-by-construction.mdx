@@ -1,0 +1,50 @@
+---
+title: 'GDPR-safe by construction: German-market sites with nothing to consent to'
+description: 'How building a personal site under German law taught me that the cleanest GDPR compliance is architectural — a site with nothing to consent to needs no banner.'
+publishedAt: 2026-07-21
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - GDPR
+  - Privacy
+  - Architecture
+stack:
+  - Astro
+  - Vercel
+draft: true
+---
+
+Running a site under a real name from Germany means two mandatory legal pages and a genuine list of obligations. It does **not** mean a cookie banner, and that distinction is the whole point of this post. The cleanest way I've found to be GDPR-safe isn't a better banner or a longer policy — it's building the site so there's **nothing to consent to** in the first place. My portfolio, ercan-atak.de, self-hosts its fonts instead of calling Google's CDN, runs cookieless analytics instead of a tracking pixel, and keeps its list of third-party processors short enough to fit in a handful of clearly written sections. None of it is exotic engineering. It's mostly about not making the network calls that would require a banner to justify. I'm not a lawyer and this isn't legal advice — it's an account of what a small German site actually shipped, and why.
+
+## Self-hosted fonts close the easiest lawsuit around
+
+Loading Google Fonts from Google's own CDN transmits a visitor's IP address to the US without consent — that's the finding in LG München I, 3 O 17493/20 (2022), and it's still cited today. Opportunistic claimants send €100-per-pageview demand letters over exactly this. The fix costs nothing at runtime: self-host the font files instead, for example via `@fontsource` packages imported directly in CSS. The browser never talks to Google, so there's no transfer to disclose and no letter to worry about.
+
+## No cookies, so no banner
+
+The site uses GoatCounter for analytics — EU-hosted, open source, cookieless. It hashes IPs with a daily-rotating salt, keeps no persistent identifiers, and collects no PII, which puts it outside § 25 TDDDG, the German rule that actually triggers cookie-consent requirements. Beyond that there is no client-side storage at all — no cookies, no `localStorage`, nothing that persists on the visitor's device. Put together, the site is genuinely cookie-free — so there's no banner. Adding one anyway would be pure UX cost for zero legal upside, which is the trap a lot of sites fall into: they bolt on consent infrastructure for calls they didn't need to make.
+
+## The two pages the law still requires
+
+Architecture removes the banner, not the paperwork. Operating under a real name from Germany still triggers Impressumspflicht under § 5 DDG (the 2024 successor to the old TMG) plus § 18 (2) MStV, and a Datenschutzerklärung under GDPR. Both pages exist on the site, and I structured the privacy page **processor-aligned**: one section per processor — hosting, form backend, email host, image CDN, analytics — each stating its Art. 6 legal basis and its data-transfer posture (DPF or SCCs where a transfer outside the EU applies), plus the data-subject rights under Art. 15–22 and the right to complain under Art. 77. The practical payoff of that structure showed up the first time I swapped a provider: it was a one-section edit, not a rewrite of the whole page.
+
+## Fewer processors by design
+
+The shortest, most honest processor list is the one you get by not adding processors. Static hosting with content stored in the repo — no external CMS API in the request path — plus EU-based email hosting with a Berlin provider means no third-country transfer for mail at all. Every processor I don't add is a section I don't have to write, translate, and keep accurate.
+
+## Making mandatory contact data bot-resistant
+
+The Impressum has to carry a real address and a real way to reach me — the law is explicit about that. Nothing in the law says bots have to be able to scrape it easily, though. The email address and street address on the site are char-code-encoded into data attributes and decoded client-side on page load, so the literal strings never appear in the static HTML. It's not a legal requirement, just a defeat of bulk regex-and-curl scrapers. On top of that, both legal pages are `noindex`, excluded from the sitemap, and disallowed in `robots.txt` — three separate layers aimed at well-behaved crawlers, which is a different problem than bots but worth solving at the same time.
+
+## Headers, and one processor mistake to avoid
+
+Sitewide security headers are set once, in `vercel.json`: `Referrer-Policy: strict-origin-when-cross-origin` strips the path from referers sent to third parties, `X-Content-Type-Options: nosniff` blocks MIME-sniffing, and `X-Frame-Options: DENY` blocks iframe embedding outright. Small, cheap, and they apply to every response without touching a template.
+
+One mistake worth naming, because it cost me a bounced email: forward-based email breaks against strict-DMARC senders. A Yahoo sender with `p=reject` bounced when routed through a forward instead of landing in a real mailbox. The durable fix isn't a smarter forwarding rule — it's a real mailbox at the domain with correct MX, SPF, DKIM, and DMARC records. Forwarding is a processor-count shortcut that looks free until a DMARC-strict sender proves it isn't.
+
+None of these are heroics. Each one is a case of not making a call, a request, or a redirect that would have needed a banner, a disclosure, or a workaround later. The architecture doesn't replace the Impressum or the Datenschutzerklärung — those stay mandatory — but it shrinks everything else down to what actually has to be there.
+
+---
+
+*More on how this site is built lives in the [journal](/blog); the privacy and legal pages themselves are linked from the footer on every page.*

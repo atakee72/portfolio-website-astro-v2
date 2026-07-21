@@ -1,0 +1,62 @@
+---
+title: 'A self-service photo pipeline: git-based CMS + Cloudinary on a static Astro site'
+description: 'How publishing a new photo gallery on my static Astro site needs zero code — a git-based CMS, an image CDN, and build-time validation doing the work.'
+publishedAt: 2026-07-21
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - CMS
+  - Photography
+  - Tooling
+stack:
+  - Astro
+  - Sveltia
+  - Cloudinary
+draft: true
+---
+
+Publishing a new photo gallery on my site takes no code and no deploy step from me — a photographer (or a future client) can log into a browser-based form, drop in JPEGs, fill a few text fields, and hit publish. Under the hood that's three pieces working together: content lives as JSON/MDX files in the repo, a **git-based CMS** commits straight to GitHub over the GitHub API, and **Zod schemas** validate every entry at build time so a missing field fails the build instead of shipping broken. There's no separate content backend, no database — the repo *is* the CMS, and the CDN layer (Cloudinary) handles the images. This post is the shape of that pipeline, plus the gotchas that cost me real time building it.
+
+## The repo is the CMS
+
+Each photo "roll" and painting album is one JSON file; blog posts are MDX. Every collection has a Zod schema, so a missing field or a wrong type fails the build rather than shipping a broken page. The editing layer on top is **Sveltia CMS** — a git-based CMS served as a single static HTML page from the site itself. It commits directly to GitHub via the API using a fine-grained personal access token, scoped to Contents read/write and renewed roughly every 90 days, stored in the browser's localStorage. No server, no separate database, nothing to host — the form writes to the same files I'd otherwise edit by hand.
+
+Images live in Cloudinary. The CMS's media widget opens the Cloudinary library inline, and what actually gets written to the JSON is just the `public_id` — the image itself stays in Cloudinary. Entries can be saved with `draft: true`, hidden in production builds but visible in dev, so a gallery can sit half-finished without going live by accident.
+
+## EXIF: strip on delivery, keep it in the caption
+
+This is the part I'm proudest of. Every camera writes metadata into the file — camera, lens, aperture, shutter, ISO — and normally you either publish that file whole (leaking whatever else is in the metadata) or strip it and lose the interesting caption data too. The pipeline avoids the trade-off entirely:
+
+- **Upload keeps everything.** The batch script that resizes images to 2000px on the long edge at JPEG q=80 explicitly preserves EXIF, so Cloudinary's stored original still has it.
+- **A build-time script reads it back.** It pulls the EXIF for each photo from Cloudinary's Admin API and caches it; captions render from that cache.
+- **Delivery strips it all.** Images are served through a metadata-strip transformation, so the file a visitor actually downloads has no GPS, no serial numbers, no timestamps.
+
+Net effect: rich, specific captions on the page, and a completely naked file underneath them.
+
+## A watermark, and a debugging habit that pays for itself
+
+Each image also gets a text overlay applied at the CDN layer — a watermark baked in by Cloudinary, not by the CMS or the app. It sounds trivial until you hit the gotcha: Cloudinary's text overlays only support a fixed set of fonts (Arial, Courier, Times, Verdana, and a handful of others). Point it at a custom font and it doesn't silently fall back — it returns an HTTP 400 with an `x-cld-error` header and a broken-image GIF in the response body. I use Courier now, not because I love it, but because it's on the list.
+
+That gotcha taught me a debugging habit worth stealing: when an image "looks broken" on the page, `curl -I` the URL *first*. The `x-cld-error` header names the exact transformation that failed. I've chased CSS and layout bugs for what turned out to be a 400 from the CDN the whole time — the header would have told me in five seconds.
+
+## Bulk ingestion, because the CMS form doesn't scale past a handful
+
+The CMS form is genuinely fine for one to three photos. It falls over at twenty or forty — list-of-objects fields in a Decap-style config have no bulk multi-select, an upstream limitation, not a misconfiguration on my end. So for real batches I use a small Node script (`pnpm prep <slug> <folder>`) that resizes and uploads the whole folder and writes a draft JSON skeleton with the image references already in place. I open that draft in the CMS afterward to fill in titles and alt text and publish normally. A second variant does the same for painting albums, deriving each work's URL id from its filename — which is why filenames need to be meaningful going in: an id must never change once it's published, or every link to it breaks.
+
+## Gotchas that cost real debugging time
+
+A few things bit me hard enough to be worth naming honestly:
+
+1. **Filename-only image paths silently drop the folder.** A CMS setting that stores just the filename strips the Cloudinary folder out of the reference, and every image 404s with no obvious cause. Store full paths and normalize down to a bare `public_id` at the schema layer instead.
+2. **Percent-encoding doubles up.** A folder with a space in its name arrives URL-encoded as `%20`. Without decoding it at the schema layer, the URL builder re-encodes it on the way out — `%20` becomes `%2520` — and you get a 404 that looks nothing like an encoding bug.
+3. **Stale form state can revert a commit.** A git-based CMS writes the *whole file* on save, not a diff. Leave an entry form open while another commit lands on that file, and saving the stale form silently reverts the newer commit — no conflict, no warning. The fix is a habit: refresh the entry before saving if the file might have moved underneath you.
+4. **Pin the CMS version.** I once hit an upstream auth bug that broke the media widget entirely, fixed only by a version bump I hadn't planned for. Pin the version and upgrade deliberately.
+
+## The two-schema tax
+
+The CMS form config and the Zod schema describe the same shape of data, in two separate files. Add a field to one and forget the other, and you get either a form field invisible in the CMS or a build that fails on a field the form can't produce. In practice it costs about five minutes whenever it comes up, which is rare, and the build catches the drift immediately rather than letting it ship — annoying, not dangerous.
+
+---
+
+*The photos this pipeline publishes live in [the lens section](/lens), organized as rolls. The paintings pipeline is the same shape, one file per album, in [paints](/paints).*
