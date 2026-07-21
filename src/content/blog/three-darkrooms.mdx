@@ -1,0 +1,75 @@
+---
+title: 'Three darkrooms: shooting digital, thinking in film'
+description: 'A developer who shoots digital — full-frame Sony and a RAW-capable phone — on borrowing analog photography''s discipline, and building a privacy-first darkroom to publish it in.'
+publishedAt: 2026-07-20
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+mainImage:
+  src: https://res.cloudinary.com/djgxiadrc/image/upload/v1784554631/bosphorus/mendirek_fb3tfq.jpg
+  alt: A stone breakwater reaching into the Bosphorus
+categories:
+  - Photography
+  - Digital
+  - Darkroom
+stack:
+  - Cloudinary
+draft: true
+---
+
+I describe myself as **full-stack, half-painter** — and the third thing, the one that ties the two together, is photography. I shoot **digital**: a full-frame Sony body and, when that's not in my hand, a Sony phone that shoots RAW. I've never developed a roll of film. And yet this whole site is built like a darkroom — because the thing I admire most about analog photography isn't the chemistry, it's the **discipline**, and that I can borrow with any camera.
+
+This post is about that borrowing: what film gets right, how I try to steal it with a digital body, and how a developer publishes photographs without leaking the things a photograph quietly carries.
+
+## What analog gets right (and I don't want to lose)
+
+Film is on my wishlist, not in my bag — so I won't pretend to a practice I don't have. But I've spent enough time around it, and enough time wishing, to know exactly what it disciplines in a photographer. These are the merits worth protecting no matter what you shoot:
+
+- **Scarcity changes how you see.** A roll has 36 frames. When every exposure costs something and can't be reviewed, you slow down, you wait, you don't spray. The keeper rate goes up because the throwaway rate goes down *before* you ever release the shutter.
+- **You commit at capture, not in edit.** No chimping, no "I'll fix it later." The picture is decided when you take it. That constraint isn't a limitation to work around — it's the whole point.
+- **The look is earned, not applied.** Grain, halation, the way a stock renders skin and shadow — it's a property of the medium, not a slider dragged in afterward. It rewards getting it right in front of the lens.
+
+None of this is about nostalgia. It's a way of **paying attention** — and attention is the only part of photography the gear can't buy for you.
+
+## Stealing the discipline with a digital body
+
+Here's the honest tension. Digital gives you the opposite of film: a card that holds thousands of frames, RAW files with enormous latitude, infinite undo. The tool actively removes every constraint film imposes. So the discipline has to come from **you**, on purpose, against everything the camera makes easy.
+
+That's the practice I actually keep:
+
+- **Shoot like the card is a roll of 36.** Not literally — but I compose and expose as if the frame in front of me is finite and expensive. It kills the spray-and-pray reflex the buffer encourages.
+- **Commit in the viewfinder, not in Lightroom.** RAW is a safety net, and safety nets make you sloppy if you lean on them. I try to earn the frame at capture and treat post as correction, not rescue.
+- **Let the constraint do the editing early.** Deciding *not* to take a shot is the cheapest, best edit there is — and it's free before the shutter, expensive after.
+
+Digital didn't make the film mindset obsolete. It made it a **choice** — and choosing it is what separates a deliberate photograph from a lucky one.
+
+## The digital darkroom
+
+Where the developer half takes over: publishing photographs online is easy; publishing them **responsibly** is the interesting engineering problem, because a photo file carries more than the picture.
+
+Every camera — especially digital bodies and phones — writes **EXIF metadata** into the file: GPS coordinates, the exact timestamp, camera serial numbers, sometimes software fingerprints. Post a JPEG straight off the card and you've published where you stood, when, and with what. So the pipeline does two things at once:
+
+1. **Strip metadata on delivery.** Every image served on the site has its metadata block stripped — GPS, serials, timestamps, everything. The file a visitor can download is naked.
+2. **Keep the caption rich anyway.** The camera, lens, aperture, and shutter you read under each photo aren't pulled from the delivered file — they're fetched once from the original at build time and baked into the page. Best of both: the story stays, the coordinates don't.
+
+On top of that, each image gets a **watermark** and is capped at a web-friendly size. It's not DRM — anyone determined can screenshot anything — but a visible signature plus a size ceiling is the honest amount of protection a portfolio actually warrants. The rest is theater, and I'd rather not pretend otherwise.
+
+## Why the whole site looks like a darkroom
+
+The aesthetic is a **deliberate homage**, not a claim of practice. I shoot digital, but I built the site around a **terminal-and-darkroom** metaphor — phosphor text, a safelight red, a contact sheet on the homepage, photographs organized as *rolls* you page through frame by frame. It's a nod to the analog discipline I admire, and the through-line between the three things I do: **code in a terminal, develop in a darkroom, paint in a studio** — three darkrooms, one place.
+
+That framing also made the product decisions easier. A contact sheet wants to be browsed, not clicked-through. A roll wants prev/next that advances smoothly, like winding film, not a page reload between every frame. When the metaphor is doing real work, the interface mostly designs itself.
+
+## What the analog mindset taught the developer
+
+The two halves feed each other more than I expected.
+
+The film philosophy — **constraint as a feature**, commit at capture, no infinite undo — is exactly the instinct behind shipping a site with almost no JavaScript and no cookies. Fewer moving parts, chosen deliberately, tend to produce better work than infinite options used carelessly. Digital hands you unlimited frames; a modern framework hands you unlimited runtime. In both cases the craft is in what you decline.
+
+And building the pipeline taught me to respect what a photograph carries. A picture is never just the picture. It's a place and a time and, if you're careless, a set of coordinates. Handling that well — stripping what shouldn't travel, keeping what tells the story — is the same care I try to bring to the frame itself.
+
+The film body is still on the wishlist. When I get there, the darkroom's already built.
+
+---
+
+*The photographs live in [the lens section](/lens), organized as rolls. The paintings are in [paints](/paints). This is the third darkroom — where I write about both.*
