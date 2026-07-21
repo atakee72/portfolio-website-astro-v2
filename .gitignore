@@ -49,4 +49,7 @@ pnpm-debug.log*
 inbox/
 
 # Local-only working docs (workflow notes, etc.)
-docs/.superpowers/
+docs/
+
+# Subagent-driven-development progress ledger (local scratch)
+.superpowers/
