@@ -49,4 +49,4 @@ pnpm-debug.log*
 inbox/
 
 # Local-only working docs (workflow notes, etc.)
-docs/
+docs/.superpowers/
