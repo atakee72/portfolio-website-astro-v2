@@ -2,6 +2,7 @@
 title: 'Gemini Live in the browser: five things that bite'
 description: 'Five undocumented gotchas from shipping a consent-gated Gemini Live voice assistant in the browser, plus the privacy posture that made it ship at all.'
 publishedAt: 2026-06-24
+updatedAt: 2026-07-22
 author:
   name: Ercan Atak
   bio: Full-stack developer, photographer, and painter based in Berlin.
@@ -67,6 +68,12 @@ The part I'd actually defend, though, is the privacy shape of the whole feature:
 - **The provider is named in the privacy policy.** No hiding a third-party voice model behind vague language.
 
 None of that was hard to build. It just had to be a decision made before the first line of client code, not a retrofit — and it's the reason a voice AI feature could ship on a GDPR-conscious client site at all.
+
+## Update: a sixth one, found later
+
+This post shipped with five gotchas and a bonus. A week later, production found a sixth: Gemini Live schedules output audio gaplessly with no jitter buffer, and on Firefox, playback drifts behind real time until it audibly stutters mid-sentence. Chrome and Safari don't show it — only Gecko falls behind fast enough for it to matter. The fix is a UA-gated lead-in: instead of anchoring the next audio chunk's start time to exactly `now`, anchor it to `now + 140ms` on Firefox only (extracted as a small, unit-tested `nextPlaybackStart` helper). Chrome, Safari, and Edge get zero lead-in and are untouched; Firefox pays an imperceptible 140ms per turn and stays ahead of the underrun. Worth noting: iOS Firefox is WebKit under the hood, not Gecko, so it correctly gets zero lead-in — UA-sniffing for "Firefox" and UA-sniffing for "the engine that actually needs this" are not the same check.
+
+A smaller fix from the same week: Esc and clicking the modal backdrop used to hang up an active call, because that's the default close behavior for a modal — except here "closing the modal" means "disconnecting a live conversation," which is not a gesture anyone means to make by accident.
 
 ---
 

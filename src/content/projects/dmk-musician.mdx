@@ -1,7 +1,7 @@
 ---
 title: Mahir Frontend
 subtitle: Musician portfolio · headless WordPress
-publishedAt: 2025-10-01
+publishedAt: 2026-07-10
 featured: false
 cover:
   src: /assets/projects/dmk-cover.webp
@@ -30,18 +30,38 @@ gigs, photo galleries, films, newsletter — without touching code.
 ## Build
 
 Astro static site fed by a headless WordPress instance over GraphQL.
-Apollo Client handles fetching, Web3Forms wires the contact form,
-WP Webhooks triggers Cloudflare Pages rebuilds on content updates.
+Apollo Client used to run in the browser too; it's now build-time only
+(`src/lib/graphql-client.ts`), fetching data for static generation —
+pulling it out of the client bundle cut roughly 463 KB. Web3Forms wires
+the contact form. Content updates trigger a Cloudflare Pages rebuild two
+ways: instantly via WP Webhooks on save, and on a Monday-morning
+schedule via a GitHub Action that health-checks the WordPress GraphQL
+backend before triggering the rebuild.
 
 ## Architecture
 
-Mobile-first carousels with swipe gestures, encrypted newsletter
-storage, responsive event tables. The CMS layer is invisible to the
-client — they write blog posts; the site auto-rebuilds.
+Mobile-first carousels with swipe gestures on small screens, section
+snap-scrolling on desktop, encrypted newsletter storage, responsive
+event tables. The CMS layer is invisible to the client — they write
+blog posts; the site auto-rebuilds.
+
+A July 2026 SEO/GEO pass added `MusicEvent` structured data for gigs, a
+sitemap (robots.txt had pointed at one that never existed), an
+`llms.txt` fact sheet for AI crawlers, and trimmed Google Fonts from 13
+families down to the 3 actually used — see
+[the write-up](/blog/seo-geo-for-a-musicians-website) for the detail.
+The same week the site gained a new Instruments glossary section
+(`/instruments/`), sourced from a WordPress category, with its own
+Article + BreadcrumbList JSON-LD per page and a noindex fallback for
+the (unlikely) case the category ever comes up empty.
 
 ## Reflection
 
 WordPress headless was the right call for a non-technical client — they
 write in an interface they already know, the static site rebuilds itself.
-The friction sits in the deployment loop: a stuck Cloudflare build means
-the client doesn't see their edit. Worth investing in a healthcheck.
+The early friction was the deployment loop: a stuck Cloudflare build
+could mean the client's edit silently never shipped. That's closed off
+now — a weekly GitHub Actions healthcheck against the WordPress GraphQL
+backend gates a scheduled rebuild, and production builds fail loudly on
+purpose if the backend is unreachable, so Cloudflare keeps serving the
+last good deploy instead of shipping with missing content.

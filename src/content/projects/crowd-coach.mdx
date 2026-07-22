@@ -1,7 +1,7 @@
 ---
-title: Multi-Agent Career Coaching
+title: Coachly — Multi-Agent Career Coaching
 subtitle: 5 AI assistants, one orchestrated system
-publishedAt: 2025-10-10
+publishedAt: 2026-07-13
 featured: false
 cover:
   src: /assets/projects/coaching-cover.png
@@ -9,41 +9,76 @@ cover:
   cloud: false
 screenshots: []
 exif:
-  stack: Astro + React + Supabase + OpenAI Assistants v2
-  year: '2025'
+  stack: SvelteKit + self-hosted Supabase + Anthropic Claude (model-agnostic)
+  year: '2026'
   status: live
-  role: full-stack + system design
+  role: full-stack + multi-tenant security engineering
   tags:
     - ai
     - fullstack
     - agents
+    - security
 links:
-  github: https://github.com/atakee72/crowd-coach
+  live: https://coachly-tau.vercel.app
 draft: false
 ---
 
 ## Problem
 
-Single-agent chat doesn't fit multi-domain coaching. A career coach plays
-five distinct roles — goal-finding, talent-mapping, job-scouting, resource
-analysis, application drafting — each with its own prompt, its own RAG
-corpus, and its own database write surface.
+A career coach plays five distinct roles — goal-finding, talent-mapping,
+job-scouting, resource analysis, application drafting — each needing its
+own prompt, its own context, and its own database write surface.
+Single-agent chat doesn't fit that.
+
+The first version of this was a client build: five OpenAI Assistants
+wired to a Supabase Postgres profile schema on Astro + React, and it
+shipped — V1 ran in production for the client. Coachly is a from-scratch
+rebuild of the same five coaching domains, done as a public demo: the
+chance to solve the same problem again with real multi-tenancy, a
+documented security model, and an architecture I can actually walk an
+employer through.
+
+Live: **[coachly-tau.vercel.app](https://coachly-tau.vercel.app)** —
+the reasoning behind every major decision is written up in-app at
+**[/architecture](https://coachly-tau.vercel.app/architecture)**, backed
+by 7 ADRs in the repo.
 
 ## Build
 
-Five specialized OpenAI Assistants, each with function-calling tools that
-read and write to a Supabase Postgres profile schema (RLS enforced).
-CV uploads run through pdf-parse / mammoth and the extracted text is
-ingested as assistant context. Image generation surfaces directly in chat.
+SvelteKit 2 (Svelte 5 runes) + Tailwind v4, on self-hosted Supabase
+(Postgres + RLS) on a private VM rather than the managed cloud product —
+full control over RLS, `SECURITY DEFINER`, and storage internals.
+Conversation state lives in Coachly's own tables instead of
+provider-hosted threads, so the AI backend is swappable: a common
+`AIProvider` interface fronts Anthropic Claude as the primary model, with
+OpenAI kept only for image generation, and a deterministic mock provider
+so CI and the Playwright e2e suite never touch a live LLM. All five
+original assistants — Zielfinder, Talentfinder, Jobfinder,
+Ressourcenfinder, Antragsteller — are re-implemented behind a single
+config with explicit cross-referencing (Jobfinder reads Zielfinder +
+Talentfinder + Ressourcenfinder; Antragsteller reads all four). CV upload
+still runs through pdf-parse / mammoth, and Zielfinder now drives a
+"vision board" image-generation feature. Deployed on Vercel.
 
 ## Architecture
 
-The dispatcher hands the active thread to whichever agent matches the
-user's intent; all five agents share a common DB toolset so the user's
-profile evolves coherently across conversations.
+Multi-tenancy is enforced at three separate surfaces, not one: per-user
+RLS policies on every profile table, owner-folder storage policies on
+private objects, and a second RLS surface for a distinct coach role —
+reachable only through a `SECURITY DEFINER` membership function, so
+there's no service-role key in the request path and no way to
+self-promote. Every privileged route re-derives identity from the
+verified session (`requireUser` / `requireCoach`) rather than trusting
+anything in the request, and that boundary isn't just asserted — an
+adversarial integration-test suite runs real cross-tenant attacks against
+a live database, alongside 32 unit-test files and 10 Playwright e2e
+journeys. Errors get logged as one structured JSON line per incident with
+a correlation id; the user only ever sees a generic message plus that id.
 
 ## Reflection
 
-V1 is in production with the client. A next-gen rebuild — with current
-Claude / OpenAI capabilities — is in progress; the GitHub repo carries
-the architecture-only demo (placeholder chat, no client prompts or RAG).
+The original proved the coaching logic worked and earned its place in
+production. Coachly exists to prove the *engineering* holds up under
+adversarial conditions — a harder, more interesting problem than adding a
+sixth assistant, and the one reason this got rebuilt from a blank repo
+instead of iterated in place.

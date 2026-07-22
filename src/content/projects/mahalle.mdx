@@ -1,7 +1,7 @@
 ---
 title: MaHalle
 subtitle: Home-made Facebook for the Kiez
-publishedAt: 2024-12-01
+publishedAt: 2026-07-19
 featured: false
 cover:
   src: /assets/maHalle.png
@@ -9,8 +9,8 @@ cover:
   cloud: false
 screenshots: []
 exif:
-  stack: Astro + React + Svelte + MongoDB + auth-astro
-  year: '2024'
+  stack: Astro + React + Svelte + MongoDB + auth-astro + Motion + Resend + Sentry
+  year: '2026'
   status: live
   role: full-stack + design
   tags:
@@ -32,18 +32,35 @@ to a global platform.
 ## Build
 
 Astro SSR + React + Svelte islands, MongoDB direct driver, auth-astro
-with JWT, TanStack Query with 24h localStorage persistence. Forum,
-calendar, marketplace, newsboard with daily fetch, recommendations,
-reports & admin moderation.
+with JWT, TanStack Query with 24h localStorage persistence, Motion for
+animation, Resend for transactional email, Sentry for observability.
+Forum, calendar, marketplace, newsboard with daily fetch, recommendations,
+reports & admin moderation — plus a full MDX blog ("Die Beilage") and a
+profile & account-lifecycle system: an own-profile Meldebogen with a
+Kiez-Chronik tenure timeline, a printable QR-coded Steckbrief card,
+public neighbor profiles, self-service email/password change, and a
+7-day-undo account deletion that anonymizes into an "Ehemaliges
+Mitglied" tombstone while preserving authored content.
 
 ## Architecture
 
 Multilingual AI moderation (TR/EN/DE + leetspeak filters) gates all
-user-generated content before it lands. Carved-title accents per page,
-dark-glass design system, BLUME air-quality proxy and Schillerkiez
-demographics surfaced from public APIs.
+user-generated content before it lands, backed by a 3-strike ban system
+that drops banned sessions to read-only across the write surface and
+walks admins through a "Ban-Bremse" confirmation step before a
+third-strike rejection. The old dark-glass design system has been fully
+replaced by a "kiosk" aesthetic — paper-warm surfaces, ink borders,
+carved-italic titles — across every page, forum to blog, opened by a
+one-per-session splash intro that skips on reduced-motion. BLUME
+air-quality proxy and Schillerkiez demographics still surface from
+public APIs. The marketplace has matured into a 13-category kiosk
+taxonomy with draft/publish, a 21-day listing-visibility window, and
+Resend-relayed buyer↔seller contact that never exposes an email address.
 
 ## Reflection
 
 Built with a manifesto attached — the project's moral charter sits at
-the root of the repo as `MANIFESTO.md`.
+the root of the repo as `MANIFESTO.md`, now paired with a PolyForm
+Noncommercial license and a custom field-of-use rider that excludes
+political parties, for-profit deployment, and resident-surveillance use
+cases.
