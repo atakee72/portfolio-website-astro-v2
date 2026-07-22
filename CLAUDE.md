@@ -87,9 +87,9 @@ public/assets/           # Static images (PNG/JPG only — no SVG barrel)
 
 Anchor hrefs are root-relative (`/#home`, `/#sheet`, etc.) so they work from any subpage — never use bare `#anchor`, it would scroll the current page instead of navigating home.
 
-### Theme system (no external lib)
-- Initial theme is decided by an `is:inline` boot script in `BaseLayout.astro` that reads `localStorage.theme` (or `prefers-color-scheme`) and sets the `dark` class on `<html>` **before** hydration → no FOUC
-- `ThemeToggleBtn.svelte` reads the current state from the DOM on mount, then toggles `localStorage` + the `dark` class on click
+### Theme system: DARK-ONLY (no toggle, no localStorage)
+- The darkroom redesign committed to a single dark theme. There is **no** `ThemeToggleBtn.svelte`, **no** theme boot script, and **no** `localStorage` usage anywhere in `src/` — the site has zero client-side storage (a fact the Datenschutz posture and the GDPR blog post rely on; verified 2026-07-21 after this very section fed a false claim into a blog draft).
+- Light mode is out of scope, not deferred (see memory `project_dark_only`). Don't reintroduce a toggle.
 
 ### Tailwind config (`tailwind.config.ts`)
 - `darkMode: 'class'`
