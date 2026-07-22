@@ -14,7 +14,7 @@ stack:
   - Cloudflare
   - Astro
   - Svelte
-draft: true
+draft: false
 ---
 
 I shipped a consent-gated voice assistant for a real client site — a Berlin translation office — using Gemini Live's native audio model through the `@google/genai` SDK, hosted on Cloudflare Pages with the ephemeral token minted by a Pages Function. Nothing about it was exotic on paper: browser client, WebSocket connection, mic in, audio out. In practice it broke in five specific, undocumented ways before it worked, plus one UX problem the docs simply don't warn you about. None of these are edge cases — they're the default path, and every one of them cost real debugging time. This post is that list, in the order I hit them, so you don't have to.

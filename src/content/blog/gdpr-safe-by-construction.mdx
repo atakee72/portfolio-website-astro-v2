@@ -12,7 +12,7 @@ categories:
 stack:
   - Astro
   - Vercel
-draft: true
+draft: false
 ---
 
 Running a site under a real name from Germany means two mandatory legal pages and a genuine list of obligations. It does **not** mean a cookie banner, and that distinction is the whole point of this post. The cleanest way I've found to be GDPR-safe isn't a better banner or a longer policy — it's building the site so there's **nothing to consent to** in the first place. My portfolio, ercan-atak.de, self-hosts its fonts instead of calling Google's CDN, runs cookieless analytics instead of a tracking pixel, and keeps its list of third-party processors short enough to fit in a handful of clearly written sections. None of it is exotic engineering. It's mostly about not making the network calls that would require a banner to justify. I'm not a lawyer and this isn't legal advice — it's an account of what a small German site actually shipped, and why.

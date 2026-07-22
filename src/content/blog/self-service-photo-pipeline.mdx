@@ -13,7 +13,7 @@ stack:
   - Astro
   - Sveltia
   - Cloudinary
-draft: true
+draft: false
 ---
 
 Publishing a new photo gallery on my site takes no code and no deploy step from me — a photographer (or a future client) can log into a browser-based form, drop in JPEGs, fill a few text fields, and hit publish. Under the hood that's three pieces working together: content lives as JSON/MDX files in the repo, a **git-based CMS** commits straight to GitHub over the GitHub API, and **Zod schemas** validate every entry at build time so a missing field fails the build instead of shipping broken. There's no separate content backend, no database — the repo *is* the CMS, and the CDN layer (Cloudinary) handles the images. This post is the shape of that pipeline, plus the gotchas that cost me real time building it.

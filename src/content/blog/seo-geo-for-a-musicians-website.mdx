@@ -13,7 +13,7 @@ stack:
   - Astro
   - WordPress
   - Cloudflare
-draft: true
+draft: false
 ---
 
 I recently did an SEO and GEO (generative engine optimization) pass on a real client site — a **Berlin musician's** website: Astro front-end, headless WordPress backend, hosted on **Cloudflare Pages**. The headline lesson wasn't a schema trick or a meta tag. It was that most of what broke discoverability here wasn't visible in a browser at all: a sitemap URL that returned HTTP 200 while serving the wrong content, a build that went green while silently shipping an empty page, structured data that would have validated fine while claiming things the CMS never said. The fixes were small. Finding them required checking content, not status codes, and treating the build pipeline itself as part of the SEO surface — not just the markup it produces.
