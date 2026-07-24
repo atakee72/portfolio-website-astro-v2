@@ -2,7 +2,7 @@
 
 > Full-stack developer, photographer, and painter based in Berlin, Germany.
 > Personal portfolio and journal covering web development (Astro, Svelte,
-> TypeScript), analog photography, and painting. Site is static, privacy-first
+> TypeScript), photography, and painting. Site is static, privacy-first
 > (cookieless analytics, self-hosted fonts, no third-party trackers), and
 > DSGVO/GDPR-aligned.
 
@@ -16,7 +16,7 @@
 ## Sections
 - [Work](https://ercan-atak.de/work): software case studies — real client and personal projects, with the stack and engineering decisions behind each.
 - [Journal](https://ercan-atak.de/blog): articles on web development, SEO/GEO, GDPR-safe architecture, and notes from the darkroom and studio.
-- [Lens](https://ercan-atak.de/lens): analog (35mm) photography, organized as rolls.
+- [Lens](https://ercan-atak.de/lens): digital photography (full-frame + phone RAW) presented with a darkroom sensibility, organized as rolls.
 - [Paints](https://ercan-atak.de/paints): paintings, organized as albums.
 
 ## Technical profile
