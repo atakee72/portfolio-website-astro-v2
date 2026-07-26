@@ -1,13 +1,13 @@
 # Portfolio
 
-Personal portfolio website by **Ercan Atak** — projects, blog, and contact.
+Personal portfolio website by **Ercan Atak** — software case studies, journal, photography rolls, painting albums, and contact. Live at [ercan-atak.de](https://ercan-atak.de).
 
 ## Tech Stack
 
 - **[Astro 5](https://astro.build/)** with static output and View Transitions
 - **[Svelte 5](https://svelte.dev/)** (runes API) for interactive islands
 - **[Tailwind CSS](https://tailwindcss.com/)** with class-based dark mode
-- **MDX** + Astro Content Collections for blog posts
+- **MDX/JSON** + Astro Content Collections (blog, work, photo rolls, painting albums, testimonials), managed via Sveltia CMS + Cloudinary
 - **TypeScript** (strict)
 - **pnpm** package manager
 
@@ -60,7 +60,7 @@ A combined feed at [`/rss.xml`](https://ercan-atak.de/rss.xml) covers all four c
 ```
 src/
 ├── components/          # .astro + .svelte components
-├── content/             # MDX blog posts + JSON testimonials
+├── content/             # Blog + work MDX, rolls/paintings/testimonials JSON
 ├── layouts/             # BaseLayout, BlogPostLayout
 ├── lib/                 # Content helpers, cn() utility
 ├── pages/               # File-based routes
