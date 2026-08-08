@@ -1,0 +1,67 @@
+---
+title: 'Digital archaeology: restoring my 1999 web, byte for byte'
+description: 'A museum of my early web — three Wayback-restored sites, two blogs rescued alive, one found object — sealed hermetic, every fix logged as a git commit.'
+publishedAt: 2026-08-09
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Web History
+  - Development
+  - Archiving
+stack:
+  - Wayback Machine
+  - GitHub Pages
+draft: false
+---
+
+"Websites through the years" is a small museum of my early web presence, live on GitHub Pages with its restoration process open-sourced in the same repo. Six exhibits: three sites pulled back from the Internet Archive's Wayback Machine, two Blogger blogs rescued while they were still live rather than recovered after the fact, and one found object I have no memory of creating. The method, in one sentence: catalog every capture through the Wayback Machine's CDX API, crawl outward from an anchor page always fetching whichever capture sits closest in time to it — temporal coherence — pull the Blogger content straight off its live CDN before it can rot, then "seal" every exhibit so it depends on no external server ever again, with git itself standing in as the restoration log, one intervention per commit.
+
+## What's in the museum
+
+The six exhibits, in the order the museum presents them:
+
+1. **@t@kee's homepage** (1999–2004) — rainbow letters, photo galleries, jokes, hosted on FortuneCity. I built it. Before FortuneCity it lived at `members.nbci.com/atakee`, an NBCi address that died in July 2001 — a fact noted on the exhibit's own curator's plaque.
+2. **Türkiye–EU Relations** (2001–2002) — a government trade site, roughly 130 pages. I was its webmaster.
+3. **Turkey–EU Joint Parliamentary Committee** (2004–2006) — a multilingual TBMM assembly site. I built it.
+4. **Thoughtful thoughts** (2010–2011) — Blogger essays on politics and travel.
+5. **@t@kee's blog** (2008–2013) — a personal Blogger notebook on naval history and institutions.
+6. **Cinderellas Fotoalbum** (~2001–2002) — a GeoCities page, and the one true found object in the collection: no memory of its creation survives.
+
+Each exhibit gets its own curator's plaque. Beyond the six pages there's a restoration-lab page documenting how all of this was recovered, a 1999-style guestbook, a links page, a timeline running 1998 to 2026, and a museum shop I'll get to at the end.
+
+## Digging sites out of the Wayback Machine
+
+The three archive-based exhibits came out through the Internet Archive's CDX API, which is how you catalog every capture the Wayback Machine holds for a URL rather than guessing at snapshot dates by hand. Pages were then fetched with the `id_` flag, which disables the Wayback toolbar injection and returns the original bytes instead of a wrapped, re-hosted copy.
+
+Cataloging captures isn't the same as reconstructing a site, though — a site is a graph of pages, and the Wayback Machine archives URLs, not sites. So a custom crawler starts from one anchor capture and follows the internal links out from it, and at every hop it fetches the capture nearest in time to the anchor rather than whatever the newest available snapshot happens to be. That's temporal coherence: without it you get a page from 2001 linking to a subpage as it looked in 2003, and the site never actually existed in the state you've stitched together. The crawler runs at roughly one request per second with backoff — any faster and the archive starts dropping connections.
+
+Some of what it turned up is worth naming honestly. A Turkish "ç" character crashed the crawler outright and had to be percent-encoded as windows-1254 before it would parse. Six template graphics had vanished from their original pages but turned up in sibling server directories, so they were recovered from there instead. And one page, `euro1.htm`, was never archived by the Wayback Machine at all — it's lost, and the museum says so rather than papering over the gap.
+
+## Rescuing blogs alive
+
+The two Blogger exhibits didn't come from an archive — they were crawled directly off the live blogs while they still existed: posts, monthly archives, label pages, and the pagination chains linking them together. That's the distinction the museum draws between the archive sites and these two — rescued *before* loss, not recovered after.
+
+Everything the pages depended on externally — fonts, theme graphics, embedded images — was pulled from Google's CDNs down into local folders, and every reference to them was rewritten, including `srcset` attributes and CSS `url()` values, so nothing on the rescued page still reaches out to Google's servers. Not everything survived intact: some post images were already lost to Blogger's own image-proxy operations before the crawl ever ran.
+
+Then came what the museum calls "sealing" — making each exhibit hermetic, independent of any external server. Outbound links are disarmed to `href="#"`, with the original URL preserved in a `data-original` attribute rather than deleted. Broken image references point at local paths that are deliberately absent, so a missing image just stays missing instead of round-tripping out to a dead proxy server that might reappear, redirect, or serve something else entirely. The payoff, per the restoration-lab page: sealing cut the home page's load time roughly tenfold.
+
+## The ethics of restoration
+
+The museum's curator's note states the philosophy directly: "These sites are deliberately left as they were built, imperfections included. Restoring them any further would mean destroying what they are: honest documents of how the web looked and worked twenty-some years ago."
+
+In practice that means fixed-width layouts built for 800×600 monitors stay fixed-width. IE-specific code that no longer runs anywhere stays in, non-functional. Broken elements stay broken. Dead external links stay pointing at services that no longer exist, rather than being quietly redirected somewhere useful.
+
+That restraint has a boundary, though — it applies to the *content* of a page, not to things injected by the hosts these sites once lived on. Tracking pixels, banner ad frames, pop-ups, Google Analytics snippets, ZEDO ad tags: all removed, on the reasoning that a hosting platform's ad injection was never part of what I built. Nothing was thrown away, though — every one of those removals is preserved in git history, retrievable the same way any other change is. Three legacy character encodings — iso-8859-1, windows-1254, and iso-8859-9 — were transcoded to UTF-8, because GitHub Pages serves UTF-8 headers and the original bytes would render as garbage under them.
+
+Every intervention across the whole project is its own git commit, and the original, unrestored files are retrievable via checkout at any point. The git history isn't documentation *of* the restoration log — it is the restoration log.
+
+And where something is simply gone — like `euro1.htm` — the museum states that plainly instead of reconstructing a plausible fake. An honest gap is more useful than a convincing lie.
+
+## The shop is an exhibit too
+
+The museum shop sells gag gifts priced in Deutsche Mark: a visitor-counter T-shirt, the complete homepage burned to a 3.5″ floppy, an ICQ doorbell. It's been, as the shop's own copy puts it, "fully stocked since 1999 and open since never." Orders go by fax — except the shop's fax machine was unplugged in 2003, and no order has arrived since. The gift shop is itself an exhibit, not a functioning store, and it's the clearest, funniest version of the museum's actual argument: preservation only works if you're honest about what still works and what doesn't. A shop that pretends to take orders is exactly the kind of lie the whole project refuses to tell about a broken image or a dead link.
+
+---
+
+*Walk through the exhibits at [websites-through-the-years](https://atakee72.github.io/websites-through-the-years/). The restoration process — CDX crawls, encoding fixes, the sealing step, all of it — is public in the [source repo](https://github.com/atakee72/websites-through-the-years).*
