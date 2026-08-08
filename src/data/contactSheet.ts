@@ -43,7 +43,7 @@ export const contactSheet: Frame[] = [
     label: '1999 – 2013',
     tag: 'WAYBACK',
     href: 'https://atakee72.github.io/websites-through-the-years/',
-    note: 'A museum of my early web, 1999–2013: three sites dug out of the Wayback Machine, two blogs rescued alive from Blogger, and one page found in the rubble — font tags, hit counter and all. Each exhibit is restored exactly as it was built, with its own curator’s plaque; a restoration lab narrates the digital archaeology, and the 1999-style guestbook awaits your signature.',
+    note: 'A museum of my early web, 1999–2013: three sites dug out of the Wayback Machine, two blogs rescued alive from Blogger, and one page found in the rubble — font tags, hit counter and all. Each exhibit is restored exactly as it was built, with its own curator’s plaque; a restoration lab narrates the digital archaeology, the 1999-style guestbook awaits your signature, and the museum shop takes Deutsche Mark only — orders by fax, unplugged since 2003.',
     cta: 'visit the museum ↗',
   },
   { k: 'paint', tone: 'c', label: 'MY EARLY PAINTINGS · 2022–2025', tag: 'ALBUM', album: 'my-early-paintings' },
