@@ -5,6 +5,9 @@ publishedAt: 2026-08-09
 author:
   name: Ercan Atak
   bio: Full-stack developer, photographer, and painter based in Berlin.
+mainImage:
+  src: /assets/blog/museum-index.webp
+  alt: The museum's entrance hall — an exhibit card framed in an Internet Explorer window, with its curator's plaque beside it
 categories:
   - Web History
   - Development
@@ -18,6 +21,8 @@ draft: false
 "Websites through the years" is a small museum of my early web presence, live on GitHub Pages with its restoration process open-sourced in the same repo. Six exhibits: three sites pulled back from the Internet Archive's Wayback Machine, two Blogger blogs rescued while they were still live rather than recovered after the fact, and one found object I have no memory of creating. The method, in one sentence: catalog every capture through the Wayback Machine's CDX API, crawl outward from an anchor page always fetching whichever capture sits closest in time to it — temporal coherence — pull the Blogger content straight off its live CDN before it can rot, then "seal" every exhibit so it depends on no external server ever again, with git itself standing in as the restoration log, one intervention per commit.
 
 ## What's in the museum
+
+![The museum's entrance hall: exhibit cards framed in period Internet Explorer windows, each with a curator's plaque, on a dark gallery background](/assets/blog/museum-index.webp)
 
 The six exhibits, in the order the museum presents them:
 
@@ -35,6 +40,10 @@ Each exhibit gets its own curator's plaque. Beyond the six pages there's a resto
 The three archive-based exhibits came out through the Internet Archive's CDX API, which is how you catalog every capture the Wayback Machine holds for a URL rather than guessing at snapshot dates by hand. Pages were then fetched with the `id_` flag, which disables the Wayback toolbar injection and returns the original bytes instead of a wrapped, re-hosted copy.
 
 Cataloging captures isn't the same as reconstructing a site, though — a site is a graph of pages, and the Wayback Machine archives URLs, not sites. So a custom crawler starts from one anchor capture and follows the internal links out from it, and at every hop it fetches the capture nearest in time to the anchor rather than whatever the newest available snapshot happens to be. That's temporal coherence: without it you get a page from 2001 linking to a subpage as it looked in 2003, and the site never actually existed in the state you've stitched together. The crawler runs at roughly one request per second with backoff — any faster and the archive starts dropping connections.
+
+![The restored 1999 homepage: rainbow "@t@kee's" lettering, a vertical WELCOME TO sidebar, a working hit counter reading 018735, a mailbox GIF, and an ICQ number](/assets/blog/museum-fortunecity.webp)
+
+The result of all that, restored byte for byte: rainbow lettering, a vertical W-E-L-C-O-M-E sidebar, and a hit counter that works again.
 
 Some of what it turned up is worth naming honestly. A Turkish "ç" character crashed the crawler outright and had to be percent-encoded as windows-1254 before it would parse. Six template graphics had vanished from their original pages but turned up in sibling server directories, so they were recovered from there instead. And one page, `euro1.htm`, was never archived by the Wayback Machine at all — it's lost, and the museum says so rather than papering over the gap.
 
