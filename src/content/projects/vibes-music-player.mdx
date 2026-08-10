@@ -57,19 +57,22 @@ Tag parsing runs off the main thread in a pooled Web Worker —
 `min(4, max(2, hardwareConcurrency − 1))` — with cover art downscaled to
 512 px before it is persisted. The pool falls back to main-thread
 parsing on worker construction error, `onerror`, `onmessageerror`,
-in-worker import failure, or a 30-second timeout: extraction must never
-break, and never hang.
+in-worker import failure, or a 30-second timeout. That last one isn't
+belt-and-braces: `onerror` catches script errors, not the browser
+killing the worker process — a worker that dies on a hostile file fires
+nothing at all, its promise never settles, and each leaked pool slot
+brings the queue closer to a permanent stall.
 
 ## Architecture
 
 Library persistence splits by capability — Chromium uses the File
 System Access API (zero duplication), Firefox and Safari store bytes in
-IndexedDB. The song list is virtualised so only visible rows mount, and
-the app shell is precached: installed as a PWA, it opens offline. OS-level
-integration comes via the Media Session API (lock-screen artwork,
-Bluetooth keys, macOS Now Playing, Windows SMTC, Linux MPRIS), plus a
-Document Picture-in-Picture mini player. A **VibeOrb** lifts the current
-track's dominant colour into the background.
+IndexedDB. The song list is virtualised, and the app shell is precached:
+installed as a PWA, it opens offline. OS-level integration comes via the
+Media Session API (lock-screen artwork, Bluetooth keys, macOS Now
+Playing, Windows SMTC, Linux MPRIS), plus a Document Picture-in-Picture
+mini player. A **VibeOrb** lifts the current track's dominant colour
+into the background.
 
 Vibes deliberately doesn't want to own your library. It reads embedded
 tags only, keys songs by path, and treats M3U as a two-way interchange
@@ -82,6 +85,11 @@ left off. Keyboard-first throughout (`Space` play/pause, `←`/`→` seek,
 `Shift`+`←`/`→` track, `L` lyrics, `Q` queue, `/` search, `Esc` close),
 modals focus-trapped by one shared hook, motion gated on
 `prefers-reduced-motion` end-to-end.
+
+Every dialog in the app is a hand-built React modal rather than a native
+one, and not for styling: `prompt()`, `alert()` and `confirm()` all
+interrupt media playback as a side effect of stealing focus. A native
+"delete this playlist?" would have stopped the music to ask.
 
 ## Reflection
 
