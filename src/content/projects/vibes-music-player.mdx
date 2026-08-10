@@ -39,27 +39,63 @@ draft: false
 
 Local audio files deserve a player that respects them: no upload, no
 account, no telemetry. Drop a folder, hear your music, see the tags and
-cover art the files already carry.
+cover art the files already carry. Then the harder version of the same
+problem — make it survive a real library: hundreds of files, tagged and
+organised by other tools, on somebody's actual machine.
 
 ## Build
 
 Vite + React 18 + TypeScript with a custom Tailwind "AFTERGLOW" token
 theme (self-hosted Fraunces / Inter / Geist Mono). `music-metadata`
-parses ID3 / Vorbis / FLAC; a Web Audio `AnalyserNode` drives a live
-frequency visualizer. Library persistence splits by capability —
-Chromium uses the File System Access API (zero duplication), Firefox
-and Safari store bytes in IndexedDB.
+parses ID3 / Vorbis / FLAC. The audio path is more than an `<audio>`
+tag: gapless playback preloads the next track on a second element,
+ReplayGain tags normalise per-track volume, and a 5-band equaliser
+(60 / 230 / 910 / 3600 / 14000 Hz) ships five presets. A Web Audio
+`AnalyserNode` drives the live frequency visualizer.
+
+Tag parsing runs off the main thread in a pooled Web Worker —
+`min(4, max(2, hardwareConcurrency − 1))` — with cover art downscaled to
+512 px before it is persisted. The pool falls back to main-thread
+parsing on worker construction error, `onerror`, `onmessageerror`,
+in-worker import failure, or a 30-second timeout: extraction must never
+break, and never hang.
 
 ## Architecture
 
-OS-level integration via the Media Session API (lock-screen artwork,
-Bluetooth keys, macOS Now Playing, Windows SMTC, Linux MPRIS). A
-**VibeOrb** lifts the current track's dominant colour into the
-background. Keyboard-first: `Space` play/pause, `←`/`→` seek, `/`
-search, `Esc` close. Motion respects `prefers-reduced-motion` end-to-end.
+Library persistence splits by capability — Chromium uses the File
+System Access API (zero duplication), Firefox and Safari store bytes in
+IndexedDB. The song list is virtualised so only visible rows mount, and
+the app shell is precached: installed as a PWA, it opens offline. OS-level
+integration comes via the Media Session API (lock-screen artwork,
+Bluetooth keys, macOS Now Playing, Windows SMTC, Linux MPRIS), plus a
+Document Picture-in-Picture mini player. A **VibeOrb** lifts the current
+track's dominant colour into the background.
+
+Vibes deliberately doesn't want to own your library. It reads embedded
+tags only, keys songs by path, and treats M3U as a two-way interchange
+format — re-importing a playlist updates it in place instead of
+duplicating it. That makes it a viewer onto a beets- or
+Navidrome-managed collection rather than a competing database. Favorites
+is a derived virtual playlist, never persisted on its own; the play-next
+queue drains back, so after a queued detour playback resumes where it
+left off. Keyboard-first throughout (`Space` play/pause, `←`/`→` seek,
+`Shift`+`←`/`→` track, `L` lyrics, `Q` queue, `/` search, `Esc` close),
+modals focus-trapped by one shared hook, motion gated on
+`prefers-reduced-motion` end-to-end.
 
 ## Reflection
 
-The whole point is that nothing leaves the machine. Designing storage
-around three different browser capabilities (rather than picking one
-and shimming the others) kept the privacy contract honest.
+The whole point is that nothing leaves the machine — even the share link
+carries a track's metadata, never the file itself. Designing storage
+around three different browser capabilities (rather than picking one and
+shimming the others) kept that contract honest.
+
+The most useful thing I did was point it at a real collection: 469 songs
+out of a beets-managed library, ingested in a single folder drop. That
+one test surfaced what synthetic fixtures never did — Windows reports no
+MIME type for `.flac` / `.m4a` / `.opus`, so those files were being
+silently dropped at ingest, and a permission-gated cold start could let a
+debounced save overwrite the stored library with an empty placeholder.
+Both fixed, both now regression-tested. A demo library tells you the
+happy path works; somebody else's library tells you what you actually
+built.
