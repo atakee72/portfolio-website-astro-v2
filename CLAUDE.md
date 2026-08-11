@@ -118,6 +118,12 @@ Anchor hrefs are root-relative (`/#home`, `/#sheet`, etc.) so they work from any
 ### Add a blog post
 Create `src/content/blog/<slug>.mdx` with frontmatter matching the schema in `src/content/config.ts` (`title`, `description`, `publishedAt`, `author`, `mainImage`, `categories`, `draft`).
 
+### Write or refresh a case study (`src/content/projects/*.mdx`)
+- **Fixed shape**: exactly four `##` sections — **Problem / Build / Architecture / Reflection** — in that order. Body length runs ~350–600 words; don't let one case study balloon into an outlier (measure the siblings before adding: `for f in src/content/projects/*.mdx; do echo "$(basename $f): $(wc -w < $f)"; done`).
+- **No `updatedAt` field** on the projects schema (unlike blog) — a refresh edits the body in place and leaves `publishedAt` alone.
+- **Refresh workflow (proven twice — Jul 2026 case-study wave, Aug 2026 Vibes)**: read-only recon agent surveys the GitHub repo via `gh` (commits since the case study's date, README, `package.json`, file tree, any repo-side CLAUDE.md/ROADMAP) and writes a report file; I then write from the report + my own spot-checks. **Also search Fabric for that project's notes** — the repo tells you *what* shipped, the Fabric gotcha notes tell you *why* a decision was made, which is the material that actually makes a case study worth reading (e.g. Vibes' hand-built modals exist because `prompt()`/`alert()`/`confirm()` interrupt media playback).
+- **Never cite a number the recon flagged uncertain** — a stale test count or metric reads as sloppy and there's no upside.
+
 ### Add a new section to the home page
 1. Create `src/components/NewSection.astro` (wrap in `<AppWrap id="...">` if it should be a navigable section)
 2. Import and render it in `src/pages/index.astro`
