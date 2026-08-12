@@ -8,6 +8,11 @@
       "has": [
         { "type": "host", "value": "www.ercan-atak.de" }
       ]
+    },
+    {
+      "source": "/work/crowd-coach",
+      "destination": "/work/coachly",
+      "permanent": true
     }
   ],
   "headers": [
