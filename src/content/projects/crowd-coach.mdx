@@ -53,20 +53,26 @@ by 7 ADRs in the repo.
 
 ## Build
 
-SvelteKit 2 (Svelte 5 runes) + Tailwind v4, on self-hosted Supabase
-(Postgres + RLS) on a private VM rather than the managed cloud product —
-full control over RLS, `SECURITY DEFINER`, and storage internals.
+SvelteKit 2 (Svelte 5 runes) + Tailwind v4, deployed on Vercel, talking
+to a self-hosted Supabase stack — Postgres, auth, storage and the rest as
+eight containers on a Hetzner VM rather than the managed product. That
+buys full control over RLS, `SECURITY DEFINER` and storage internals, and
+it means a demo nobody has visited this week doesn't get suspended for
+idling.
+
 Conversation state lives in Coachly's own tables instead of
 provider-hosted threads, so the AI backend is swappable: a common
-`AIProvider` interface fronts Anthropic Claude as the primary model, with
-OpenAI kept only for image generation, and a deterministic mock provider
-so CI and the Playwright e2e suite never touch a live LLM. All five
-original assistants — Zielfinder, Talentfinder, Jobfinder,
-Ressourcenfinder, Antragsteller — are re-implemented behind a single
-config with explicit cross-referencing (Jobfinder reads Zielfinder +
-Talentfinder + Ressourcenfinder; Antragsteller reads all four). CV upload
-still runs through pdf-parse / mammoth, and Zielfinder now drives a
-"vision board" image-generation feature. Deployed on Vercel.
+`AIProvider` interface fronts Anthropic Claude, with OpenAI kept only for
+image generation, and a deterministic mock provider so CI and the
+Playwright suite never touch a live LLM. All five assistants — Zielfinder,
+Talentfinder, Jobfinder, Ressourcenfinder, Antragsteller — sit behind a
+single config with explicit cross-referencing (Jobfinder reads three of
+the others; Antragsteller reads all four). Two of them generate images now,
+a vision board and a Talentbild, and neither writes to a profile on its
+own: the image lands in a pending slot and waits until the user takes it
+or throws it away. Everything is metered server-side — 50 messages and
+200,000 tokens a day, five images, five pending — because a public demo
+with a shared login code needs a ceiling somebody else can't raise.
 
 ## Architecture
 
@@ -78,10 +84,18 @@ there's no service-role key in the request path and no way to
 self-promote. Every privileged route re-derives identity from the
 verified session (`requireUser` / `requireCoach`) rather than trusting
 anything in the request, and that boundary isn't just asserted — an
-adversarial integration-test suite runs real cross-tenant attacks against
-a live database, alongside 32 unit-test files and 10 Playwright e2e
+adversarial suite of 21 integration tests runs real cross-tenant attacks
+against a live database, alongside 18 unit-test files and 14 Playwright
 journeys. Errors get logged as one structured JSON line per incident with
 a correlation id; the user only ever sees a generic message plus that id.
+
+The prompt needed a boundary too, and its shape surprised me. Assistants
+refuse off-topic image requests, and verified testers are allowed past
+that — my first version appended an override saying so. But an override
+can be argued with, because the rule text is still there in the prompt to
+argue against. So the exemption became structural: testers get a variant
+with no guard rules at all, everyone else gets rules with no bypass
+clause. Nothing to negotiate against, either way.
 
 ## Reflection
 
@@ -90,3 +104,17 @@ production. Coachly exists to prove the *engineering* holds up under
 adversarial conditions — a harder, more interesting problem than adding a
 sixth assistant, and the one reason this got rebuilt from a blank repo
 instead of iterated in place.
+
+Two things I only learned by keeping it running. Anthropic tightened
+validation on `strict: true` tool schemas at the end of July and broke
+two assistants mid-flight; the fix was to drop strict mode and lean on my
+own Zod validation, with `is_error` results letting the model correct
+itself. Strict mode is someone else's contract, and it can change on a
+Tuesday.
+
+The second one is less about code. That outage sat there about three days
+before I noticed, because a portfolio demo has no users to complain —
+when nobody is looking, breakage is silent. So now Sentry watches the
+chat pipeline and a scheduled job logs in each morning to hold one real
+conversation with Zielfinder. A demo nobody visits still has to work on
+the day somebody does.
