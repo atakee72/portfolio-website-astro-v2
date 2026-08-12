@@ -1,0 +1,82 @@
+---
+title: 'What a real 469-song library broke in my music player'
+description: 'Five bugs a hand-made test folder never surfaced in Vibes, my browser music player — from a lying File.type to an autosave that quietly ate the library.'
+publishedAt: 2026-08-12
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+mainImage:
+  src: /assets/projects/desktop.png
+  alt: Vibes — the music player's desktop library view in its AFTERGLOW theme
+categories:
+  - Development
+  - Web Performance
+  - Case Notes
+stack:
+  - React
+  - Vite
+  - Web Audio API
+draft: false
+---
+
+For months I tested Vibes — a browser music player, local files only, no upload, no account, nothing phoning home — against a handful of MP3s I'd copied into a folder myself. It worked. Of course it worked; I'd built the folder to match what the code expected. Then one evening I pointed it at my actual library: 469 songs, managed by beets, dropped in as one folder. Two bugs fell out that same night, both silent, one bad enough to erase the library on the next restart. Three more turned up over the same stretch of work. None of it showed up in a folder I'd built by hand.
+
+## `File.type` lies, and there were two drop walkers
+
+This one and the next happened within the same import, and neither threw an error. Browsers derive `File.type` from an OS registry lookup, not from the file's content, and on Windows that lookup routinely comes back empty for `.flac`, `.m4a`, `.opus`, `.aiff`, `.wma`. A filter written as `file.type.startsWith('audio/')` drops real, playable files with no error — either a flat "no valid files" dead end, or worse, a partial import where tracks are just gone and nothing says so. Check the MIME type or the extension, and make it the same check everywhere:
+
+```js
+const isAudioFile = (file) =>
+  file.type.startsWith('audio/') ||
+  KNOWN_EXTS.some((ext) => file.name.toLowerCase().endsWith(ext));
+```
+
+One predicate, one module, imported by the file picker, the drop handler, and the directory walker. I had four separate copies of that check, every one wrong in the same way. The inverse trap lives in the same filter: Chromium reports `.m3u` playlists as `audio/x-mpegurl`, so a loose audio filter cheerfully ingests a playlist as an unplayable song. Exclude it by name.
+
+Dropped folders need two implementations, because Chromium and everyone else disagree about how to read one. Chromium has `DataTransferItem.getAsFileSystemHandle()`, a directory handle you can persist and re-read later; Firefox and Safari need `webkitGetAsEntry()` plus a manual `createReader().readEntries()` loop until an empty batch comes back. Ship only the Chromium branch and a folder dropped in Firefox falls through to `getAsFile()`, which returns a 0-byte `File` named after the folder — a rude thing for a browser to do. It passes no type check, so the drop yields nothing, and nothing technically failed, so there's no error to chase.
+
+The part that stung: a correct collector for both branches already existed in `lib/`, with zero production callers. The component that mattered had quietly grown its own inline Chromium-only version instead of importing the one that worked — and nobody noticed, because Chromium is what you test on by default. Dead-right code sitting next to live-wrong code. When a supposedly supported path mysteriously doesn't work, grep for an orphaned helper before you write a new one.
+
+One more trap in that same function: a `DataTransferItemList` invalidates the moment the drop handler `await`s anything. Call `getAsFile()`/`getAsFileSystemHandle()` on every item synchronously first, then await the promises — otherwise items two through *n* silently come back null. Fixed, the collector passes through every ingestable type in one gesture: drop a music folder, get its songs and its `Playlists/*.m3u` files in the same pass.
+
+## The bug that ate the library
+
+A reviewer flagged this one as a hunch — no reproduction, just a shape in the code that looked dangerous. Reproducing it took one test, and it was real: the app was destroying its own stored library every single time the browser restarted.
+
+Every piece of it is individually reasonable, which is exactly why it survived. On mount, the app loads the library from storage. But there's a condition where that load returns nothing while still counting as a *successful* run — Chromium forgets File System Access permission grants across a browser restart, so the app deliberately renders an empty placeholder library with a "click to restore" banner instead of erroring. Sane on its own. Then a `loadedRef`-style flag gets set inside a `finally` block, meaning "loading is over," regardless of whether any state actually came back from storage. The autosave effect watches for state changes, sees the flag is set, waits its 500ms debounce, and writes the empty placeholder over the real library. The user clicks restore and reads back the emptiness they just wrote. Library, playlists, favourites — gone, no error anywhere, because nothing in the chain actually failed.
+
+The fix isn't mechanical, it's semantic. The flag can't mean "loading finished" — it has to mean "the in-memory state mirrors storage, so it's safe to write." Set it only on paths that genuinely populated state from storage (`flag = !needsPrompt`), and again after a successful explicit restore, never inside a `finally`. On a real load failure, leave it false and tell the user their changes aren't being saved — silent non-saving is the other half of "my data reset itself." Unrelated preferences that did load get their own flag rather than borrowing this one.
+
+The detection recipe is worth keeping for anything shaped like this: mount with storage seeded, force the degraded-load branch, advance the clock past the debounce, assert the save function was never called. Mine was red immediately, first run. The general smell to grep for, in any codebase with an autosave: a save gated on a boolean set in a `finally`, or on `isLoading === false`. Both conflate "we stopped loading" with "we have the data" — not the same claim.
+
+## A killed worker fires no event
+
+Metadata parsing (`music-metadata`, reading ID3, Vorbis, FLAC tags) is CPU-heavy enough to run in a pool of Web Workers behind an id-keyed request/response client, sized to `min(4, max(2, hardwareConcurrency − 1))`. `Worker.onerror` fires for script errors, not for the browser killing the process outright — realistically, OOM from a corrupt or hostile input, exactly what bulk processing has to survive. `onmessageerror`, for a clone-deserialise failure, is a separate handler people forget entirely. When the process dies silently, whatever promise was waiting on it never settles; in a pool, each hang leaks a slot permanently, and once you've leaked all of them every later request queues forever — `Promise.all` never resolves, only a reload gets you out.
+
+Covering that takes more handlers than feels reasonable, and you need all of them. A try/catch around construction, for CSP or a bad URL, with a fallback path. `onerror` failing everything in flight over to main-thread parsing, and `onmessageerror` doing the same. A per-request timeout around 30 seconds that deletes the pending entry and fails just that request over — the only real defence against the silent kill, since nothing else fires.
+
+Two more that only matter at volume. Repeated consecutive timeouts have to escalate to session-wide failover, or one dead worker makes every later file sit through the full timeout in turn. And the worker needs to distinguish "my environment is broken" from "this input is bad": a failed dynamic import inside it — a chunk 404 mid-deploy, say — posts a flagged `workerEnv: true` response to force failover, because otherwise every input degrades to the same fallback shape and the caller can't tell a corrupt file from a dead worker. Late messages arriving after a timeout are guarded with `pending.has(id)`, harmless once requests key off a monotonic counter.
+
+Two Vite details, since they cost me time: dynamic imports inside a worker need `worker: { format: 'es' }`, because the default `iife` inlines everything into one monolith. And happy-dom defines a Worker *stub*, so `typeof Worker !== 'undefined'` is the wrong check under Vitest — force the main-thread path with `import.meta.env.MODE === 'test'` and keep the runtime failover anyway. The worker path itself ends up with browser-smoke coverage only, which I'd rather admit than paper over.
+
+## Native dialogs stop the music
+
+If your app uses `<audio>` or the Web Audio API at all, don't reach for `window.prompt()`, `window.alert()`, or `window.confirm()`. All three interrupt playback as a side effect — probably because they steal focus in a way that trips the autoplay-policy logic. Music stops the moment the dialog opens and only comes back once you dismiss it *and* manually hit play again; it doesn't resume on its own. Not a `prompt()`-only quirk, either — `alert()` and `confirm()` do it too. The fix: hand-built `PromptModal.tsx` and `ConfirmModal.tsx`, ordinary React components that don't block the main thread or steal focus. A native "delete this playlist?" confirm would have stopped the music just to ask a yes-or-no question.
+
+## Code-splitting plus a deploy equals a blank screen
+
+This one arrived with `React.lazy` rather than with the library. A tab holding the previous build tries to lazy-load a chunk — opening a modal, say — after a deploy has removed that hashed file, and the auto-updating service worker has purged it from the precache too. The import 404s, the lazy boundary throws, and with no error boundary the whole app unmounts to a blank page with nothing in the console. I reproduced it on demand by rebuilding `dist/` while a `pnpm preview` session was open. Vite 5 fires a dedicated event for it, so the fix is one listener in the entry file:
+
+```js
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload();
+});
+```
+
+Before code-splitting, this failure can't exist. After it, every deploy is a chance to blank the screen of anyone with a tab left open.
+
+Test folders don't have this problem because I control every file in them; a real library has files nobody hand-picked, permissions that expire, a restart the code has to survive whether it's ready or not. The autosave bug is the one that stays with me — not because the mechanism was exotic, but because every individual line of it looked fine in review. It only added up to "erases your music" once you traced all four steps end to end, and that's hard to catch reading code in isolation. It's easy to catch by asking what happens to somebody's actual files, not your fixture, on the second restart.
+
+---
+
+*More on the build in [the Vibes case study](/work/vibes-music-player). Source is on [GitHub](https://github.com/atakee72/vibes-music-player).*
