@@ -19,7 +19,7 @@ exif:
     - ai-moderation
 links:
   github: https://github.com/atakee72/fullstack-community-webApp-astro---v.3
-  live: https://mahalle-das-kiezgesichterbuch.vercel.app
+  live: https://mahalle.digital
 draft: false
 ---
 
@@ -42,25 +42,69 @@ public neighbor profiles, self-service email/password change, and a
 7-day-undo account deletion that anonymizes into an "Ehemaliges
 Mitglied" tombstone while preserving authored content.
 
+Since then the app grew a built-in onboarding walkthrough, Die
+Führung: seven chapters, 32 stops total, though a logged-out visitor
+sees fewer since the engine filters the registry to whatever anchors
+exist on the page. Outbound mail now runs through a shared mailer —
+SMTP, then Resend, then a dev-log fallback — that fails closed with a
+503 instead of dropping a message silently. Production sends via
+Resend from mahalle.digital; before the domain existed, mail borrowed
+a noreply@ address on my personal domain.
+
 ## Architecture
 
 Multilingual AI moderation (TR/EN/DE + leetspeak filters) gates all
-user-generated content before it lands, backed by a 3-strike ban system
-that drops banned sessions to read-only across the write surface and
-walks admins through a "Ban-Bremse" confirmation step before a
-third-strike rejection. The old dark-glass design system has been fully
-replaced by a "kiosk" aesthetic — paper-warm surfaces, ink borders,
-carved-italic titles — across every page, forum to blog, opened by a
-one-per-session splash intro that skips on reduced-motion. BLUME
-air-quality proxy and Schillerkiez demographics still surface from
-public APIs. The marketplace has matured into a 13-category kiosk
-taxonomy with draft/publish, a 21-day listing-visibility window, and
-Resend-relayed buyer↔seller contact that never exposes an email address.
+user content, backed by a 3-strike ban system that drops banned
+sessions to read-only. The kiosk redesign — paper-warm surfaces, ink
+borders, carved-italic titles — is now complete across all ten
+surfaces, forum to blog. BLUME air-quality readings and Schillerkiez
+demographics still come from public APIs, and the marketplace runs a
+13-category taxonomy with draft/publish, a 21-day visibility window,
+and buyer↔seller contact relayed so neither side sees an email
+address.
+
+Die Führung's spotlight is one oversized box-shadow on a small div
+sized to the anchor's rect rather than a full-viewport overlay —
+stacking-context-proof, a deliberate departure from the design
+handoff's CSS mask cutout. The bigger fix, when the tour grew from one
+chapter to seven, was anchor lookup: responsive layouts mount the
+same control twice, one hidden with CSS, and the first DOM match is
+often the hidden one. The engine now takes the first match with real
+dimensions. Anchors must be permanent chrome, never the n-th item in a
+list, or the step count becomes a lie.
+
+The database had its own arc: functions ran in Washington while Atlas
+sits in Frankfurt — legible in the `x-vercel-id` header as
+`fra1::iad1` — so every query crossed the Atlantic and cold starts
+blew the 5-second server-selection timeout. Pinning functions to
+`fra1` helped, not
+enough, so the timeout rose to 10 seconds. The real fix was in
+`src/lib/mongodb.ts`: a module-scope `connect()` cached its failed
+promise on `globalThis`, poisoning the container after one bad cold
+start.
 
 ## Reflection
 
-Built with a manifesto attached — the project's moral charter sits at
-the root of the repo as `MANIFESTO.md`, now paired with a PolyForm
-Noncommercial license and a custom field-of-use rider that excludes
-political parties, for-profit deployment, and resident-surveillance use
-cases.
+Built with a manifesto attached — `MANIFESTO.md` sits at the repo's
+root as its moral charter, paired now with a PolyForm Noncommercial
+license and a custom Field-of-Use Rider: open to nonprofits and public
+institutions, closed to political parties, for-profit deployment,
+resident surveillance, resale — and, notably, a single person running
+their own copy as both deployer and sole moderator. Forks are fine; a
+fork called Mahalle needs permission. The manifesto sets a floor under
+whoever runs it: a governance body of three or more, a public
+moderation log, transparent funding, an exit clause.
+
+Neither of this year's worst failures announced itself. OpenAI's
+credits ran out: the news cron kept returning 200 while quietly saving
+nothing, and every submission needing moderation got waved into the
+manual review queue instead of erroring. Four days passed with no
+monitoring event, because both paths were caught, logged and handled
+gracefully. Then the domain move killed a GitHub Actions cron that had
+been ringing the air-quality logger every half hour — two days of
+writing nothing, recorded nowhere, because a redirect is served at the
+edge and no application code ever runs. (`curl -L` doesn't rescue it
+either: curl drops the Authorization header across hosts, so the 308
+comes back a 401.) The watchdog that catches that one now rides a
+platform-native cron, since a watchdog sharing its victim's failure
+mode is worthless. A cron that returns 200 is not a cron that worked.
