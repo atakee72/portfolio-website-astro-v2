@@ -118,6 +118,12 @@ Anchor hrefs are root-relative (`/#home`, `/#sheet`, etc.) so they work from any
 ### Add a blog post
 Create `src/content/blog/<slug>.mdx` with frontmatter matching the schema in `src/content/config.ts` (`title`, `description`, `publishedAt`, `author`, `mainImage`, `categories`, `draft`).
 
+### Rename a content slug (breaks live URLs — do all three steps)
+The URL comes from the **filename** (`src/content/projects/coachly.mdx` → `/work/coachly`). To rename:
+1. `git mv` the file, then `grep -rn "<old-slug>" src public` — internal links (contact sheet, blog posts, llms.txt) don't update themselves.
+2. Add a redirect to the `redirects` array in `vercel.json`. **Two entries are required** — Vercel matches `source` literally, so `/work/old-slug` does NOT cover `/work/old-slug/`. Astro emits the trailing-slash form, so *that's the one already indexed*; miss it and every existing link 404s while the bare path looks fine. (Bit us on the crowd-coach → coachly rename, 2026-08-12.)
+3. Verify BOTH forms after deploy: `curl -s -o /dev/null -w '%{http_code} %{redirect_url}' <url>` — expect 308 on each — and confirm the sitemap dropped the old URL.
+
 ### Write or refresh a case study (`src/content/projects/*.mdx`)
 - **Fixed shape**: exactly four `##` sections — **Problem / Build / Architecture / Reflection** — in that order. Body length runs ~350–600 words; don't let one case study balloon into an outlier (measure the siblings before adding: `for f in src/content/projects/*.mdx; do echo "$(basename $f): $(wc -w < $f)"; done`).
 - **No `updatedAt` field** on the projects schema (unlike blog) — a refresh edits the body in place and leaves `publishedAt` alone.
