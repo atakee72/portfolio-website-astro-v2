@@ -1,0 +1,58 @@
+---
+title: 'Publishing a repo you didn''t start clean'
+description: 'Publishing a repo you didn''t start from empty means auditing what rode along: a client repo''s git history in one project, a Google Takeout export in another.'
+publishedAt: 2026-08-13
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Development
+  - Privacy
+  - Tooling
+stack:
+  - Git
+  - GitHub
+draft: false
+---
+
+Publishing a repo you didn't start from an empty directory isn't really a git problem. It's an audit problem — you're not reviewing the code you wrote, you're reviewing everything that happened to be sitting in the same folder when you started writing it. I ran into this twice this year, in two projects that have nothing to do with each other except the same shape of mistake waiting to happen: once when a demo I rebuilt from scratch still carried a client's old repo in its history, and once when a Google Takeout export I wanted to publish turned out to hold more than the blog posts I was after. Different tools, same instinct required — stop trusting the folder and start reading what's actually in it.
+
+## A rebuild that kept someone else's history
+
+Coachly is a multi-tenant AI career-coaching demo — a from-scratch rebuild of an earlier client product. "From scratch" described the code, not the working directory: I'd built it inside a clone of the original client's repo, because that's where the old implementation lived and I wanted it close by for reference. Every commit I made sat on top of a `.git` folder that already knew the client's name, their brand, and pieces of their infrastructure. None of that belonged in what I was about to publish — a private GitHub repo, but private isn't the same as safe to leave full of someone else's operational details.
+
+## The undo comes before anything destructive
+
+Before touching any of it, I ran `git bundle create ~/old-history.bundle --all` and stored it outside the repo entirely — a different directory, nowhere `rm -rf .git` could reach it. A bundle you can't get back to isn't a backup, so I followed it with `git bundle verify`, which has to come back saying the bundle contains the complete history before I'd trust it. That's the whole rule for this kind of work: nothing irreversible happens until the undo exists and has been checked, not just created.
+
+## `.gitignore` doesn't untrack what's already tracked
+
+With the escape hatch in place, the next move looked simple and wasn't: excluding the client-adjacent material rather than deleting it. Reference code, planning docs, tool config — stuff I still wanted to read, just not publish — went into `.gitignore`. The files stayed on disk. What I'd half-forgotten is that adding a path to `.gitignore` does nothing to a file git is already tracking. It just stops git from offering to track *new* changes to it — anything already committed keeps showing up in every commit after, ignored or not. That's exactly why `reference/` had been quietly riding along in the old repo's history for weeks: it was in `.gitignore`, and I'd assumed that meant it was out. It wasn't. The fix isn't a cleanup commit, it's starting over: `rm -rf .git && git init -b main && git add -A`. A fresh index only stages what's on disk right now, filtered by ignore rules that are finally doing their job.
+
+## A leak gate that greps the staged index, not the working tree
+
+`git add -A` stages a lot of files at once, and a rebuild that size isn't something to eyeball. Before the first commit, I ran `git grep --cached` against the staged index — deliberately not the working tree, because the working tree includes files that will never be committed, and checking it proves nothing about what's about to go public. The patterns: client names, server IPs, the old brand, and anything shaped like a live credential — `eyJ….eyJ` for JWTs, `sk-…`, `ghp_…`. Alongside that, `git ls-files | grep` for the directory names I'd just excluded, to make sure they hadn't snuck back in some other way. Any hit stopped the process.
+
+Two things about that gate turned out to matter as much as having it. The first is that a loose pattern is its own kind of failure: a bare `netlify` match caught a completely harmless `.netlify` build-output line inside `.gitignore` and flagged it as a leak. Tightening it to `netlify\.(toml|com|app)` fixed the false alarm, but the real lesson is about trust — an operator who watches the gate cry wolf once starts waving every alert through, and at that point the gate isn't protecting anything. The second is that the actual leaks weren't hiding in source files at all. The old brand name turned up inside a comment in `.gitignore`, and again inside a CI guard's own echo message — not the kind of place you'd think to check if you only grepped `src/`. Grep everything staged, including the files whose entire job is to be boring.
+
+## One commit, then check what actually shipped
+
+Once the gate passed clean, I made a single commit — worth setting a GitHub noreply address as the author on it, since this history is meant to start here — and pushed it with `gh repo create <name> --private --source=. --push`. The staged index was the first place a leak could show up publicly; the pushed remote is the second, and it's the one that actually counts, because what's sitting on GitHub is the only version anyone else will ever see. So I re-verified it separately: `gh api repos/…/git/trees/main?recursive=1`, piped through the same grep for the directories I'd excluded. Checking your commit before you push tells you what you intended to publish. Checking the remote after tells you what you did.
+
+With that clean and the repo still at zero collaborators and zero integrations, I let myself be a little less precious about it afterward — an amend plus `push --force-with-lease` is fine for small post-push fixes at that stage, because nobody else has a copy of the history yet, and it keeps the story a single clean commit instead of "initial commit" followed by three embarrassed follow-ups.
+
+## A Takeout export is not just your posts
+
+The second time this came up wasn't a client repo at all. I keep a public repo of restored early-web sites — old projects of mine, brought back — and wanted to add canonical backups of some old Blogger posts, pulled straight from a Google Takeout export. That export is not a blog archive with a bit of extra metadata attached. It's an account export that happens to include a blog.
+
+Buried in `Blogs/<blog>/settings.csv` is a field called `email_for_posting` — the secret mail-to-Blogger address, something like `<name>.<secretword>@blogger.com`. Anyone who gets hold of that string can publish posts to the live blog by sending it an email. It has to be redacted, not just noted. The same CSV carries an admin email in `blog_admin_permission`, and that one isn't a secret token, it's a live personal address. Neither belongs in a public repo of restored websites.
+
+Zoom out from that one file and the rest of the export is worse: `Profile/profile.csv`, reading lists, a full record of comments left on other people's blogs. None of that is content I authored for public consumption — it's account data that happened to travel in the same zip file as the thing I actually wanted. The fix here was scope, not scrubbing: commit only the `Blogs/` subtree and leave the rest of the export where it was downloaded.
+
+Grepping the whole extract for emails and secrets before any of it got pushed caught the obvious cases, but the interesting judgment call was telling two similar-looking things apart. An email address I'd typed into a template widget on the blog itself, years ago, rendered on the live page ever since — that's already public, and redacting it now would be closing a door that's been standing open the whole time. The admin address sitting in a settings file is a different category entirely: private, never rendered anywhere, and only present because Takeout exports the account, not the page.
+
+Both of these came from the same mistake wearing different clothes: trusting that a folder only contains what you put there on purpose. A clone carries a history you didn't write. An export carries an account you didn't mean to publish. The fix, both times, was the same instinct — check the thing that's actually about to become public, not the thing you meant to build.
+
+---
+
+*More on the rebuild in [the Coachly case study](/work/coachly).*
