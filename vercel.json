@@ -13,6 +13,11 @@
       "source": "/work/crowd-coach",
       "destination": "/work/coachly",
       "permanent": true
+    },
+    {
+      "source": "/work/crowd-coach/",
+      "destination": "/work/coachly",
+      "permanent": true
     }
   ],
   "headers": [
