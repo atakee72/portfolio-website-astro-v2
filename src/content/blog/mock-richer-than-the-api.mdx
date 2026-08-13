@@ -1,0 +1,58 @@
+---
+title: 'When the mock is richer than the API: three silent bugs 139 tests missed'
+description: 'A generous mock returned reach and saves data the real Instagram integration never fetched, so a substantial test suite passed against a fiction — while an AI advisor recommended ad spend from six-week-old numbers.'
+publishedAt: 2026-08-14
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+mainImage:
+  src: /assets/blog/revintage-insights.webp
+  alt: The Insights screen of Re:Vintage — a followers tile reading 1.9K beside reach and engagement tiles, above a reach-over-time chart; the surface these three bugs quietly corrupted
+categories:
+  - Development
+  - Testing
+  - Case Notes
+stack:
+  - Svelte
+  - Supabase
+  - Instagram Graph API
+draft: false
+---
+
+Three bugs went into one commit on [Re:Vintage](/work/revintage), the dashboard I built to manage clients' Instagram shop accounts — AI-written captions, analytics, coaching tips pulled from an account's own numbers, an auto-publishing calendar, and an AI "boost advisor" that decides which post, if any, is worth ad spend. The commit landed on 2026-08-06. All three bugs had been corrupting analytics for weeks. All three passed a test suite of 139 cases — 115 unit tests across 16 files, 13 integration tests running against the real cloud database, 11 Playwright end-to-end blocks. That's not a small suite for what this dashboard does, and that's the point: the suite was substantial, and it was still structurally blind. None of it caught anything, because the tests were checking behavior against data that only existed in a mock.
+
+Every AI module and the Instagram client itself ships with a deterministic mock twin, switched in at runtime by whether real credentials are present. In mock mode nothing touches the network — convenient for fast, offline test runs. The mock had been built generously: it returned plausible reach, saves, and follower numbers on every call. The real Instagram API never provides most of that data on the calls the app actually makes. The tests were green because they were testing a fiction.
+
+Here's what that fiction was hiding.
+
+## The order-by-ascending bug
+
+Four places in the codebase ran the same query pattern:
+
+```js
+.order(<date column>, { ascending: true }).limit(N)
+```
+
+The intent, all four times, was "get the latest N snapshots, in chart order." What that query actually returns is the *first* N rows — the oldest ones in the table, not the newest. It's correct as long as the table has fewer than N rows. Past that point, every consumer of the query silently freezes on the oldest N rows it will ever see, and nothing errors.
+
+The four consumers were the AI boost endpoint, the coaching endpoint, the Overview loader, and the Insights loader. The boost advisor — the feature that recommends real ad spend — was reasoning from six-week-old snapshots on a live account, including a follower count frozen at "1." The Overview dashboard had the identical bug, with a higher limit, and still looked correct, because that particular account's row count happened to sit five short of the limit. Same code, two different outcomes, purely by accident of table size.
+
+The fix was to query `ascending: false` with the limit, then reverse the result in code, and to centralize the pattern into one shared `latestSnapshots()` helper with a unit test that asserts the query direction — replacing four hand-rolled copies of the same mistake. The heuristic worth keeping: any `order(ascending) + limit` whose intent is "recent" is a bug waiting for the table to grow past the limit. It's worth a grep on any codebase that queries this way.
+
+## A delta stored where a total belongs
+
+Meta's daily insights metric `follower_count` is the number of *new* followers gained that day — usually somewhere between 0 and 3. It is not a running total. The actual total lives on a different field entirely, `followers_count`, on the user object. The two field names differ by a single letter.
+
+The sync code wrote the daily delta into the same `followers` column that also held the running total. Every nightly sync overwrote yesterday's real total — 1917 — with that day's delta, usually 0. The fix is a rule, not a clever trick: never store a delta metric and a level metric in the same column. Write the total once, on today's row, and let history accumulate underneath it.
+
+## Fields the API never sends
+
+The media list endpoint — `/{user}/media?fields=like_count,comments_count` — doesn't carry reach, saves, or shares at all. Each of those needs its own separate call, per post: `GET /{media_id}/insights?metric=reach,saved,shares`. Those calls were never made. Post-level reach was null for every real account, silently. Adding the missing calls is straightforward, but a per-media call needs to be resilient on its own terms — a failure on one post should produce a null for that post, not abort the whole sync.
+
+## The mock was the actual bug
+
+None of the three bugs above are exotic. An off-by-limit query, a metric name that's one letter off from another, an endpoint that doesn't carry the fields you assumed it did — these are the kind of thing a decent test suite exists to catch. Re:Vintage had 139 tests, and not one of them caught any of it, because the mock Instagram client was built to be helpful rather than honest. It returned rich, plausible reach, saves, and follower data on every call — richer than the real API path could ever produce, because it wasn't shaped by what the real client actually fetches.
+
+That's the mechanism, stated plainly: when a mock hands back data the real integration never fetches, every test that exercises that path passes against a fiction. The tests weren't wrong about the mock. They were exhaustively, correctly right about a client that doesn't exist in production. It also explains why three separate bugs, in three separate parts of the codebase, all survived the same suite at once — they didn't slip through three different gaps. They slipped through the same gap, because the gap wasn't in any one test. It was in what the mock was allowed to hand every test that touched it.
+
+The rule I took from this is not "write more tests" — 139 was not a small number for what this dashboard does. It's that a mock should mirror the real client's actual field coverage, not its ideal one. If the real integration never populates reach, the mock has no business returning a number for reach either — it should return whatever the real call would return, null included. A generous mock feels like a harmless convenience while you're writing it: less setup, tidier fixtures, tests that don't need constant babysitting for missing fields. What it actually does is silently widen the gap between what you test and what runs, and it widens that gap in exactly the direction you will never look, because every run is green. The failure isn't visible in the test output. It's visible six weeks later, in a boost advisor recommending ad spend off a follower count that's been stuck at "1" since the day the mock made it unnecessary to check.
