@@ -125,10 +125,19 @@ The URL comes from the **filename** (`src/content/projects/coachly.mdx` → `/wo
 3. Verify BOTH forms after deploy: `curl -s -o /dev/null -w '%{http_code} %{redirect_url}' <url>` — expect 308 on each — and confirm the sitemap dropped the old URL.
 
 ### Write or refresh a case study (`src/content/projects/*.mdx`)
-- **Fixed shape**: exactly four `##` sections — **Problem / Build / Architecture / Reflection** — in that order. Body length runs ~350–600 words; don't let one case study balloon into an outlier (measure the siblings before adding: `for f in src/content/projects/*.mdx; do echo "$(basename $f): $(wc -w < $f)"; done`).
+- **Fixed shape**: exactly four `##` sections — **Problem / Build / Architecture / Reflection** — in that order. Whole-file `wc -w` currently spans 380–895 (dmk 380 · digiscrape 476 · okay 877 · vibes 744 · mahalle 759 · coachly 895). Don't let one balloon into an outlier — measure the siblings before adding: `for f in src/content/projects/*.mdx; do echo "$(basename $f): $(wc -w < $f)"; done`. **Give a subagent a whole-file `wc -w` target, not a "body words" target** — body-vs-frontmatter arithmetic in a brief is a bug factory.
+- **Formatting is per-file, not global.** Most are pure prose, but `okay-uebersetzungen.mdx` uses a short bullet list inside Architecture. A refresh brief must say "keep this file's existing conventions" or the subagent will normalise it to whatever the other case studies do.
 - **No `updatedAt` field** on the projects schema (unlike blog) — a refresh edits the body in place and leaves `publishedAt` alone.
 - **Refresh workflow (proven twice — Jul 2026 case-study wave, Aug 2026 Vibes)**: read-only recon agent surveys the GitHub repo via `gh` (commits since the case study's date, README, `package.json`, file tree, any repo-side CLAUDE.md/ROADMAP) and writes a report file; I then write from the report + my own spot-checks. **Also search Fabric for that project's notes** — the repo tells you *what* shipped, the Fabric gotcha notes tell you *why* a decision was made, which is the material that actually makes a case study worth reading (e.g. Vibes' hand-built modals exist because `prompt()`/`alert()`/`confirm()` interrupt media playback).
 - **Never cite a number the recon flagged uncertain** — a stale test count or metric reads as sloppy and there's no upside.
+- **Read the subagent's DROP list, not just its output.** A word cap forces cuts, and the writer optimises for coverage while the best material is usually one specific story. On both the MaHalle and Okay refreshes (Aug 2026) the report's "facts dropped" section contained the strongest paragraph in the brief — restored by hand both times. Budget-driven cuts are a review item, not a footnote.
+- **A refresh is also an audit.** Check whether claims are still *true*, not only whether they're complete: the Okay case study listed a "testimonials marquee" among the Svelte islands after it had become a plain `.astro` component, and said `LocalBusiness` where the schema emits `ProfessionalService`. Ask the recon agent for an explicit claim-by-claim STILL TRUE / CHANGED / UNVERIFIABLE audit — it catches what a "what shipped since" diff never will.
+
+### Screenshot a live app for a case study
+Same Playwright/sharp recipe as the blog (see SEO section), with three project-specific notes:
+- **Viewport shots, not full-page.** `ImageStrip` renders every shot at a fixed 400px height with `object-contain`, so a tall full-page capture becomes an unreadable sliver. Capture at 1440×900 with `deviceScaleFactor: 2`, then sharp → WebP q70 @1600px (lands ~70–125 KB).
+- **The `cover` is prepended into the strip** whenever `screenshots` is non-empty (`ProjectPageLayout.astro`) — so the cover image is shot #1 and the array is #2 onward. Don't duplicate the cover into the array.
+- **Look at every capture before wiring it.** Screenshotting a live app surfaces whatever is actually in it: the MaHalle Forum and Markt shots came back full of keyboard-mash test posts (`hehjehej`, `dfjaksfas asdfasdf`), which reads as an unfinished product on a portfolio. Those two were held back and flagged rather than published.
 
 ### Add a new section to the home page
 1. Create `src/components/NewSection.astro` (wrap in `<AppWrap id="...">` if it should be a navigable section)
@@ -187,6 +196,13 @@ The homepage (`src/pages/index.astro`) deliberately caps each section to keep th
 - **Contact sheet** (`ContactSheet.astro`) — **hardcoded 9 cells** in `src/data/contactSheet.ts`. Curated highlight area, not a feed. Current composition: 3 photo + 2 paint (both showing album covers) + 3 code + 1 link (website-museum tile). Photo cells take `slug: '<roll>'`, paint cells take `album: '<slug>'` (or `painting: '<id>'` for a single work) — all auto-resolve cover images and add lightbox CTAs.
 - **Blog** — capped at **6 most recent** posts (`BLOG_HOME_CAP` in `index.astro`). Overflow goes to `/blog/index.astro`. Signpost link "see all entries →" appears in the section header only when there's actual overflow (`hasMore` prop).
 - **Work** — capped at **6** projects (`HOME_CAP` in `ExifWork.astro`). Overflow goes to `/work/index.astro`. Same signpost pattern.
+
+### Project order on the homepage and `/work`
+Two independent frontmatter levers, both read by `getAllProjects()` in `src/lib/content.ts`:
+- **`order`** (optional number, lowest first) — the curated position. Every project currently sets it: mahalle 1 · coachly 2 · dmk-musician 3 · okay-uebersetzungen 4 · vibes-music-player 5 · digiscrape 6. Anything *without* an `order` sorts behind everything that has one, then falls back to featured-first / `publishedAt` desc — so a newly added project lands at the back until you place it deliberately.
+- **`featured`** (boolean) — purely the *visual* flag: `ExifWork.astro` gives it `lg:col-span-2`, i.e. the wide hero card. It also still breaks ties among projects with no `order`. Exactly one project should carry it (currently mahalle).
+
+**To reorder, edit `order` in the frontmatter — don't touch `publishedAt`.** Dates are facts; re-dating a case study to move a card is how a portfolio starts lying about its own timeline. (Added Aug 2026 — before it, `featured` + date was the only lever, which could promote a project to first but never demote one to last.)
 
 `ProjectCard.astro` is shared between the homepage `<ExifWork>` and the `/work` overflow page so the card markup stays DRY.
 
