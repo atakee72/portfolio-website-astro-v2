@@ -1,0 +1,146 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Navbar from '@/components/Navbar.astro';
+import Footer from '@/components/Footer.astro';
+
+// Posts that tell these stories properly. The colophon points; it doesn't retell.
+const reading = [
+  {
+    href: '/blog/migrating-portfolio-nextjs-sanity-to-astro',
+    title: 'Migrating my portfolio from Next.js + Sanity to Astro 5',
+  },
+  {
+    href: '/blog/gdpr-safe-by-construction',
+    title: 'GDPR-safe by construction: German-market sites with nothing to consent to',
+  },
+  {
+    href: '/blog/self-service-photo-pipeline',
+    title: 'A self-service photo pipeline: git-based CMS + Cloudinary on a static Astro site',
+  },
+  {
+    href: '/blog/three-darkrooms',
+    title: 'Three darkrooms: shooting digital, thinking in film',
+  },
+];
+---
+
+<BaseLayout
+  title="Colophon — how this site is built"
+  description="What ercan-atak.de runs on: Astro 5, four Svelte islands, Cloudinary, and no cookie banner because there is nothing to consent to."
+>
+  <Navbar />
+
+  <main
+    class="
+      px-4 pt-4 pb-6 md:px-6 md:pt-6 md:pb-7 lg:px-9 lg:pt-9 lg:pb-7
+      max-w-[1320px] mx-auto
+    "
+  >
+    <p class="text-[11px] text-mute-2 tracking-[0.18em] uppercase mb-2 font-mono">
+      <a href="/" class="hover:text-phosphor transition-colors">// home</a>
+      &nbsp;/&nbsp;colophon
+    </p>
+
+    <article
+      class="
+        prose prose-sm prose-invert max-w-3xl
+        prose-headings:font-display prose-headings:tracking-[-0.02em]
+        prose-h1:text-paper-hi prose-h1:text-2xl
+        prose-h2:text-paper prose-h2:text-base prose-h2:mt-8 prose-h2:mb-2
+        prose-p:text-paper-2 prose-p:leading-[1.6] prose-p:text-[13px]
+        prose-li:text-paper-2 prose-li:leading-[1.6] prose-li:text-[13px]
+        prose-a:text-phosphor prose-a:no-underline hover:prose-a:underline
+        prose-hr:border-ink-3 prose-hr:my-10
+        prose-strong:text-paper
+      "
+    >
+      <h1>Colophon</h1>
+
+      <p>
+        This site is a project like the others, so here is what it runs on.
+        It began as Next.js 14 with Sanity as the CMS and was rebuilt on
+        Astro, mostly to stop shipping a framework to readers who only
+        wanted to read.
+      </p>
+
+      <h2>Build</h2>
+
+      <p>
+        <strong>Astro 5</strong>, static output, with View Transitions
+        between pages. Almost everything is a server component that ships
+        no JavaScript at all. Four things genuinely need a browser, and
+        those are <strong>Svelte 5</strong> islands: the mobile menu, the
+        live clock, the reticle cursor, and the contact form. Styling is
+        <strong>Tailwind</strong>, dark only — there is no light theme and
+        no toggle, which is a design decision rather than an unfinished
+        one.
+      </p>
+
+      <p>
+        Content lives in the repository, not a hosted CMS. Five Astro
+        content collections — blog, work, lens, paints, testimonials —
+        each validated by a <strong>Zod</strong> schema at build time, so a
+        malformed entry fails the build instead of the page. Writing is
+        MDX. A combined RSS feed spans four of the five.
+      </p>
+
+      <h2>Photography</h2>
+
+      <p>
+        Images are served from <strong>Cloudinary</strong>, watermarked by
+        a transformation rather than by hand, and stripped of their
+        metadata on delivery — no GPS, no camera serial, no software
+        fingerprint in anything you can download. The captions still show
+        full EXIF, because that is read server-side from the stored
+        original at build time. Rolls and albums are edited through a
+        git-based CMS that commits straight to the repository, so
+        publishing a set of photos is a commit like any other.
+      </p>
+
+      <h2>Privacy</h2>
+
+      <p>
+        There is no cookie banner because there is nothing to consent to.
+        The site sets no cookies, and uses no LocalStorage or
+        SessionStorage at all. Analytics is <strong>GoatCounter</strong>,
+        which is cookieless and stores no personal data. Fonts are
+        self-hosted rather than loaded from Google's CDN — a German court
+        decided in 2022 that the CDN version is an unconsented transfer of
+        visitors' IP addresses to the US, and opportunistic claim letters
+        followed. Email addresses and the postal address on the legal
+        pages are encoded in the markup and assembled in the browser, so
+        they never appear as literal strings in the HTML a scraper fetches.
+      </p>
+
+      <p>
+        Security headers are set at the edge, secrets are scanned on every
+        commit and every push, and the form posts to a third-party endpoint
+        that never stores a message.
+      </p>
+
+      <h2>Where it runs</h2>
+
+      <p>
+        Hosted on <strong>Vercel</strong>, DNS at Cloudflare, domain
+        registered at Porkbun, mail at <strong>mailbox.org</strong> in
+        Berlin — chosen so that no message leaves the EU on its way to me.
+      </p>
+
+      <h2>Longer versions</h2>
+
+      <p>
+        Four posts cover most of the above at proper length:
+      </p>
+
+      <ul>
+        {reading.map((r) => (
+          <li>
+            <a href={r.href}>{r.title}</a>
+          </li>
+        ))}
+      </ul>
+    </article>
+  </main>
+
+  <Footer />
+</BaseLayout>
