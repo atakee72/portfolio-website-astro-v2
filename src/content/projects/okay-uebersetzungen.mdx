@@ -39,19 +39,20 @@ loaded up front, no consent banner covering up a privacy mess.
 
 Static Astro 6 with Tailwind 4 (tokens in `@theme`, no config file) and
 Svelte 5 islands for the stateful pieces — FAQ accordion, document
-register, contact wizard, testimonials marquee, voice assistant. The
-whole site is bilingual DE / TR: shared UI-string dictionary for
-chrome, separate Turkish pages under `/tr/` for long-form copy,
-route-aware language switcher with `hreflang` alternates.
+register, contact wizard, voice assistant. The whole site is bilingual
+DE / TR: shared UI-string dictionary for chrome, separate Turkish
+pages under `/tr/` for long-form copy, route-aware language switcher
+with `hreflang` alternates — now covering nearly every page.
 
 The intake flow is a single OrderWizard (service → languages →
 document description with file upload → quote-vs-order toggle →
 phone-validated contact via `libphonenumber-js`). Documents go through
-**Cloudflare R2** with signed links (the old Web3Forms direct-upload
-path was capped and started returning HTTP 400 on real files). The
-submit endpoint is gated by **Cloudflare Turnstile** — invisible, no
-cookies, so no consent needed. Uploads carry magic-byte validation and
-per-IP rate limits stored in **Cloudflare KV**.
+**Cloudflare R2** — EU bucket, 14-day signed links, 30-day auto-delete
+(the old Web3Forms direct-upload path was capped, returning HTTP 400
+on real files). The submit endpoint is gated by
+**Cloudflare Turnstile** — invisible, no cookies, so no consent
+needed. Uploads carry magic-byte validation and per-IP rate limits in
+**Cloudflare KV**.
 
 The office map is a self-hosted PNG stitched from OSM tiles, not a
 live embed, so the contact page transfers zero data to a tile
@@ -68,7 +69,12 @@ under that:
   Function mints an ephemeral Gemini Live token (`GEMINI_API_KEY` stays
   server-side), the `@google/genai` SDK lazy-loads, and a native-audio
   session opens. The agent stays general-info only, refuses PII,
-  routes real orders into the OrderWizard, stores nothing.
+  routes real orders into the OrderWizard, stores nothing. Firefox
+  stuttered on streaming playback, Chrome didn't, and a bigger jitter
+  cushion didn't help — which was the tell: the bug was in the audio
+  pipeline, not in chunk timing. The cause was a forced sample rate on
+  the output `AudioContext`; Firefox now runs it at the device's
+  native rate.
 - **Observability** is Sentry, **EU-region** — but shaped to the
   privacy story. Server-side (Pages Functions) is unconditional and
   invisible to visitors. The browser-side reporter is **custom,
@@ -76,12 +82,24 @@ under that:
   only to catch voice failures the user is already inside; no
   page-load telemetry, no breadcrumbs, no SDK bundle.
 
+Testing grew alongside the feature set — **Vitest**, Testing Library,
+jsdom, **Playwright**, an axe-core audit — plus **GitHub Actions CI**
+running install, `astro check`, tests, build on every PR and push,
+with **Dependabot** enabled.
+
 Self-hosted Inter / Manrope / Instrument Serif / Homemade Apple
 (woff2, preloaded above the fold). Cookie-less Cloudflare Web
-Analytics, security headers in `public/_headers`. Rich JSON-LD entity
-graph (`LocalBusiness` with `foundingDate`, `Person`, `FaqPage`,
-`DefinedTerm` for the glossary) plus `llms.txt` and freshness signals
-for the SEO/GEO program.
+Analytics; `public/_headers` runs HSTS, a full CSP, frame/content-type
+and referrer/permissions protections, plus `Cross-Origin-Opener-Policy`.
+That last group needs care around a voice feature: `microphone=()` is
+the natural thing to write when you're locking everything down, and it
+disables `getUserMedia` across the whole site. It has to be
+`microphone=(self)`. The JSON-LD entity graph is
+`ProfessionalService` — a `LocalBusiness` subtype — plus `Person`,
+`FaqPage` and `DefinedTerm`, with fields emitted only where the data
+actually exists: `foundingDate` is there now that 1984 is confirmed,
+`vatID` stays out until there's a number to put in it. `llms.txt` and
+freshness signals round out the SEO/GEO program.
 
 ## Reflection
 
@@ -93,5 +111,19 @@ The lesson generalised: the same "no third party until the user is
 already inside a voluntary experience" pattern shaped the error-reporting
 decision too. Server-side observability sits where it doesn't touch
 the visitor; browser-side error capture only arms after they've
-accepted the voice channel. Privacy isn't a constraint you route
-around — it's a design that keeps working as the feature list grows.
+accepted the voice channel.
+
+That tidy story had a hole. The browser-side reporter shipped, and the
+dashboard stayed empty for a month — read as "no errors." It wasn't:
+the site's own CSP was rejecting every event, because nobody added
+Sentry's ingest host to `connect-src` when the reporter shipped. It
+stayed invisible because a monitoring reporter swallows its own
+failures, and the server-side reporter, running where no CSP applies,
+worked fine, masking it. The fix is a habit now: extend `connect-src`
+in the same commit as any new browser-side endpoint. A consent gate
+decides whether a request gets made; the policy decides whether it
+arrives, and neither knows anything about the other.
+
+Privacy isn't a constraint you route around — it's a design that
+keeps working as the feature list grows, provided you can tell when
+it's gone quiet for the wrong reason.
