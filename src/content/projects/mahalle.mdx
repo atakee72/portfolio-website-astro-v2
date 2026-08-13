@@ -2,7 +2,8 @@
 title: MaHalle
 subtitle: Home-made Facebook for the Kiez
 publishedAt: 2026-07-19
-featured: false
+featured: true
+order: 1
 cover:
   src: /assets/maHalle.png
   alt: Logo of MaHalle
@@ -93,8 +94,8 @@ The database had its own arc: functions ran in Washington while Atlas
 sits in Frankfurt — legible in the `x-vercel-id` header as
 `fra1::iad1` — so every query crossed the Atlantic and cold starts
 blew the 5-second server-selection timeout. Pinning functions to
-`fra1` helped, not
-enough, so the timeout rose to 10 seconds. The real fix was in
+`fra1` helped, not enough, so the timeout rose to 10 seconds. The
+real fix was in
 `src/lib/mongodb.ts`: a module-scope `connect()` cached its failed
 promise on `globalThis`, poisoning the container after one bad cold
 start.

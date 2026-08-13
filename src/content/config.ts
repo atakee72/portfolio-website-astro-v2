@@ -122,6 +122,11 @@ const projectsCollection = defineCollection({
         })
       )
       .default([]),
+    // Curated display position, lowest first. Projects without one fall in
+    // behind those that have one, featured first, then newest. Set it on every
+    // project if you want the whole run curated — a half-set list is legal but
+    // reads as arbitrary.
+    order: z.number().optional(),
     exif: z.object({
       stack: z.string(),
       year: z.string(),

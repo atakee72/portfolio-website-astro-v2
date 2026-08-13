@@ -136,7 +136,15 @@ export async function getAllProjects() {
   });
 
   return projects.sort((a, b) => {
-    // Featured first, then publishedAt desc.
+    // Curated `order` wins (lowest first). Anything without one sorts behind
+    // everything that has one — featured first, then publishedAt desc.
+    const ao = a.data.order;
+    const bo = b.data.order;
+    if (ao !== bo) {
+      if (ao === undefined) return 1;
+      if (bo === undefined) return -1;
+      return ao - bo;
+    }
     if (a.data.featured !== b.data.featured) {
       return a.data.featured ? -1 : 1;
     }
