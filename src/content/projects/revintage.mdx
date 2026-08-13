@@ -1,0 +1,138 @@
+---
+title: 'Re:Vintage'
+subtitle: Running other people's Instagram shops from one dashboard
+publishedAt: 2026-08-13
+featured: false
+order: 2
+cover:
+  src: /assets/projects/revintage-overview.webp
+  alt: The overview screen — follower, reach and engagement tiles above a reach-over-time chart, coin balance in the sidebar
+  cloud: false
+screenshots:
+  - src: /assets/projects/revintage-create.webp
+    alt: The Create screen — a photo drop zone beside an empty caption panel, with a model picker offering Fast, Balanced and Premium at one, three and six coins
+    caption: create — the cost and the balance after it, shown before you spend
+    cloud: false
+  - src: /assets/projects/revintage-coaching.webp
+    alt: The Coaching screen — three plain-language tips drawn from the account's own numbers, each tagged by goal, with an English/German toggle
+    caption: coaching — the account's own numbers, restated as things to do this week
+    cloud: false
+  - src: /assets/projects/revintage-boost.webp
+    alt: The boost advisor recommending against spending, headed "Nothing worth boosting yet" because the best posts are stale and nothing recent beats the account average
+    caption: boost — the most useful answer is often "not yet"
+    cloud: false
+  - src: /assets/projects/revintage-calendar.webp
+    alt: The content calendar in month view, with an empty unscheduled-drafts column alongside
+    caption: calendar — scheduled posts publish themselves
+    cloud: false
+  - src: /assets/projects/revintage-settings.webp
+    alt: The Settings screen — shop name, two caption languages, six tone chips with four selected, and a product-categories field
+    caption: settings — the tone chips are prompt inputs, not decoration
+    cloud: false
+exif:
+  stack: SvelteKit 2 + Svelte 5 + Tailwind 4 + Supabase (Postgres/RLS) + Anthropic + Instagram Graph API + Sentry + Vercel
+  year: '2026'
+  status: live
+  role: full-stack · product
+  tags:
+    - client-work
+    - fullstack
+    - ai
+    - multi-tenant
+    - instagram
+draft: false
+---
+
+## Problem
+
+A vintage clothing shop's Instagram account needed running, not just
+scheduling — captions and alt text in two languages, a calendar that
+publishes on time, and an honest read on whether a post is worth ad money.
+I took it on as a service rather than handing over a tool, which meant
+building for someone operating accounts that aren't their own.
+
+## Build
+
+SvelteKit 2 with Svelte 5 runes and Tailwind 4, on Supabase Postgres with
+row-level security, talking to Meta's Instagram API and the Anthropic SDK,
+monitored by Sentry, on Vercel. Live and in daily use — 87 commits between
+June and August 2026.
+
+One dashboard drives several client accounts: captions and alt text,
+analytics, coaching tips written from the account's own numbers, a
+calendar that auto-publishes, and a boost advisor whose most useful answer
+is often "nothing yet." AI use is metered in coins — one for the fast
+model, three for the balanced, six for the most capable — costed before
+you spend; short of a tier, the app offers the next one down rather than
+refusing.
+
+The original design was a multi-tenant SaaS, architected so that opening
+it to other shops would be "configuration, not a rewrite." In July that
+was parked, and the replacement wasn't a rewrite either: the pivot's
+premise was that the app was already fully multi-tenant and operator mode
+a strict superset of it. That held — a membership table, an active-account
+column and one redefined SQL function were enough, because every screen
+already resolved its data through that function. The marketing site,
+billing tables and bring-your-own-key tier were never built.
+
+## Architecture
+
+Every tenant table carries an account id, and every row-level-security
+policy compares it against one function — which re-validates the caller's
+membership inside its own body, on every call rather than when the account
+was selected, so a stale or forged value can't reach another tenant's
+rows. The operator flag is separate and far narrower: absent from every
+policy, it gates the single function that creates a client account.
+
+Captions and boost plans come back through forced tool use, so the model
+returns a structured object rather than prose to parse. That guarantees an
+answer's shape and nothing about its sense, which the code treats as a
+second problem: a sanitiser clamps the budget to €3–50 a day, the run to
+2–10 days, and drops recommendations pointing at posts that aren't in the
+synced data.
+
+Two clocks. The nightly analytics sync runs on the host's cron; the
+fifteen-minute publish sweep can't, because that tier's cron fires once a
+day, so it runs from a scheduled GitHub Actions workflow. Publishing is
+Meta's three-step dance — create a container, poll until finished, publish
+— with ten polls three seconds apart. That thirty-second budget is a
+compromise: containers usually finish in seconds, but a spurious timeout
+switches the post's auto-publish off, so slow processing gets headroom
+while staying under the function's sixty-second ceiling. Any failure
+writes a readable message onto the row and switches auto-publish off too,
+so a broken post leaves the queue instead of failing forever.
+
+Behind it: 115 unit cases, 13 integration cases against the real cloud
+database, 11 Playwright blocks on a single worker. None of it runs in CI —
+the suite is run by hand, which is the honest gap here.
+
+## Reflection
+
+One commit in August fixed three silent bugs in the analytics path. A
+query copied into four places asked for rows in ascending date order with
+a limit, which returns the oldest rows, not the newest; it looked right
+until a table outgrew the limit, and then every consumer froze on old
+data. The boost advisor was recommending ad spend from six-week-old
+snapshots on a live account, while the dashboard — same bug, higher limit
+— still looked fine. Meta's daily follower count is a delta, the few new
+followers that day, and it was being written into the column holding the
+running total, overwriting a real figure near 1,900 with almost nothing.
+Per-post reach and saves aren't on the media endpoint at all; each needs
+its own call, and those calls were never made.
+
+Not one test caught any of it, because the mock Instagram client returned
+rich, plausible data — richer than the real API could ever produce. When a
+mock hands back data the real integration never fetches, every test passes
+against a fiction.
+
+Staying inside Meta's development mode is a decision, not a shortcut:
+accounts holding a role get every permission, publishing included, and App
+Review exists to gate strangers rather than a managed roster. The ceiling
+is around fifty accounts, and it is what made auto-publishing buildable at
+all.
+
+Running the accounts as a service, rather than selling the software, is
+how I find out whether demand for the second thing is real — before paying
+for review, verification, billing and support to find out. The
+multi-tenant machinery is already built and running underneath. The
+service is the business; self-serve is a door left open.
