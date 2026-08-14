@@ -15,7 +15,7 @@ stack:
 draft: false
 ---
 
-My music library is 463 tracks, managed with beets — the same library that [broke five things in my browser music player](/blog/real-library-broke-my-music-player) when I finally pointed the app at it. The files are loose singletons — individual songs, not album folders — and that's deliberate, not an accident of leaving the import defaults alone. The config carries a dedicated singleton naming template, `$artist - $title`, and every import command I use runs as `beet import -s`. My own setup notes say it outright: "the library is loose files, not album folders. Always use `beet import -s`."
+My beets library is 463 tracks — a deliberate slice of a much larger collection, since I'm still working out whether this setup is one I want to commit everything to. It's the same library that [broke five things in my browser music player](/blog/real-library-broke-my-music-player) when I finally pointed the app at it. The files are loose singletons — individual songs, not album folders — and that's deliberate, not an accident of leaving the import defaults alone. The config carries a dedicated singleton naming template, `$artist - $title`, and every import command I use runs as `beet import -s`. My own setup notes say it outright: "the library is loose files, not album folders. Always use `beet import -s`."
 
 beets is excellent, and it's built around albums, which is a reasonable choice — most music libraries are albums, mine just isn't. Two features broke against that assumption: genre tagging and cover art. Neither one told me anything was wrong. One produced no output at all; the other just quietly did nothing every time it ran.
 
