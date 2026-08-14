@@ -1,0 +1,63 @@
+---
+title: 'beets assumes albums. My library is 463 loose songs.'
+description: 'Two beets plugins did nothing at all on an all-singleton library, and neither said so — no error, no output. Replacing one of them with a custom script then taught me two more things about trusting a search API.'
+publishedAt: 2026-08-14
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Development
+  - Tooling
+  - Case Notes
+stack:
+  - beets
+  - Python
+draft: false
+---
+
+My music library is 463 tracks, managed with beets — the same library that [broke five things in my browser music player](/blog/real-library-broke-my-music-player) when I finally pointed the app at it. The files are loose singletons — individual songs, not album folders — and that's deliberate, not an accident of leaving the import defaults alone. The config carries a dedicated singleton naming template, `$artist - $title`, and every import command I use runs as `beet import -s`. My own setup notes say it outright: "the library is loose files, not album folders. Always use `beet import -s`."
+
+beets is excellent, and it's built around albums, which is a reasonable choice — most music libraries are albums, mine just isn't. Two features broke against that assumption: genre tagging and cover art. Neither one told me anything was wrong. One produced no output at all; the other just quietly did nothing every time it ran.
+
+That's the finding worth stating up front: a tool that assumes a shape doesn't have to fail outside that shape to hurt you. It can just do nothing, and look exactly like something else.
+
+## The genre backfill that ran on nothing
+
+`beet lastgenre` defaults to operating on albums — its argument parser sets `album=True` unless told otherwise. On an all-singleton library there are zero albums to operate on, so the command exits instantly. No error, no non-zero exit, no output. It's not that the lookup failed; there was nothing for it to iterate over in the first place.
+
+That's a worse failure than a crash, because it's legible as a completely different problem. It looks exactly like "Last.fm has no genre data for my music" — a clean, silent exit reads the same whether the target set is empty or the data genuinely isn't there. The actual fix is one flag: `beet lastgenre -A`, where `-A` means operate on items instead of albums.
+
+The generalizable rule, from my own notes: the same album-default pattern shows up in other beets commands, not just this one. On a singleton library, the move is to check whether a command has an items flag before trusting its silence.
+
+Two more things came out of chasing this down. In beets 2.x, the single-value `genre` field is deprecated in favor of the multi-value `genres` — I query the empty ones with `genres::'^$'`. And genre lookups failed for a second, unrelated reason on some tracks: files ripped from video sites carried junk tags — an uploader or channel name sitting in the artist field, `(Official Video)` left in the title, artist and title swapped. Last.fm can't match garbage like that. The missing genre was a symptom; dirty tags were the cause. Genre coverage is now 459 of 463 — the rest is mostly Turkish and other non-Anglophone artists Last.fm genuinely has no tags for, and I assigned those by hand.
+
+## The cover art that was never going to arrive
+
+`fetchart` has the same problem, except this time I didn't have to infer the mechanism — it's visible in the plugin's own source. Its import stage is gated behind `if task.is_album:`, with the comment `# Only fetch art for full albums`. On my library, fetchart was configured, enabled, and doing nothing — permanently, by design, and it would never have logged a word about it. It wasn't failing to find art; it was never asked to look.
+
+I replaced it with a small script that queries the iTunes Search API — no key required — by artist and album, falls back to artist and title, and embeds whatever it finds with `beet embedart`. Cover art is now 463 of 463.
+
+## What the replacement script taught me
+
+Fixing the two beets gaps meant writing my own tool, and that tool surfaced two problems of its own — neither one about beets, both about trusting the wrong signal.
+
+The first was detection. To know which tracks still needed art, the script has to check for existing embedded artwork first. I used ffprobe for that, and it gave false negatives: ffprobe doesn't reliably surface the MP4 `covr` atom as a video stream, so it reported "no artwork" on files that plainly had some. The symptom was coverage numbers that swung between runs for no reason — 88 missing, then 47, then actually 4 — and art getting re-embedded into files that already had it. The fix was to stop asking ffprobe and use what beets itself uses internally:
+
+```python
+import mediafile
+has_art = bool(mediafile.MediaFile(path).images)
+```
+
+The second problem was worse, because it fails silently in the direction that matters. Searching artist and album on the iTunes API and taking `results[0]` returns *something* for almost any query, related or not. Real results from my library: Athena → The Who. Bon Jovi → The Commodores. Pamela → Toto. Roughly 8% of matches were unrelated covers, and because the first version of the script embedded them without checking, they went straight into the files.
+
+The fix has two parts. Request `limit=5` and require the candidate's `artistName` to actually match the track's artist — a `difflib` ratio of 0.6 or better, or a substring match either way. And fall back from artist-plus-album to artist-plus-title, which matters more than it sounds: tracks with an empty album field only ever resolve on the title term.
+
+The principle underneath both fixes: wrong art baked into a file is worse than no art. When nothing verifies, leave it empty.
+
+(One useful detail along the way: the API returns a 100px thumbnail as `artworkUrl100`, and swapping `100x100bb` for `1000x1000bb` in that string gets you a 1000px version.)
+
+## The pattern, and where it stops applying
+
+A tool built around a dominant assumed shape doesn't have to fail outside that shape — it can just do nothing, and report nothing. beets isn't wrong to assume albums; most libraries are albums, and building for the common case is the right call. But the failure mode for the uncommon case is silence rather than an error, so the entire cost lands on whoever happens to have the unusual library. Both breaks here were invisible until something downstream looked wrong — a genre field nobody filled in, a cover that never showed up.
+
+I want to be honest about how far that explains things, because it's tempting to let one tidy pattern cover more ground than it earns. When I went back through this whole setup expecting the album assumption to account for most of my workarounds, it didn't. It explains exactly these two — genre, and cover art. The rest of the friction has a completely different cause: running beets over a WSL2 bridge onto a Windows folder, where filenames are case-insensitive and I/O is slow. That's a separate post.
