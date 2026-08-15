@@ -1,5 +1,4 @@
 User-agent: *
-Disallow: /lens/
 Disallow: /impressum
 Disallow: /datenschutz
 
@@ -20,17 +19,14 @@ Disallow: /
 # AI answers (ChatGPT search, Perplexity, etc.). Same private-path
 # exclusions as the general rule; these bots don't feed model training.
 User-agent: OAI-SearchBot
-Disallow: /lens/
 Disallow: /impressum
 Disallow: /datenschutz
 
 User-agent: ChatGPT-User
-Disallow: /lens/
 Disallow: /impressum
 Disallow: /datenschutz
 
 User-agent: PerplexityBot
-Disallow: /lens/
 Disallow: /impressum
 Disallow: /datenschutz
 

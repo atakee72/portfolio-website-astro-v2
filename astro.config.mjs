@@ -14,8 +14,13 @@ export default defineConfig({
       applyBaseStyles: false, // We'll use our own globals.css
     }),
     sitemap({
+      // Keep out anything that is noindex or robots-disallowed — submitting a
+      // URL you also forbid is a Search Console warning and nothing else.
+      // /reblog is the operator-only linkpost capture tool (noindex).
       filter: (page) =>
-        !page.endsWith('/impressum/') && !page.endsWith('/datenschutz/'),
+        !page.endsWith('/impressum/') &&
+        !page.endsWith('/datenschutz/') &&
+        !page.includes('/reblog'),
     }),
   ],
   output: 'static',
