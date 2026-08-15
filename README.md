@@ -1,12 +1,12 @@
 # Portfolio
 
-Personal portfolio website by **Ercan Atak** — software case studies, journal, photography rolls, painting albums, and contact. Live at [ercan-atak.de](https://ercan-atak.de).
+Personal portfolio website by **Ercan Atak** — software case studies, journal, photography rolls, painting albums, a [colophon](https://ercan-atak.de/colophon), and contact. Live at [ercan-atak.de](https://ercan-atak.de).
 
 ## Tech Stack
 
 - **[Astro 5](https://astro.build/)** with static output and View Transitions
 - **[Svelte 5](https://svelte.dev/)** (runes API) for interactive islands
-- **[Tailwind CSS](https://tailwindcss.com/)** with class-based dark mode
+- **[Tailwind CSS](https://tailwindcss.com/)** — a single dark "darkroom" palette baked into the theme, plus `@tailwindcss/typography`. There is no `darkMode` setting and no `dark:` variants; light mode is out of scope, not deferred.
 - **MDX/JSON** + Astro Content Collections (blog, work, photo rolls, painting albums, testimonials), managed via Sveltia CMS + Cloudinary
 - **TypeScript** (strict)
 - **pnpm** package manager
@@ -39,15 +39,18 @@ description: "Short description"
 publishedAt: 2026-05-11
 author:
   name: "Your Name"
-mainImage:
-  src: "/assets/your-image.png"
-  alt: "Image alt text"
-categories: ["tag1", "tag2"]
+categories: ["Development", "Tooling"]
+stack: ["Astro", "Svelte"]
 draft: false
 ---
 
 Your MDX content here.
 ```
+
+Only `title`, `description`, `publishedAt` and `author.name` are required. `mainImage`
+is optional — half the posts have none, and it renders as a visible hero as well as
+the `og:image`, so don't repeat it inside the body. `updatedAt` is also optional and
+adds a visible "updated" date plus `dateModified` in the JSON-LD.
 
 Drafts (`draft: true`) are hidden in production builds and visible in dev.
 
@@ -69,7 +72,9 @@ src/
 
 ## Deployment
 
-The project builds to static HTML and can be deployed to any static host (Vercel, Netlify, Cloudflare Pages, GitHub Pages, etc.). Before deploying, update the `site:` value in `astro.config.mjs` to your production URL so the sitemap is generated correctly.
+Deployed on **Vercel**, pushing to `main` — DNS at Cloudflare (DNS-only, never proxied), domain at Porkbun. The build is static HTML, so any static host would work.
+
+The canonical URL lives in one place: the `site:` value in `astro.config.mjs`, which feeds the sitemap, canonical tags and `og:url`. Change it there and nowhere else.
 
 ## History
 

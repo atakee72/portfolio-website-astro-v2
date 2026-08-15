@@ -20,7 +20,7 @@ Package manager is **pnpm** (lockfile is committed).
 - **Astro 5** with `output: 'static'` and View Transitions
 - **Svelte 5** (runes API) — used for the four interactive islands only
 - **`@astrojs/svelte@^7`** — note: `@astrojs/svelte@8+` requires Astro 6, do not upgrade until Astro itself is upgraded
-- **Tailwind CSS 3** via `@astrojs/tailwind` with class-based dark mode and `@tailwindcss/typography`
+- **Tailwind CSS 3** via `@astrojs/tailwind` with `@tailwindcss/typography` — single dark palette, **no `darkMode` setting and no `dark:` variants anywhere** (see the theme section below)
 - **MDX** for blog posts (`@astrojs/mdx`)
 - **Zod** for content-collection schemas
 - **`clsx` + `tailwind-merge`** via `cn()` in `src/lib/utils.ts`
@@ -92,10 +92,19 @@ Anchor hrefs are root-relative (`/#home`, `/#sheet`, etc.) so they work from any
 - Light mode is out of scope, not deferred (see memory `project_dark_only`). Don't reintroduce a toggle.
 
 ### Tailwind config (`tailwind.config.ts`)
-- `darkMode: 'class'`
-- Custom colors: `primary` `#edf2f8`, `secondary` `#313bac`, `lightGray` `#e4e4e4`, `brown` `#46364a`, `yavru` `#f38083`
-- Custom breakpoints: `xxs` 300px, `xs` 475px
-- Custom keyframe `slidein` with delay variants `slidein300/500/700`
+Verified against the file 2026-08-15 — the previous version of this section still
+described the pre-darkroom theme (`darkMode: 'class'`, `primary`/`secondary`/`brown`/
+`yavru` colours, a `slidein` keyframe). **None of that exists.** If you're about to
+cite a token from here, it's cheap to re-check the file.
+
+- **No `darkMode` key at all**, and no `dark:` variant anywhere in `src/` — the single dark palette IS the theme. See the theme section above.
+- Colours (`theme.extend.colors`): `ink` `#0d0d0c` · `ink-2` `#18181a` · `ink-3` `#2a2a28` · `mute` `#6a6a66` · `mute-2` `#9a9a92` · `paper-2` `#c2bfb6` · `paper` `#e8e5dd` · `paper-hi` `#f4f1ea` · `safelight` `#ff3b30` (the darkroom red — used for `FRAME 36/36` and the footer's `+` separators) · `phosphor` `#d4ff3a` (the accent/hover green)
+- Fonts: `font-mono` → JetBrains Mono, `font-display` → Space Grotesk (both self-hosted via `@fontsource`, see the legal section)
+- Custom sizes: `text-display` 124px · `text-h2` 26px · `text-label` 13px · `text-micro` 10px, each with its own tracking
+- **`borderRadius` is `0` for both `none` and `DEFAULT`** — square corners are a deliberate design choice; `rounded` does nothing
+- **Named z-index scale**: `grid` 1 · `chrome` 10 · `reticle` 50 · `modal` 90. Worth knowing alongside the `CloudPhoto` overlay gotcha above — that overlay sits at `z-10`, i.e. `chrome` level
+- Animation: one keyframe, `darkBlink` (opacity 1↔0, `steps(2)`, 1s infinite)
+- Custom breakpoints: `xxs` 300px, `xs` 475px, then Tailwind's defaults spread in
 - **Content glob includes `.svelte`** — if you add a new file extension that uses Tailwind classes, update the glob or styles get purged
 
 ## Gotchas

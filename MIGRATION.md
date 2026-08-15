@@ -73,6 +73,13 @@ Migrated the portfolio from Next.js 14 + Sanity CMS to Astro (static output) wit
 | MobileMenuBtn.jsx | MobileMenuBtn.tsx → `.svelte` (Phase 2) | Client island |
 
 ## Features Preserved
+
+> **Historical snapshot — accurate at the time of this migration, not now.** The
+> later darkroom redesign replaced the visual design wholesale, removed the theme
+> toggle (the site is dark-only, with no `darkMode` config and no `localStorage`),
+> and dropped the `slidein` animations. Read this list as a record of what carried
+> over then, not as a description of the current site.
+
 - ✅ Visual design (pixel-perfect)
 - ✅ Dark mode
 - ✅ Blog posts (3 examples, MDX-authored, categories + images)
