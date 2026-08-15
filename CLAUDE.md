@@ -9,6 +9,10 @@ Personal portfolio site built with **Astro 5** (static output). Content is local
 ```bash
 pnpm dev          # Astro dev server at http://localhost:4321
 pnpm build        # sync-exif.mjs → astro check → astro build → dist/
+                  # ^ chained with &&: if astro check errors, astro build NEVER RUNS
+                  #   and dist/ silently keeps the PREVIOUS build. Inspecting dist/
+                  #   after a failed build shows you output that predates your change
+                  #   — check the "N errors" line before trusting anything in dist/.
 pnpm preview      # Preview production build
 pnpm type-check   # astro check (covers .astro, .svelte, .ts)
 pnpm lint         # ESLint over .js, .ts, .astro, .svelte
@@ -274,6 +278,8 @@ What it does:
 4. Writes `src/content/rolls/<slug>.json` with `draft: true` and
    blank title/location/alts — for Sveltia to fill in.
 
+**Not every roll went through this.** `u-bahn` was uploaded by hand through the Cloudinary widget from Instagram exports: its public IDs are `u-bahn/<instagram-id>_<hash>.webp|jpg` (bare `u-bahn/` folder, not `lens/u-bahn/`, mixed extensions), and sources run **640×427 to 1440×1800** instead of the 2000px `prep` produces. That broke the fixed-size watermark (see the Watermark section) and leaves the 640px frame soft in a full-screen lightbox. Re-running it through `pnpm prep` would fix resolution, naming and folder together — but public IDs change, so `src/content/rolls/u-bahn.json` has to be rewritten in the same pass. **Check `cldPath` shape before assuming a roll is prep-normalised.**
+
 Roll `cover` is OPTIONAL (same as painting albums, since 2026-07-18):
 cards fall back to the first photo, so the cover is always viewable
 inside the roll. Only set `cover` to override. Lightbox images are
@@ -304,7 +310,12 @@ The Sveltia form is defined by `public/photojockeysblog/config.yml`. The Astro v
 Why two schemas? `astro-decap-collection` (the codegen that'd remove the duplication) currently demands Astro 6 + Zod 4 and has a packaging bug (its `yaml` dep is listed as devDependency). When it stabilizes for Astro 5, this manual sync can be replaced by codegen. Until then, the duplication tax is ~5 min when a field changes (rare).
 
 ### Watermark
-Inline `l_text:` overlay applied by `src/components/CloudPhoto.astro` — © ATAK in **Courier** bold 40px, white 70% opacity, bottom-right with 32px padding. **Courier (not JetBrains Mono)** — Cloudinary only supports a fixed set of fonts for text overlays; custom fonts return HTTP 400. To change, edit the `overlays` array in that one file.
+`l_text:` overlay defined **once** in `src/lib/cloudinary.ts` (`WATERMARK_OVERLAYS`) and imported by both `CloudPhoto.astro` and `ogImageUrl()` — © ATAK in **Courier** bold, white 70% opacity, bottom-right. **Courier (not JetBrains Mono)** — Cloudinary only supports a fixed set of fonts for text overlays; custom fonts return HTTP 400. To change it, edit that one constant.
+
+- **Sized RELATIVE to the image** (`width: 0.1` + `flags: ['relative']`, offsets `x/y: 0.02`), not in absolute pixels. It was `fontSize: 40` with 32px padding until 2026-08-15, which was fine *only because* every roll went through `pnpm prep` and came out at 2000px — an invariant nobody had written down. The u-bahn roll was uploaded by hand instead (640–1440px sources), and on the 640×427 frame the same stamp covered **6.3% of the width instead of 2.0%** and looked enormous. Absolute units were correct only while the invariant held.
+- **The overlay is applied to the ORIGINAL, before any resize**, which is why source size — not delivered size — is what governs its apparent scale.
+- `flags: ['relative']` must be `as const` in TypeScript or `astro check` fails with `Type 'string[]' is not assignable to type 'ListableFlags'`.
+- Changing it re-renders **every image on the site at once**, old uploads included — the watermark is a delivery-time transform, never baked into the stored file.
 
 ### EXIF stripping on delivery
 `CloudPhoto.astro` passes `rawTransformations={['fl_strip_profile']}` so every served JPEG has its metadata block stripped — GPS, camera serial, software fingerprints, everything. Captions on the page still read full EXIF because `sync-exif.mjs` pulls it from Cloudinary's stored original via the Admin API (which `fl_strip_profile` doesn't affect). Best of both: rich captions, naked downloads.
