@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import CloudPhoto from '@/components/CloudPhoto.astro';
 import { getAllPhotoEntries } from '@/lib/content';
-import { getCldImageUrl } from 'astro-cloudinary/helpers';
+import { ogImageUrl } from '@/lib/cloudinary';
 
 export async function getStaticPaths() {
   const entries = await getAllPhotoEntries();
@@ -32,13 +32,7 @@ if (photo.exif.iso) exifParts.push(`ISO ${photo.exif.iso}`);
 if (photo.exif.focalLength) exifParts.push(photo.exif.focalLength);
 const exifLine = exifParts.join(' · ');
 
-const ogImage = getCldImageUrl({
-  src: photo.cldPath,
-  width: 1200,
-  height: 630,
-  crop: 'fill',
-  gravity: 'auto',
-});
+const ogImage = ogImageUrl(photo.cldPath);
 
 const pageTitle = `${roll.data.title} · frame ${n} — Lens`;
 const pageDescription = photo.caption

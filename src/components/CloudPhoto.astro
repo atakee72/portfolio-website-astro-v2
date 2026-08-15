@@ -1,6 +1,7 @@
 ---
 import { CldImage } from 'astro-cloudinary';
 import { cn } from '@/lib/utils';
+import { WATERMARK_OVERLAYS, STRIP_METADATA } from '@/lib/cloudinary';
 
 interface Props {
   cldPath: string;
@@ -32,25 +33,8 @@ const {
   loading = 'lazy',
 } = Astro.props;
 
-// Watermark: © ATAK in Courier bold, white 70% opacity, bottom-right
-// with 32px padding. Inline so no Cloudinary console preset is required.
-const overlays = [
-  {
-    text: {
-      text: '© ATAK',
-      fontFamily: 'Courier',
-      fontSize: 40,
-      fontWeight: 'bold',
-      color: 'white',
-    },
-    position: {
-      gravity: 'south_east',
-      x: 32,
-      y: 32,
-    },
-    effects: [{ opacity: 70 }],
-  },
-];
+// Watermark + metadata strip live in @/lib/cloudinary so the og:image
+// builders share them — see ogImageUrl().
 ---
 
 <div class={cn('relative inline-block', className)}>
@@ -64,8 +48,8 @@ const overlays = [
     quality={80}
     format="auto"
     {...(objectFit ? { objectFit } : {})}
-    overlays={overlays}
-    rawTransformations={['fl_strip_profile']}
+    overlays={WATERMARK_OVERLAYS}
+    rawTransformations={STRIP_METADATA}
     draggable="false"
     oncontextmenu="return false"
     class={cn('block w-full h-auto select-none pointer-events-none', imgClass)}
