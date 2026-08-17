@@ -350,6 +350,16 @@ Setting menu drifts; current path is something like Settings → Security → "R
   3. **Direct** — upload images via Cloudinary console (or API), then edit the album JSON by hand/Claude. The Admin API creds in `.env.local` allow listing/renaming: rename Instagram-noise filenames to clean `paints/<id>` public IDs before writing entries (see git history: `rename-paints.mjs` pattern — signed POST to `/image/rename`).
 - Two contact-sheet paint cells show album covers via `album: '<slug>'` (cover resolves with the same first-painting fallback); `painting: '<id>'` still works for single-work cells.
 
+## GitHub profile (atakee72) — companion surface to this site
+
+Overhauled 2026-08-16/17 to mirror the portfolio. Not part of this repo, but future sessions will be asked to keep it in sync.
+
+- **Profile README lives in `atakee72/atakee72`** — edit via `gh api repos/atakee72/atakee72/contents/README.md --method PUT` (base64 + current `sha`). Its "Selected work" table mirrors the case studies here: **when a project ships, renames, or changes links in `src/content/projects/`, update that table too.** Client-work rows (Re:Vintage, DigiScrape, Mahir) link case study/live only — never the repo (private or client-identifying).
+- **Platform limits, verified 2026-08-17 — don't re-attempt:** README links can NEVER open in a new tab (GitHub's sanitizer strips `target` from all anchors); profile **pins have no write API** (GraphQL read-only, manual "Customize your pins"); **avatar has no API** (manual upload); `PATCH /user` (bio/website) needs the `user` scope (`gh auth refresh -s user`).
+- **State as of 2026-08-17**: pins = portfolio, MaHalle (`fullstack-community-webApp-astro---v.3`), museum, vibes, rescue-kit; bootcamp-era repos + MaHalle v1/v2 ancestors + old portfolio + `translation-office-ai-assistant` made **private** (`movie-db`, `Firefox_Deepl_Extension` deliberately kept public for further development); `CODAC-monorepo` is a fork → can't be privatized. Bio + website set; avatar is the **1-bit cyanotype dither** of the headshot (all variants in `C:\Users\atakee\Pictures\avatar-variants\`).
+- **Before ever flipping a repo public: gitleaks its FULL history** (`git clone --mirror` + `gitleaks git .`) — the flip exposes every commit, not the tip. Done for vibes (159 commits, clean) before publishing.
+- **Deferred, user's call:** renaming the MaHalle repo to `mahalle` (safe — GitHub redirects, Vercel tracks repo ID; case-study `links.github` + local remote should be updated in the same pass).
+
 ## Domain & email
 
 Production: **https://ercan-atak.de** (apex canonical; `www` 308-redirects to apex via `vercel.json`).
