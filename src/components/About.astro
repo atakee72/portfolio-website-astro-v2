@@ -22,7 +22,8 @@ import ObfuscatedEmail from './ObfuscatedEmail.astro';
       </div>
 
       <div class="lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
-        <pre class="m-0 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono lg:col-start-1 lg:row-start-1"><span class="text-safelight">$</span> whoami
+        <div class="flex flex-col-reverse xs:flex-row gap-4 items-start lg:col-start-1 lg:row-start-1">
+        <pre class="m-0 flex-1 text-[12px] leading-[1.7] text-paper whitespace-pre-wrap font-mono"><span class="text-safelight">$</span> whoami
 ercan atak — full-stack, half-painter,
             born Istanbul, in Berlin since 2007,
             Neukölln 12049
@@ -41,6 +42,21 @@ content-driven sites · design-engineer work{FEATURES.AVAILABILITY && (<>
 
 <span class="text-safelight">$</span> reach
 <ObfuscatedEmail user="mail" domain="ercan-atak.de" class="text-phosphor hover:underline" fallback="[ ENC ]" /> · or use the form <span class="lg:hidden">below ↓</span><span class="hidden lg:inline">→</span></pre>
+
+        <figure class="m-0 shrink-0 w-28 md:w-36">
+          <img
+            src="/assets/portrait-dither.png"
+            alt="Ercan Atak — 1-bit dithered portrait"
+            width="460"
+            height="460"
+            loading="lazy"
+            class="w-full border border-ink-3"
+          />
+          <figcaption class="mt-1.5 text-[10px] text-mute-2 tracking-[0.18em] uppercase">
+            me.pbm · 1-bit
+          </figcaption>
+        </figure>
+        </div>
 
         <div class="mt-3 lg:mt-0 lg:col-start-2 lg:row-start-1">
           <ReachForm client:visible />
