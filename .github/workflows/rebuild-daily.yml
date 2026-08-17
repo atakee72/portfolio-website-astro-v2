@@ -1,0 +1,29 @@
+name: Daily rebuild (scheduled posts)
+
+on:
+  schedule:
+    # 05:00 UTC daily (07:00 Berlin in summer). Date-only publishedAt values
+    # flip at 00:00 UTC, so a post dated "today" is always eligible by now.
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      # GitHub Actions over Vercel Cron on purpose: a failed run here is a
+      # red workflow and an email; Vercel Cron failing is silence. (Same
+      # pattern as Coachly's smoke.yml and Re:Vintage's publish-due.yml.)
+      # KNOWN TRAP: GitHub disables scheduled workflows after 60 days
+      # without repo activity. Queueing a post is itself a push, so the
+      # window only bites for posts dated >60 days out — re-enable via the
+      # Actions tab or run this manually (workflow_dispatch) after a long
+      # quiet spell.
+      - name: Trigger Vercel deploy hook
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+        run: |
+          curl --fail --show-error --silent --max-time 60 \
+            -X POST "$DEPLOY_HOOK_URL" > /dev/null
+          echo "Deploy hook triggered."
