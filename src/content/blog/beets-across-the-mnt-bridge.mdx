@@ -1,0 +1,56 @@
+---
+title: 'The cleanup command that can delete your music: beets across the WSL2 /mnt bridge'
+description: 'My beets database lives in Linux, the files live on Windows, and the /mnt boundary between them is where three quiet failures came from: case-only renames that do nothing, a corruption check that skips most of the library, and a BPM plugin that cannot find any file it is asked to analyse.'
+publishedAt: 2026-08-17
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Development
+  - Tooling
+  - Case Notes
+stack:
+  - beets
+  - Python
+  - WSL2
+draft: false
+---
+My music library is 463 tracks in a Dropbox folder on the Windows side of a WSL2 machine. beets runs inside WSL — its database lives in the Linux home directory — but the files never move there. They stay where Dropbox puts them, reached through the `/mnt/` bridge, and beets is configured to respect that: `copy: no`, `move: yes`. It renames files in place instead of copying them somewhere tidier. That split, Linux tooling working against a Windows filesystem, is deliberate and mostly fine. [The other half of this story](/blog/beets-assumes-albums/) is about beets assuming my library was organized into albums when it isn't. This half is about the environment underneath it — problems that have nothing to do with what beets assumes about music, and everything to do with what `/mnt/` is.
+
+## The rename that silently does nothing
+
+The Windows filesystem under `/mnt/` is case-insensitive. A rename that only changes capitalization — `song.mp3` to `Song.mp3` — is a no-op there. The filesystem already considers those the same file, so nothing happens.
+
+The import step manufactures exactly this kind of rename, constantly. MusicBrainz frequently recapitalizes a title on match, beets renames the file to follow the new tag, and the rename silently does nothing. The file keeps its old capitalization on disk while the database now believes it has the new one.
+
+The dangerous part is downstream. `beet unimported` is the documented cleanup command — its job is to list files on disk that aren't tracked in the library, so you can delete the cruft. On this filesystem, a file left behind by a no-op case rename looks exactly like cruft to that command. It's not: it's the live library track, just filed under its old capitalization. The documented next step is to delete what `beet unimported` reports. Following that instruction here can nuke the actual track.
+
+I haven't lost one this way — the near-miss is the whole point of writing the rule down. Before deleting anything `beet unimported` reports, I check inodes: `stat -c%i` on the reported path and on the path beets thinks is current. Identical inode number means it's the same file wearing two names, not an orphan. The durable fix is a small script, `fix_case_renames.py`, that walks the database looking for case-only mismatches between the stored filename and what's on disk and repairs them directly. It runs after the import step in my chain, deliberately — the import is what creates the damage, so the repair has to come right after it, not at some later cleanup pass.
+
+## The corruption check that skips most of the library
+
+`beet bad`, the badfiles plugin, ships with checkers for mp3 (via mp3val) and flac. That's it. Most of my library is m4a/mp4, and for those formats there is no checker at all out of the box. The command runs, reports nothing wrong, and exits clean — having never actually decoded most of the files it was supposed to be checking.
+
+badfiles has a custom-commands escape hatch for exactly this, so I routed m4a/mp4 through a small ffmpeg decode-check wrapper. Now every format in the library actually gets decoded instead of skipped.
+
+The same day this landed, in August 2026, a truncated copy of Toto's "Africa" — cut off partway through the track — came out of the library and got deleted. The track count went from 470 to 469.
+
+## The BPM plugin that can't find any of its own files
+
+bpmanalyser passes the path stored in the beets database straight to its analyser subprocess. In this library that path is a bare basename, not an absolute path — a side effect of `directory:`-relative storage, which degrades to just the filename when it's resolved inside the plugin's worker threads. The subprocess gets handed something like `song.m4a` with no directory attached, can't find it anywhere, and reports "Audio file not found" for every single track. The command still exits as if the run succeeded.
+
+My workaround is a script, `bpm_run.py`, that resolves each stored path against the actual library directory in the main thread — before handing anything to a worker — and only analyses tracks still missing a `bpm` tag. It's a small script, but it has to run in the right thread to matter.
+
+There's an upside buried in the same basename-storage behavior, from my own notes on the setup: because no absolute path is baked into the database, moving the whole library later — to a NAS, say — only ever requires changing the `directory:` setting. Nothing else has to be rewritten.
+
+## The 15-minute no-op
+
+`beet import` walks and reads every file in the library on every run, even when nothing new has been added. Over the `/mnt/` bridge, for this library, that takes about 15 minutes — every time, whether there's one new track or none. Just listing the directory and diffing filenames against what the database already knows takes under a second. So a tiny script does that check first, and the real import only fires when there's actually something new to bring in.
+
+A few smaller border-crossing artifacts, briefly: Windows drops `desktop.ini` files into the live music folder, so `beet unimported` is configured to ignore them rather than flag them every run. The beets database itself lives in the WSL home directory, outside Dropbox's sync, so a hook copies it to a Dropbox backup folder on every beets exit — `cp -u`, so the cost on a read-only command like `beet stats` is close to nothing. And beets' own documentation is upfront that writing files over `/mnt/` is slow; that's a WSL2 characteristic, not a beets bug.
+
+## The chain
+
+All of this is glued into one `newsongs` command, run in order: check for new files, import, run BPM analysis on tracks missing it, fetch cover art for tracks missing it, regenerate playlists, repair case-only renames, then close with `beet unimported` and `beet stats` as a final check. Seven steps. Five of them exist purely because of the environment or the album assumption from the other post — none of them because beets itself needed that much scaffolding for a normal library.
+
+"beets manages my music" is true. It's just true inside a harness the environment forced me to build around it, one broken assumption at a time.
