@@ -1,6 +1,6 @@
 ---
 title: 'Meta''s dev mode is a production tier — if everyone who logs in has a name'
-description: 'An Instagram app in development mode serves up to ~50 named testers with full API permissions — which happens to be the exact shape of an operator-run client tool. What shipping on it buys, what it costs, and the two OAuth traps that only surface with a real client.'
+description: 'An Instagram app in development mode serves up to ~50 named testers with full API permissions — which happens to be the exact shape of an operator-run client tool. What shipping on it buys, what it costs, and the OAuth traps waiting for whoever connects the first real client account.'
 publishedAt: 2026-08-17
 author:
   name: Ercan Atak
@@ -23,7 +23,7 @@ One precondition sits ahead of all of this: the app has to be registered as "Ins
 
 ## Trap 1: the Tester role that isn't the Tester role
 
-Meta's dashboard offers two roles that look interchangeable and aren't: a generic "Tester" role at the Facebook app level, and an "Instagram Tester" role scoped to Instagram specifically. Add a client under the generic one and nothing throws an error at the time — it just fails silently downstream, because that client's Instagram username never resolves to a valid user ID. Only the Instagram-specific role works. Same dashboard, two near-identical role names, one of them quietly doing nothing. I hit this for real, then wrote it into my own go-live runbook as a ⚠️ warning so I wouldn't hit it twice.
+Meta's dashboard offers two roles that look interchangeable and aren't: a generic "Tester" role at the Facebook app level, and an "Instagram Tester" role scoped to Instagram specifically. Add a client under the generic one and nothing throws an error at the time — it just fails silently downstream, because that client's Instagram username never resolves to a valid user ID. Only the Instagram-specific role works. Same dashboard, two near-identical role names, one of them quietly doing nothing. This one went into my go-live runbook as a ⚠️ warning before I connected the first client — some traps you'd rather read about than discover.
 
 ## Trap 2: OAuth binds to the browser, not the app
 
