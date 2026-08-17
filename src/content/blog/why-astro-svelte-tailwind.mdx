@@ -1,0 +1,47 @@
+---
+title: 'Why Astro + Svelte + Tailwind: a stack that ships nothing by default'
+description: 'Seven projects on, my default stack is settled: Astro for sites that are mostly content, SvelteKit when the product is an app, Svelte islands only where the browser genuinely earns them, Tailwind across all of it. The reasoning, with the projects as evidence.'
+publishedAt: 2026-08-24
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Development
+  - Tooling
+stack:
+  - Astro
+  - Svelte
+  - Tailwind
+draft: false
+---
+## The decision rule
+
+I don't pick a stack per project from scratch. I run one rule: **content-shaped things get Astro, app-shaped things get SvelteKit**. Same component language — Svelte — same styling system — Tailwind — different chassis depending on what the thing actually does once it's live. This portfolio, a bilingual office site, and a musician's site are pages people read: Astro. A multi-agent coaching app and an operator dashboard for running other people's Instagram shops are systems people operate: SvelteKit. The chassis changes; the rest of the toolkit doesn't.
+
+That's not a rule I picked in the abstract — I got here by moving this site off Next.js 14 and Sanity onto Astro 5, and writing down what actually changed. Next.js hydrates by default, and most of a portfolio is text and images with nothing to hydrate. I was paying a runtime tax for interactivity that lived in two or three places. The fix wasn't a smaller React app — it was a framework that ships nothing unless a page actually needs the browser. That story is the long version, in [the migration post](/blog/migrating-portfolio-nextjs-sanity-to-astro).
+
+## Shipping nothing by default
+
+Astro's whole pitch is that a page is HTML at build time, and stays that way unless you opt a piece of it into JavaScript. On this site that's the default for almost every component. Four things need the browser badly enough to become **Svelte 5 islands**: the mobile menu, a live clock, a custom cursor, the contact form. Each gets the narrowest hydration directive that fits the job rather than one default setting for all four — `client:only` for the menu and cursor, since they depend entirely on browser APIs and server rendering would add nothing; `client:visible` for the contact form, so a below-the-fold form doesn't hydrate until someone scrolls to it; `client:idle` for the clock, since it's not critical and can wait for the main thread to be free. Four islands, three different reasons to hydrate them, and every other component on the site is static HTML with no framework runtime on the critical path.
+
+The discipline is the point, not the framework. Astro doesn't stop you from hydrating everything — it just makes doing the opposite the path of least resistance, so "does this actually need the browser" becomes a question you ask per component instead of an afterthought.
+
+## Typed content, no CMS to rent
+
+The old stack put content behind Sanity — a hosted headless CMS with its own API, its own auth, its own schema, and a network dependency at build time for a dozen files I already owned. Astro content collections replaced that with MDX and JSON living in the repo, each collection validated against a **Zod schema** at build time — a missing field or a wrong type fails the build instead of shipping broken. Adding a post is creating a file with the right frontmatter; it appears automatically, sorted and validated. This site runs five collections this way — blog, work, lens, paints, testimonials — and for the pieces I want to edit without opening a text editor, a git-based CMS commits straight to the same files rather than to a separate backend. The source of truth never leaves the repository.
+
+## Tailwind as the carrier of a system, not utility soup
+
+Tailwind only earns its keep here because the tokens are decided once, in config, and everything else references them. This site is one dark palette — no `darkMode` setting, no light variant, square corners by design rather than by omission — so `bg-ink` or `text-phosphor` means the same specific color everywhere it appears, instead of every component reinventing a shade of near-black. That's the difference between Tailwind as a design system's carrier and Tailwind as an unstructured pile of one-off utility classes: the constraint is upstream, in the config file, not negotiated component by component.
+
+## The German-market bonus
+
+Running a site under a real name from Germany brings a mandatory Impressum and Datenschutzerklärung regardless of stack. What isn't mandatory is a cookie banner — and the cleanest way to avoid needing one turned out to be architectural, not legal wording. This site self-hosts its fonts instead of calling Google's CDN — the fix a German court decision made necessary, since loading fonts from Google's own servers transmits a visitor's IP to the US without consent — and runs cookieless analytics with no persistent identifiers, so there's genuinely nothing to consent to and nothing to bolt a banner onto. None of that is stack-specific engineering; it's what falls out of shipping less JavaScript and making fewer third-party calls by default, which is exactly what static-first output gives you for free. Keeping the processor list short is the same instinct as keeping the islands count at four: every service you don't add to a build is a section of a privacy policy you don't have to write, translate, and keep accurate later. The full account, including the two pages the law still requires no matter how little JavaScript ships, is in [the GDPR post](/blog/gdpr-safe-by-construction).
+
+## Where this stack is the wrong answer
+
+Static output means content updates need a rebuild — a non-issue for a portfolio, a real constraint for anything that needs on-demand rendering. Moving an existing app onto this pattern is still real work: rebuilding pages as `.astro`, rewiring the interactive bits, migrating content out of whatever held it before. And if a page hydrates by default anyway because most of it is genuinely interactive, Astro's zero-JS baseline stops being a win and starts being friction — that's the case for reaching for SvelteKit instead, not for forcing an app-shaped problem into a content-shaped tool. The rule isn't "static always wins." It's that the runtime should match the page, and an app that's mostly state and interaction should ship a runtime that matches that.
+
+## The evidence
+
+Seven projects run on this decision rule now. [MaHalle](/work/mahalle/) is Astro plus React plus Svelte for a community platform that's mostly content with pockets of interaction. [Okay Übersetzungen](/work/okay-uebersetzungen/) is Astro with in-browser voice AI bolted onto an otherwise static bilingual office site. A musician's portfolio built on headless WordPress is the same call again — Astro carrying pages that are mostly text and images, React only where the WordPress data needs it. [Coachly](/work/coachly/) and [Re:Vintage](/work/revintage/) are both SvelteKit, because a multi-agent coaching system and an operator dashboard for running other people's shops are apps first and pages never. The seventh, a lead-gen SaaS, is the honest asterisk: an Astro + Svelte front end over a Flask backend — app-shaped work carried on the content chassis, proof the line is a default and not a wall. Svelte and Tailwind show up in every one of them regardless of which chassis carries the page. One rule, six clean calls, one hybrid — and the toolkit held across all seven.
