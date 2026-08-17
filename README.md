@@ -54,6 +54,11 @@ adds a visible "updated" date plus `dateModified` in the JSON-LD.
 
 Drafts (`draft: true`) are hidden in production builds and visible in dev.
 
+**Scheduled posts:** a future `publishedAt` keeps the post out of production builds
+(dev shows it) until its date arrives — a daily GitHub Actions cron
+(`.github/workflows/rebuild-daily.yml`) triggers a Vercel rebuild each morning, so
+the post goes live that day without a push. Date-only values flip at UTC midnight.
+
 ## RSS Feed
 
 A combined feed at [`/rss.xml`](https://ercan-atak.de/rss.xml) covers all four content collections (blog, work, lens, paints), sorted by date. Auto-generated at build time by `src/pages/rss.xml.ts` using `@astrojs/rss`. Discoverable via `<link rel="alternate">` in the page head and a visible `rss` link in the footer.

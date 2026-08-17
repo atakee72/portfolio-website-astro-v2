@@ -135,7 +135,7 @@ cite a token from here, it's cheap to re-check the file.
 ## Common Tasks
 
 ### Add a blog post
-Create `src/content/blog/<slug>.mdx` with frontmatter matching the schema in `src/content/config.ts` (`title`, `description`, `publishedAt`, `author`, `mainImage`, `categories`, `draft`).
+Create `src/content/blog/<slug>.mdx` with frontmatter matching the schema in `src/content/config.ts` (`title`, `description`, `publishedAt`, `author`, `mainImage`, `categories`, `draft`). To schedule: set a future `publishedAt` and push — hidden in prod until the date, published by the daily rebuild cron (see "Scheduled posts" in the SEO section; never backdate a post).
 
 ### Rename a content slug (breaks live URLs — do all three steps)
 The URL comes from the **filename** (`src/content/projects/coachly.mdx` → `/work/coachly`). To rename:
