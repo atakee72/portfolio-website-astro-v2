@@ -1,0 +1,46 @@
+---
+title: 'Meta''s dev mode is a production tier — if everyone who logs in has a name'
+description: 'An Instagram app in development mode serves up to ~50 named testers with full API permissions — which happens to be the exact shape of an operator-run client tool. What shipping on it buys, what it costs, and the two OAuth traps that only surface with a real client.'
+publishedAt: 2026-08-17
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Development
+  - Case Notes
+stack:
+  - Instagram Graph API
+  - SvelteKit
+draft: false
+---
+The standard assumption about building on Meta's platform is that you can't ship anything real until you clear App Review — the gate that promotes an app from development mode to Live for the general public. For [Re:Vintage](/work/revintage/), the dashboard I use to run a handful of clients' Instagram shop accounts, I never cleared App Review, and I never needed to. Dev mode isn't a waiting room you rush through on the way to something real, and it isn't a sandbox with fake data either. For an app where every user is a named person I added to it myself, dev mode is the production tier, full stop.
+
+## What dev mode actually grants
+
+In development mode, any account that holds a role on the app gets full API access with every permission the app requests — real accounts, real data, real publishing, no review pending. The cap is roughly 50 role slots. For Instagram specifically, the role that matters is called "Instagram Tester." App Review exists to let an app serve people who *don't* hold a role on it — the general public. Re:Vintage doesn't have that category of user. It has me, and it has named clients, and every one of them fits inside the tester list. App Review was never the obstacle I'd been told to expect; it was a gate for a door this product doesn't use. That's not a workaround or a reading of the fine print — it's Meta's intended use of tester roles, applied to a real product category ("internal tool, named people only") that dev mode maps onto exactly.
+
+One precondition sits ahead of all of this: the app has to be registered as "Instagram API with Instagram Login," not the older Facebook Login for Business / Pages-based flow. Get that wrong at setup and nothing downstream behaves the way this post describes.
+
+## Trap 1: the Tester role that isn't the Tester role
+
+Meta's dashboard offers two roles that look interchangeable and aren't: a generic "Tester" role at the Facebook app level, and an "Instagram Tester" role scoped to Instagram specifically. Add a client under the generic one and nothing throws an error at the time — it just fails silently downstream, because that client's Instagram username never resolves to a valid user ID. Only the Instagram-specific role works. Same dashboard, two near-identical role names, one of them quietly doing nothing. I hit this for real, then wrote it into my own go-live runbook as a ⚠️ warning so I wouldn't hit it twice.
+
+## Trap 2: OAuth binds to the browser, not the app
+
+When a client connects their Instagram account, the authorize screen doesn't know or care which client profile is active inside my dashboard — it binds to whichever Instagram account the browser happens to be logged into at that moment. Connecting a client's account means running the OAuth flow on the client's own device, or in an incognito window signed into their Instagram, not mine. If the authorize screen offers up an account I wasn't expecting, the move is Cancel. Clicking Allow anyway wires that wrong account to the active profile. The browser doesn't ask which client you meant; it just hands over whichever session is already open.
+
+## Trap 3: scopes don't retrofit themselves
+
+Adding auto-publish meant adding a new permission scope, `instagram_business_content_publish`. Every token issued before that point — mine included — didn't have it. Publishing against those older connections failed with the app's own "Reconnect Instagram to grant the publish permission" error, and the fix wasn't a deploy, it was reconnecting every account, mine and every client's, one at a time. A scope addition is retroactive work on every existing connection, not just new code.
+
+## The rules dev mode doesn't waive
+
+None of the above suspends the operational constraints of the API itself. Publishing accepts JPEG only — PNG and WebP containers get rejected outright. There's a hard ceiling of 100 API-published posts per account per 24 hours. And photos are served to Meta via a 1-hour signed URL at publish time, which means the app's 30-day photo-purge job has to deliberately skip anything still on the publishing schedule, or a scheduled post could fire against a URL for an image that's already gone. That last constraint only shows up if you think through the purge job and the scheduler together — neither one looks dangerous in isolation. (Re:Vintage's Instagram sync has its own separate history of bugs, unrelated to any of this — [three of them are their own post](/blog/mock-richer-than-the-api/).)
+
+There's a scheduling footnote in the same category. The auto-publish sweep runs every 15 minutes, from a GitHub Actions cron hitting a Vercel endpoint — Vercel's own Hobby-tier cron only fires once a day, which is no good for a social scheduler. The trade-off: GitHub disables scheduled workflows on a repo that's gone 60 days without activity. A repo I stop touching for two months stops publishing on schedule, with no error anywhere in the dashboard. It just quietly stops.
+
+## Where the ceiling actually is
+
+None of this is a way to dodge App Review forever, and I didn't build it as one. I built the public legal pages — Impressum, Datenschutzerklärung, data deletion — "Meta-ready" back in June 2026, well before any of this needed to be live, because App Review requires public privacy-policy URLs as a precondition, and that's a bad thing to be assembling under deadline pressure once the review is actually blocking a release. Re:Vintage started as a would-be self-serve SaaS and became "one operator, named clients" instead. If the self-serve version ever un-parks — public signup, more than roughly 50 users — App Review and Business Verification stop being optional and become the price of that next tier. The legal pages already existing means that switch, whenever it happens, is a review submission, not a scramble to write policy documents from scratch.
+
+Dev mode is the right tier for what Re:Vintage is right now: one operator, a small number of named clients, all of them fitting comfortably inside a role list built for exactly that. It isn't a loophole and it isn't a permanent exemption — it's the correct tier for a product category most people assume doesn't exist, used exactly the way Meta intended it to be used, right up until the product outgrows it.
