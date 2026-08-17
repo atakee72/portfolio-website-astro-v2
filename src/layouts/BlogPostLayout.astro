@@ -13,7 +13,7 @@ const { title, description, author, mainImage, publishedAt, updatedAt, categorie
 const isLinkpost = !!externalUrl;
 
 function fmtDate(d: Date): string {
-  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 const body = post.body ?? '';
