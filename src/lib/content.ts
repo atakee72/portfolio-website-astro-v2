@@ -21,6 +21,12 @@ export async function getAllBlogPosts() {
   );
 }
 
+/**
+ * UNFILTERED lookup — returns drafts and future-dated (scheduled) posts too.
+ * Currently has zero callers. If you wire this into a rendered surface
+ * (related posts etc.), it will leak scheduled/draft posts into production;
+ * use getAllBlogPosts() + find() instead, or add the same PROD filters.
+ */
 export async function getPostBySlug(slug: string) {
   const posts = await getCollection('blog');
   return posts.find((post) => post.slug === slug);

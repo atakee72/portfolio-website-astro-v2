@@ -17,9 +17,9 @@ jobs:
       # pattern as Coachly's smoke.yml and Re:Vintage's publish-due.yml.)
       # KNOWN TRAP: GitHub disables scheduled workflows after 60 days
       # without repo activity. Queueing a post is itself a push, so the
-      # window only bites for posts dated >60 days out — re-enable via the
-      # Actions tab or run this manually (workflow_dispatch) after a long
-      # quiet spell.
+      # window only bites for posts dated >60 days out. Recovery: re-enable
+      # in the Actions tab FIRST (a disabled workflow cannot be dispatched),
+      # then optionally trigger a manual run (workflow_dispatch).
       - name: Trigger Vercel deploy hook
         env:
           DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
