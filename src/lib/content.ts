@@ -4,10 +4,14 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 export async function getAllBlogPosts() {
+  const now = new Date();
   const posts = await getCollection('blog', ({ data }) => {
-    // Filter out drafts in production
+    // Filter out drafts and future-dated (scheduled) posts in production.
+    // Future posts stay visible in dev, same convention as drafts. A daily
+    // GitHub Actions cron (.github/workflows/rebuild-daily.yml) redeploys so
+    // scheduled posts appear without a manual push.
     if (import.meta.env.PROD) {
-      return data.draft !== true;
+      return data.draft !== true && data.publishedAt <= now;
     }
     return true;
   });
