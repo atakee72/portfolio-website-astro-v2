@@ -194,6 +194,16 @@ Combined feed at `/rss.xml` spans all four collections (blog, work, lens, paints
 - **Blog screenshots recipe**: capture with the one-off Playwright pattern (scratchpad `npm i playwright --no-save`; if it demands a browser version the cache lacks, pass `executablePath` to a cached `~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome`), then sharp → WebP q82 ≤1600px into `public/assets/blog/`, embed via plain markdown `![]()`.
 - **Gotcha — blog `[slug]` MUST prod-filter drafts.** `src/pages/blog/[slug].astro` `getStaticPaths` uses `getAllBlogPosts()` (prod-filters `draft: true`), NOT raw `getCollection('blog')` — the raw version built draft detail pages that were publicly reachable in prod (the index list already hid them, so it was invisible until a real draft existed). Same convention as `/work [slug]`.
 
+## Cross-posting (dev.to)
+
+First mirror platform went live 2026-08-19 (astro-migration post, article id `4429475`). Account username is **`atakee`** (not atakee72); API key in `.env.local` as `DEVTO_API_KEY` (never committed; becomes a GitHub secret only if the deferred scheduler extension is built).
+
+- **Flow**: prepare a markdown variant of the post — dev.to frontmatter (`canonical_url` = the live post URL **with trailing slash, mandatory on every cross-post**; `published: false`; max 4 tags), internal links converted to absolute URLs, an "Originally published on…" line up top, one closing pointer back to the site. POST it as `body_markdown` to `https://dev.to/api/articles` (header `api-key`), review the draft in the dev.to dashboard, then publish.
+- **Gotcha — frontmatter beats the API**: when `body_markdown` carries frontmatter, it overrides API attributes. `PUT {"article": {"published": true}}` silently does nothing while the document still says `published: false` — flip it in the body and PUT the whole body.
+- **Curation is opt-in per post**: only technical pieces; personal/art posts stay home. Aggregators (HN, Reddit, daily.dev via RSS) are deliberately manual — automated submissions get accounts flagged.
+- **Timing**: publish 14:00–16:00 CEST (Europe afternoon + US East morning) — dev.to weighs early engagement.
+- **Deferred, pending the first post's referrer numbers in GoatCounter**: manifest-driven scheduler (`crossposts.json` of article id + date, second Actions cron at 12:30 UTC, key as repo secret) so queued cross-posts publish themselves in the good window.
+
 ## Testing
 No tests configured. The build pipeline runs `astro check` (covers type errors across `.astro`, `.svelte`, `.ts`) before producing output.
 
