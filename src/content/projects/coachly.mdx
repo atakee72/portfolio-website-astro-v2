@@ -50,7 +50,7 @@ employer through.
 Live: **[coachly-tau.vercel.app](https://coachly-tau.vercel.app)** —
 the reasoning behind every major decision is written up in-app at
 **[/architecture](https://coachly-tau.vercel.app/architecture)**, backed
-by 7 ADRs in the repo.
+by 8 ADRs in the repo.
 
 ## Build
 
@@ -85,8 +85,8 @@ there's no service-role key in the request path and no way to
 self-promote. Every privileged route re-derives identity from the
 verified session (`requireUser` / `requireCoach`) rather than trusting
 anything in the request, and that boundary isn't just asserted — an
-adversarial suite of 21 integration tests runs real cross-tenant attacks
-against a live database, alongside 18 unit-test files and 14 Playwright
+adversarial suite of 22 integration tests runs real cross-tenant attacks
+against a live database, alongside 22 unit-test files and 14 Playwright
 journeys. Errors get logged as one structured JSON line per incident with
 a correlation id; the user only ever sees a generic message plus that id.
 
@@ -119,3 +119,15 @@ when nobody is looking, breakage is silent. So now Sentry watches the
 chat pipeline and a scheduled job logs in each morning to hold one real
 conversation with Zielfinder. A demo nobody visits still has to work on
 the day somebody does.
+
+The newest piece runs that logic in reverse: a public demo with a shared
+login code accumulates stale accounts, so a retention job now deletes
+anything inactive for thirty days. It's the most dangerous code in the
+repo and it's built like it knows that — a hardcoded never-delete list, a
+cap per run, and config validation that fails closed, so a malformed
+setting means a 500 and nothing deleted. It fires from the same daily
+workflow as the morning smoke test, deliberately: if monitoring dies,
+deletion stops with it. And before trusting it, I broke its config in
+production on purpose and watched it refuse to run, name the exact
+error, and go red in CI. Deletion code earns its place by proving it
+can say no.
