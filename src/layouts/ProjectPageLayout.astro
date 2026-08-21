@@ -11,7 +11,7 @@ interface Props {
 
 const { project } = Astro.props;
 const { title, subtitle, cover, screenshots, exif, links } = project.data;
-const ogImage = !cover.cloud ? cover.src : undefined;
+const ogImage = !cover.cloud ? new URL(cover.src, Astro.site).href : undefined;
 
 const heroShots =
   screenshots.length > 0
