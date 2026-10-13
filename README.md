@@ -56,7 +56,7 @@ Drafts (`draft: true`) are hidden in production builds and visible in dev.
 
 **Scheduled posts:** a future `publishedAt` keeps the post out of production builds
 (dev shows it) until its date arrives — a daily GitHub Actions cron
-(`.github/workflows/rebuild-daily.yml`) triggers a Vercel rebuild each morning, so
+(`.github/workflows/rebuild-daily.yml`) triggers a Vercel rebuild once a day (the cron slot is 05:00 UTC, but GitHub typically fires it around midday), so
 the post goes live that day without a push. Date-only values flip at UTC midnight.
 
 ## RSS Feed
