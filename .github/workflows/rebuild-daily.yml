@@ -2,15 +2,16 @@ name: Daily rebuild (scheduled posts)
 
 on:
   schedule:
-    # 05:00 UTC daily (07:00 Berlin in summer). Date-only publishedAt values
-    # flip at 00:00 UTC, so a post dated "today" is always eligible by now.
+    # 05:00 UTC daily, but GitHub runs schedules late — 11–12 UTC has been
+    # the norm since Sept 2026. Date-only publishedAt values flip at 00:00
+    # UTC, so a post dated "today" is always eligible whenever this fires.
     - cron: '0 5 * * *'
   workflow_dispatch:
 
 jobs:
   rebuild:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 6
     steps:
       # GitHub Actions over Vercel Cron on purpose: a failed run here is a
       # red workflow and an email; Vercel Cron failing is silence. (Same
@@ -23,7 +24,13 @@ jobs:
       - name: Trigger Vercel deploy hook
         env:
           DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+        # Vercel's hook endpoint intermittently answers 429 (seen 2026-10-10
+        # and 10-12, both single requests). --retry covers transient codes
+        # (408/429/5xx/timeouts) but not permanent ones like 404, so a
+        # deleted hook still goes red fast. Budget: 4 x 30s + 3 x 60s < 6 min.
         run: |
-          curl --fail --show-error --silent --max-time 60 \
-            -X POST "$DEPLOY_HOOK_URL" > /dev/null
+          curl --fail --show-error --silent --max-time 30 \
+            --retry 3 --retry-delay 60 \
+            -o /dev/null -w 'HTTP %{http_code}\n' \
+            -X POST "$DEPLOY_HOOK_URL"
           echo "Deploy hook triggered."
