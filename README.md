@@ -41,6 +41,10 @@ author:
   name: "Your Name"
 categories: ["Development", "Tooling"]
 stack: ["Astro", "Svelte"]
+# optional: hero image + social card (absolute og:image is derived from it)
+mainImage:
+  src: /assets/blog/<name>.webp
+  alt: "Describe the picture"
 draft: false
 ---
 
