@@ -56,7 +56,11 @@ is optional — half the posts have none, and it renders as a visible hero as we
 the `og:image`, so don't repeat it inside the body. `updatedAt` is also optional and
 adds a visible "updated" date plus `dateModified` in the JSON-LD.
 
-Drafts (`draft: true`) are hidden in production builds and visible in dev.
+Drafts (`draft: true`) are hidden in production builds and visible in dev. So is a post
+with a future `publishedAt`: push it and it goes live on that date through the daily
+rebuild workflow (any ordinary push that day publishes it too). To check how a scheduled
+post renders before its date, use `pnpm dev` — the production build deliberately leaves
+it out.
 
 **Scheduled posts:** a future `publishedAt` keeps the post out of production builds
 (dev shows it) until its date arrives — a daily GitHub Actions cron
