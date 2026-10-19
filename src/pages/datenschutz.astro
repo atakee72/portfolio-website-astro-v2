@@ -108,10 +108,12 @@ const addressBlock = `${street}\n12049 Berlin`;
         Zur Reichweitenmessung setzen wir GoatCounter (Martin Tournoij,
         EU-Hosting) ein.
         <strong>Es werden keine Cookies gesetzt und keine eindeutigen
-        Geräte-Identifier gespeichert.</strong> GoatCounter erzeugt aus
-        IP-Adresse, User-Agent und einem täglich rotierenden Salt einen
-        nicht zurückrechenbaren Hash, der ausschließlich zur
-        Sitzungsabgrenzung dient und nach 8 Stunden verfällt. Rechtsgrundlage:
+        Geräte-Identifier gespeichert.</strong> Zur Sitzungsabgrenzung
+        hält GoatCounter die Kombination aus Seitenname, IP-Adresse und
+        User-Agent für höchstens 8 Stunden ausschließlich im Arbeitsspeicher
+        und ordnet ihr eine zufällige Kennung zu; IP-Adresse und User-Agent
+        werden weder in der Datenbank noch auf einem Datenträger
+        gespeichert. Rechtsgrundlage:
         Art. 6 Abs. 1 lit. f DSGVO (Interesse an reiner Reichweitenstatistik
         ohne Profilbildung). Eine Einwilligungspflicht nach § 25 TDDDG
         besteht nicht, da keine Speicherung auf Ihrem Endgerät erfolgt.
@@ -236,10 +238,11 @@ const addressBlock = `${street}\n12049 Berlin`;
         We use GoatCounter (Martin Tournoij, EU-hosted) for traffic
         statistics.
         <strong>No cookies are set and no persistent device
-        identifiers are stored.</strong> GoatCounter creates a
-        non-reversible hash from your IP, user-agent and a daily-rotating
-        salt, which is used purely for session separation and expires
-        after 8 hours. Legal basis: Art. 6 (1) (f) GDPR (interest in
+        identifiers are stored.</strong> To separate sessions, GoatCounter
+        keeps the combination of site name, IP address and user-agent in
+        memory only, for at most 8 hours, and maps it to a random
+        identifier; the IP address and user-agent are never written to its
+        database or to disk. Legal basis: Art. 6 (1) (f) GDPR (interest in
         aggregate analytics without profiling). No consent is required
         under § 25 TDDDG because nothing is stored on your device.
       </p>

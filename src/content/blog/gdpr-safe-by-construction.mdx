@@ -2,6 +2,7 @@
 title: 'GDPR-safe by construction: German-market sites with nothing to consent to'
 description: 'How building a personal site under German law taught me that the cleanest GDPR compliance is architectural — a site with nothing to consent to needs no banner.'
 publishedAt: 2026-07-13
+updatedAt: 2026-10-19
 author:
   name: Ercan Atak
   bio: Full-stack developer, photographer, and painter based in Berlin.
@@ -23,7 +24,7 @@ Loading Google Fonts from Google's own CDN transmits a visitor's IP address to t
 
 ## No cookies, so no banner
 
-The site uses GoatCounter for analytics — EU-hosted, open source, cookieless. It hashes IPs with a daily-rotating salt, keeps no persistent identifiers, and collects no PII, which puts it outside § 25 TDDDG, the German rule that actually triggers cookie-consent requirements. Beyond that there is no client-side storage at all — no cookies, no `localStorage`, nothing that persists on the visitor's device. Put together, the site is genuinely cookie-free — so there's no banner. Adding one anyway would be pure UX cost for zero legal upside, which is the trap a lot of sites fall into: they bolt on consent infrastructure for calls they didn't need to make.
+The site uses GoatCounter for analytics — EU-hosted, open source, cookieless. To tell sessions apart it keeps the IP and user-agent in memory only, for at most eight hours, mapped to a random id that never touches disk; it keeps no persistent identifiers and collects no PII, which puts it outside § 25 TDDDG, the German rule that actually triggers cookie-consent requirements. Beyond that there is no client-side storage at all — no cookies, no `localStorage`, nothing that persists on the visitor's device. Put together, the site is genuinely cookie-free — so there's no banner. Adding one anyway would be pure UX cost for zero legal upside, which is the trap a lot of sites fall into: they bolt on consent infrastructure for calls they didn't need to make.
 
 ## The two pages the law still requires
 
