@@ -1,0 +1,87 @@
+---
+title: 'The bill was cold starts, not traffic: a thousand files per serverless instance'
+description: 'Vercel said three quarters of the monthly CPU budget was gone by day eleven, on two thousand requests a day. The requests were cheap. Every fresh instance was spending seconds resolving a thousand small files from node_modules, and one Vite setting cut it to sixty.'
+publishedAt: 2026-10-19
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Development
+  - Web Performance
+  - Case Notes
+  - Vercel
+  - Astro
+stack:
+  - Astro
+  - Vercel
+  - Vite
+draft: false
+---
+
+In October Vercel mailed me that [MaHalle](/work/mahalle), the community platform I run for a Berlin neighbourhood, had used about three quarters of its monthly free CPU allowance by day eleven of the billing cycle. Going over the line pauses the site. The platform serves roughly two thousand requests a day, which is not a number that should cost four CPU-hours a month, so something was wrong with the price per request, not the request count.
+
+The short version: a warm request cost 5 to 40 milliseconds of CPU. The first request on a freshly started instance cost between 1.2 and 2.9 seconds, and almost none of that was the app's own code. It was Node resolving and compiling about a thousand small files out of `node_modules` on every cold start: the error tracker and the telemetry library underneath it, a date library imported through its barrel, the auth library and its token dependencies. Telling Vite to bundle those packages into the server chunks brought the first request down to about sixty files and 0.43 seconds on the landing page. A low-traffic server-rendered app on serverless pays for cold starts, not for traffic, and the fix is to make each cold start load less.
+
+## Why the dashboard couldn't tell me
+
+The per-route CPU view that would have pointed straight at the problem is a paid-plan feature, and the observability page on the free plan shows demo data. So the dashboard told me the total and nothing else. I had the total already; it was in the mail.
+
+What I could do instead was measure locally. MaHalle is an Astro app in server mode, and it builds equally well with the Node adapter as with the Vercel one. A production build running under plain Node on my own machine is the same code, the same module graph and the same cost structure, minus the platform. That is close enough to find a gap of two orders of magnitude between warm and cold.
+
+## Measuring a cold start in ten minutes
+
+Three small scripts, none of which needed to survive the afternoon:
+
+- **CPU per request.** Wrap the built server entry in a script that exposes `process.cpuUsage()` on a side port. Hit a route ten times after a warm-up and read the delta: that is the warm cost. Then start a fresh process and read the delta after the very first request: that is the cold cost. Warm, 5 to 40 ms. Cold, 1.2 to 2.9 s depending on the route.
+- **Files per request.** Register a loader hook (`module.register` for ESM, a wrapper around `Module._load` for the CommonJS side) that counts every file the first request pulls in, then group the count by package. About a thousand files. The error tracker plus the OpenTelemetry packages it depends on were roughly 650 of them. The date library was 304, because a barrel import loads every function in the package whether the page uses one or all of them. The auth library and its token dependencies were about 110.
+- **Where the time goes.** Run the same cold request under `node --cpu-prof` and aggregate self-time by package. The top entry was not any package's code. It was Node's own resolver and compiler, which is what you would expect when the job is "open a thousand files and parse them".
+
+None of this is specific to Astro or to Vercel. It is what any Node server does when it is started from scratch with a large dependency graph that it has to walk file by file. On a long-running server you pay it once at deploy. On serverless you pay it every time the platform spins up a new instance, which on a low-traffic site is a meaningful fraction of all requests.
+
+## The fix is one Vite setting
+
+Vite's SSR build leaves dependencies external by default: the server chunk `import`s them from `node_modules` at run time, one file at a time. `ssr.noExternal` flips that per package, so the package is bundled into the server output at build time and arrives as a handful of pre-resolved chunks instead of hundreds of files.
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: [
+        'date-fns',
+        /^@sentry\//,
+        /^@opentelemetry\//,
+        // plus the auth library and the two small packages it pulls in
+      ],
+    },
+  },
+});
+```
+
+The regexes matter: the error tracker is not one package but a scoped family, and bundling the top-level one while leaving its siblings external changes very little.
+
+What stays external, on purpose: the database driver, which has native optional dependencies that a bundler would mangle, the password-hashing library for the same reason, and the one module the error tracker uses to hook Node's loader, which has to run as a real module from `node_modules` or it cannot hook anything.
+
+After the change the first request loaded about sixty files. The landing page's cold start went from 2.9 s to 0.43 s, an API route from 1.2 s to 0.38 s, the login page from 1.4 s to 0.38 s. Warm requests roughly halved as well.
+
+## Verify what you just bundled
+
+Bundling an error tracker is exactly the kind of change that can quietly stop errors from being delivered: the SDK now lives inside the app's own chunks, with a different module graph than its authors tested. So before shipping I pointed a local build at a tiny HTTP sink standing in for the tracker's endpoint, triggered an error, and confirmed the event arrived at the sink. It did.
+
+One gotcha on the way: Vite inlines `import.meta.env` values at build time. A fake tracker endpoint or a deliberately dead database connection string has to be set on the build command, not on the run command, or you are testing the production configuration with your test values ignored.
+
+## Reading the usage page afterwards
+
+Six days later the usage page still looked alarming. The headline said two hours fifty-two minutes of four. The explanation is that the range picker only offers rolling windows (last 7, 14, 30 days) and no "current billing period" preset, so "last 30 days" was summing the expensive days before the fix together with the cheap ones after it. Read "last 7 days" instead, which is the current pace, and multiply by about 4.3 for the month. On that reading the app had gone from four to ten CPU-minutes a day to about two, which projects to roughly one hour of the four per month. The reset date is under billing settings, not on the usage page.
+
+Two other things I measured while I was in there, because they decide whether a keep-warm ping is worth having. A production instance stayed warm for at least three and a half minutes between requests: TTFB was 0.1 s after 45, 90, 150 and 210 seconds of idle. And the five-minute uptime ping the site already had was therefore neither keeping it warm nor costing much. If the chart ever climbs past about eight minutes a day again, a ping just under the idle timeout is the next lever, and after that the paid plan.
+
+## What I'd check before adding the next package
+
+The rule I wrote into the repo is short: before adding a package that ships hundreds of files, re-run the cold-start measurement. The numbers above were all measured on the local Node build, not on Vercel's own runtime, and I am saying so because the Vercel build output can differ in detail. But the mechanism is not in doubt, and the usage chart agreed with the local numbers within a week.
+
+The broader lesson generalises past this app. A dependency's cost on serverless is not its bundle size in kilobytes and not its runtime per call. It is how many files Node has to open before the first line of your handler runs, multiplied by how often the platform starts you from zero. Low traffic makes that worse, not better: fewer requests means a larger share of them land on a cold instance. The bill was cold starts, not traffic.
+
+---
+
+*MaHalle's full story, including what the platform does for the people it serves, is in the [case study](/work/mahalle).*
