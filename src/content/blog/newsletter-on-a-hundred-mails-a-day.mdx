@@ -1,0 +1,70 @@
+---
+title: 'Groups of seventy-five: a members'' newsletter on a hundred mails a day'
+description: 'MaHalle''s weekly Kiez-Brief goes out on a free mail tier capped at 100 mails per UTC day, shared with login mails. The cap shaped the whole design: groups claimed in the database before a single send, a two-hour test copy, and a "view in browser" page that stores nothing.'
+publishedAt: 2026-10-21
+author:
+  name: Ercan Atak
+  bio: Full-stack developer, photographer, and painter based in Berlin.
+categories:
+  - Development
+  - Case Notes
+  - Architecture
+  - Email
+stack:
+  - Astro
+  - MongoDB
+  - Resend
+draft: false
+---
+
+[MaHalle](/work/mahalle), the community platform I run for a Berlin neighbourhood, sends its members a weekly mail called the Kiez-Brief: the week's forum posts, new listings on the market, the team's announcements, next week's events. It is built automatically from what members already published, in the reader's language, and it goes out on Sunday. The constraint that shaped it is a free mail tier capped at **100 mails per UTC calendar day**, a quota the newsletter shares with every login and confirmation mail the platform sends. The membership was already past half of that when the first issue went out, and it is growing.
+
+The design that came out of the cap is the subject of this post: an issue goes out in groups of 75, one group per quota day, and each group is claimed in the database with a conditional update before anything is sent, so two overlapping runs cannot mail the same people twice. Around that core sit three smaller decisions I'd make again anywhere: a test copy that reaches me two hours before the members' mail, a "view in browser" page that stores no copy of the mail, and an unsubscribe flow that survives mail scanners and my own clumsy clicks.
+
+## The quota is a calendar day, not a rolling window
+
+My first version spaced groups 24 hours apart. That lasted about an hour. The provider's documentation says the daily quota resets at midnight UTC and is explicitly not a rolling 24-hour window, so a 24-hour gap would have wasted most of a day for nothing. The rule became "the next group is due on a later UTC day than the last one", which is a one-line comparison of two date strings. I had guessed, and the guess was wrong. Look the reset rule up before you design around it; it lives in a knowledge-base article, not in the API reference.
+
+Why 75 and not 100: the other 25 stay free for the auth mails. A signup wave on a Sunday evening must never be the reason a neighbour can't confirm their address.
+
+## Groups, a cursor, and a claim
+
+The obvious way to split a list into groups is to query the recipients, slice by offset, and send slice *n* on day *n*. It is also wrong, because membership changes between days: someone joins, someone unsubscribes, and the slices shift, so one person gets the issue twice and another never. The version that survived review keeps the recipients in a stable order, oldest member first, and stores a **cursor** on the issue record: the id of the last member in the last group sent. The next group is "the next 75 members after the cursor". A late joiner sorts behind everyone and lands in a later group. An unsubscriber simply drops out. Nobody is skipped, nobody gets it twice.
+
+The claim is the part that matters. Before a group is rendered, let alone sent, the run performs one conditional update on the issue record: "set the group count to *n*+1 and advance the cursor, **but only if the record still says *n***". If two runs race, exactly one update matches and the other sees zero modified documents and stops. The issue itself is claimed the same way one level up, by inserting a record whose key is the ISO week; a duplicate-key error means another run already owns the week. Together they make the whole thing at-most-once, the right failure mode for a newsletter: a missed issue is an annoyance, a doubled one is spam from a platform that promised not to send any.
+
+At-most-once also means a failed send is never retried. The claim happens first, so if the send then throws, the group stays claimed, an error-tracker alert fires and a Telegram line tells me what happened. A process that dies between the claim and the send leaves no error at all, which is why the claim also stores the size of the group it took: if the count of delivered mails did not grow by that number, I know where it died.
+
+Two honest notes on this. The claim was checked against a real development database with two parallel runs, not only against the in-memory stand-in the unit tests use, because a conditional update is exactly the kind of thing a mock gets right while the database gets wrong. And so far every issue has fit in a single group, so the second-day path has run in those tests and nowhere else. The code is ready for the day it isn't; the evidence that it works in production doesn't exist yet, and I'd rather say so than imply otherwise.
+
+## Two hours with the test copy
+
+The Sunday job runs from a scheduled workflow in three steps: send a test copy to me, sleep for two hours, send to the members. Putting the wait inside the job rather than scheduling two separate runs is what guarantees the order, because the scheduler itself is routinely late by hours and two independent schedules could land in either order. The test step is not allowed to fail the job. Alongside the test copy a Telegram message tells me how many members will get the real thing.
+
+Two hours is long enough to notice a broken thumbnail or a post that should not have made it, and to fix it. It also produced a lesson I did not plan for: the members' mail is **rebuilt from live data** at the moment it is sent, not frozen when the test copy goes out. An announcement posted inside those two hours reaches the members even though my copy didn't show it. That is a feature, and it is also a Sunday content deadline that nobody had written down. Now it is.
+
+The first issue, on 4 October, didn't go through this flow at all. The schedule had been moved that afternoon and could not fire the same day, so I read the test copy and started the send by hand. It reached 59 members in one group, in nine seconds.
+
+## View in browser, without storing the mail
+
+Every newsletter has a link to read the issue on the web, and every implementation I had seen stores a copy of the HTML to serve there. I didn't want to. Everything in the Kiez-Brief is member content, and members delete posts, leave, and have their names anonymised. A stored copy would keep all of that alive on a page under my domain.
+
+The issue record already holds the time window it was built for. The browser page rebuilds the issue from today's data for that window and renders it with the same template. A post deleted since the send is gone from the page too. A member who left reads as a former member. A sold listing is out. All of that falls out of storing nothing. The page can also show *more* than the mail did, a post approved after the send, say, and the documentation is honest about that rather than pretending the page is an archive.
+
+The page is personalised for the viewer, not for the original recipient: their language, their name, their own unsubscribe link. A forwarded mail must never let someone unsubscribe the person who forwarded it. And because the page is member text rendered in a same-origin document, it carries a strict content-security policy that allows images and inline styles and nothing else, and it is reachable only with a login.
+
+## Unsubscribing: scanners, one-click, and myself
+
+Three things are wired to the same switch. The link in the mail lands on a page that *asks* before acting, because corporate mail scanners prefetch every link in a message and a plain GET that unsubscribes would have silently removed people who never clicked. The one-click headers from RFC 8058 let Gmail and friends unsubscribe with a POST, which needed one exemption from the app's cross-site form check: that request arrives without an origin header by design, and it is safe to allow because it carries a signed token and the session cookie never travels on a cross-site POST anyway. And there is a switch in the profile.
+
+The reason the switch is in the profile, where everyone can see it, is that I unsubscribed myself. The admin preview is the real mail, so its unsubscribe link acts on the admin's own account, and the page then sent me to find the setting under a notification bell where, for an account like mine, there was nothing. Two fixes, both worth having regardless: the confirmation page offers "by mistake? turn it back on", and account-level mail settings live where every member can reach them.
+
+## One bad address must not cost the group
+
+The provider's batch endpoint validates strictly by default: one malformed address rejects the whole batch. For a transactional mail that is the right default. For a newsletter it means one member's typo silences 74 neighbours. The batch call runs in permissive mode instead, with an idempotency key per group, and the refused addresses come back as a list that turns into one warning with a count. I also decided against the provider's hosted audience feature: it would copy every member's address into a second processor's contact store, for an unsubscribe page I can serve myself.
+
+What the design deliberately does not have: a tracking pixel, so there are no open rates and never will be; bounce webhooks, so bounces are visible only in the provider's log for now; and any admin-written text, the issue is only ever what members and the team already published. When the recipient list passes two groups, a warning tells me it is time for the paid plan. Until then, 75 at a time.
+
+---
+
+*MaHalle's full story is in the [case study](/work/mahalle). The cold-start post from the same month, on why the platform's serverless bill was never about traffic, is [here](/blog/serverless-cold-starts-were-the-bill).*
