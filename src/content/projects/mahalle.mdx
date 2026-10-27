@@ -41,6 +41,7 @@ exif:
 links:
   github: https://github.com/atakee72/mahalle-digital
   live: https://mahalle.digital
+  demo: https://demo.mahalle.digital
 draft: false
 ---
 
@@ -87,6 +88,32 @@ form and lets the server decide on submit — the first version fell
 back to a plain form with no notice, which quietly dropped the inviter
 on every slow cold start.
 
+Since 19 October the link is also a character reference. A neighbour
+who registers through a verified member's link receives the
+"Verifiziert im Kiez" badge on the first confirmation of their
+address, provided the inviter still holds it at that moment — the
+only verification tier that scales for a single admin who cannot
+meet every newcomer at the market stand. The badge is one strict
+flag that any proof may set, so this tier needed no migration. The
+rule fills only a blank: an admin's stored "off" is a decision, and
+the first version's guard would have overturned it. A review caught
+that, not I.
+
+Since 27 October there is a [demo](https://demo.mahalle.digital).
+The members-only promise rules out production, since a stranger
+reading real neighbours' posts breaks it, so the demo is a long-lived
+branch of main built as a preview deployment: no crons run there and
+no mail, push or Telegram transport exists, so nothing leaves. Two
+buttons, "Als Mitglied ansehen" and "Als Admin ansehen", sign the
+visitor in as fixed fictional users without a password. Every write
+is refused server-side rather than hidden. A nightly job wipes and
+reseeds a fictional Kiez — eight neighbours, twelve threads, six
+events, six listings — with pinned ids, so a week-old demo session
+never wakes up as a ghost. Only the public Kiez statistics are copied
+from production, through an allowlist. The switch counts only
+together with a database whose name says it is not production, so
+production can never qualify.
+
 ## Architecture
 
 Multilingual AI moderation (TR/EN/DE + leetspeak filters) gates all
@@ -124,7 +151,8 @@ between claim and send leaves a visible gap. Two hours before the members' mail 
 test copy and a Telegram line. "View in browser" stores no snapshot:
 the issue is rebuilt from today's data for its week, so deleted posts
 and anonymised names vanish from old issues for free. The first issue
-reached 59 members on 4 October.
+reached 59 members on 4 October; the design is written up
+[on the blog](/blog/newsletter-on-a-hundred-mails-a-day).
 
 Handles arrived from one question — is there a uniqueness check on
 names? There wasn't; two members already shared one. Names may repeat,
@@ -133,7 +161,13 @@ saved and stored by member id, so a later rename can't redirect it.
 Researching that surfaced a data-exposure bug: about a dozen routes
 joined a user record with "everything except the password", so a
 comment list carried its author's email. One shared allowlist now.
-The pure modules carry 64 test files.
+Blog articles take comments since late October: a comment whose
+parent is a post's slug instead of a forum id, with the same
+moderation queue, mentions, reporting and strikes reused unchanged.
+Photos are shrunk in the browser to 1600 px before upload, because
+raw phone photos died at the edge with a 413 before any function
+could log it; every image route shares one 4 MB cap. The pure
+modules carry 70 test files.
 
 ## Reflection
 
@@ -144,7 +178,7 @@ institutions, closed to political parties, for-profit deployment,
 resident surveillance, resale — and to a single person running a copy
 as both deployer and sole moderator.
 
-Neither of this year's worst failures announced itself. OpenAI's
+None of this year's worst failures announced itself. OpenAI's
 credits ran out: the news cron kept returning 200 while saving
 nothing, and every submission needing moderation got waved into the
 manual review queue — four days unnoticed, because both paths were
@@ -152,6 +186,14 @@ caught, logged and handled gracefully. Then the domain move killed a
 GitHub Actions cron for the air-quality logger — two days of writing
 nothing, because a redirect is served at the edge and no application
 code ever runs. A cron that returns 200 is not a cron that worked.
+The third hid inside a fail-safe for eight weeks: the moderation
+call sent a listing's text and all its photos in one request, the
+provider accepts one image per request, and every listing with two
+or more photos fell into the manual queue. The fail-safe did what it
+should and recorded only a bare status. Nothing errored, so nothing
+alerted; a runtime log read by hand found it. Now each image goes in
+its own request, and the fail-safe reason carries the provider's
+scrubbed error. Test a provider contract on a 400, not only on a 200.
 
 In October Vercel reported three quarters of the month's free CPU
 gone by day eleven, at roughly two thousand requests a day. A local
@@ -160,7 +202,8 @@ but the first request on a fresh instance cost 1.2–2.9 s, because Node
 resolved and compiled about a thousand small files — Sentry and
 OpenTelemetry, a date-fns barrel import, the auth library. Bundling
 them into the server chunks brought the landing's cold start to
-0.43 s, measured locally. The bill was cold starts, not traffic.
+0.43 s, measured locally. The bill was cold starts, not traffic; the
+[full story](/blog/serverless-cold-starts-were-the-bill) is on the blog.
 
 The security audits had a blind spot of their own: they followed the
 UI. The login gate's `?redirect=` guard checked characters — but the
@@ -169,7 +212,17 @@ every check and landed off-site; the fix parses against a fixed base
 origin and returns the parsed path. And a link-preview endpoint no
 screen had called since June was still reachable by any member and
 still fetched whatever it was handed. An endpoint nobody calls is
-still an endpoint.
+still an endpoint. The demo's review found a hole two audits of mine
+had missed: with a shared signing secret, a demo admin's session
+cookie pasted into a browser on the production host would have been
+a working production admin session, because the role rides in the
+token. Two fixes, both needed: a token carrying the demo flag dies on
+any non-demo deployment, and the demo signs with its own secret. For
+any second deployment of the same app, ask what happens if this
+cookie is pasted into the other one. A scanner found the new host
+within the hour and probed unknown auth paths into a 500 apiece; the
+middleware now answers 404. A fresh public host is scanned within the
+hour, so budget for it.
 
 The platform launched for real in September: two Saturdays at an info
 stand on the Schillermarkt. Readiness was sized to the room, not the

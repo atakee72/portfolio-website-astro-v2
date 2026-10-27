@@ -48,7 +48,7 @@ const statusClass =
 
         <p class="text-[14px] text-paper-2 mb-6">{subtitle}</p>
 
-        {(links.github || links.live) && (
+        {(links.github || links.live || links.demo) && (
           <div class="flex flex-wrap gap-3 mb-6 text-[11px] tracking-[0.14em] uppercase">
             {links.github && (
               <a
@@ -68,6 +68,16 @@ const statusClass =
                 class="text-paper hover:text-phosphor transition-colors border border-ink-3 px-3 py-1.5"
               >
                 live →
+              </a>
+            )}
+            {links.demo && (
+              <a
+                href={links.demo}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-paper hover:text-phosphor transition-colors border border-ink-3 px-3 py-1.5"
+              >
+                demo →
               </a>
             )}
           </div>

@@ -138,6 +138,7 @@ const projectsCollection = defineCollection({
       .object({
         github: z.string().url().optional(),
         live: z.string().url().optional(),
+        demo: z.string().url().optional(),
       })
       .default({}),
     draft: z.boolean().default(false),
