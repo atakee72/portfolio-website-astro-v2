@@ -96,24 +96,24 @@ const statusClass =
       </header>
 
       <dl class="border border-ink-3 bg-ink-2 px-4 py-3 mb-10 flex flex-col gap-1 text-[11px] tracking-[0.10em] font-mono">
-        <div class="flex justify-between text-mute-2">
-          <dt>STACK</dt><dd class="text-paper m-0">· {exif.stack}</dd>
+        <div class="flex justify-between gap-4 text-mute-2">
+          <dt>STACK</dt><dd class="text-paper m-0 text-right">· {exif.stack}</dd>
         </div>
-        <div class="flex justify-between text-mute-2">
+        <div class="flex justify-between gap-4 text-mute-2">
           <dt>YEAR</dt><dd class="text-paper m-0">· {exif.year}</dd>
         </div>
         {exif.role && (
-          <div class="flex justify-between text-mute-2">
-            <dt>ROLE</dt><dd class="text-paper m-0">· {exif.role}</dd>
+          <div class="flex justify-between gap-4 text-mute-2">
+            <dt>ROLE</dt><dd class="text-paper m-0 text-right">· {exif.role}</dd>
           </div>
         )}
-        <div class="flex justify-between text-mute-2">
+        <div class="flex justify-between gap-4 text-mute-2">
           <dt>STATUS</dt>
           <dd class:list={['m-0', statusClass]}>· ● {exif.status}</dd>
         </div>
         {exif.tags.length > 0 && (
-          <div class="flex justify-between text-mute-2">
-            <dt>TAGS</dt><dd class="text-paper m-0">· {exif.tags.join(' · ')}</dd>
+          <div class="flex justify-between gap-4 text-mute-2">
+            <dt>TAGS</dt><dd class="text-paper m-0 text-right">· {exif.tags.join(' · ')}</dd>
           </div>
         )}
       </dl>
