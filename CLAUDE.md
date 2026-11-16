@@ -115,6 +115,7 @@ cite a token from here, it's cheap to re-check the file.
 ## Gotchas
 
 - **Date display convention (unified 2026-08-17, `c917198`): human-readable dates are `en-GB`** (day-first, "17 August 2026" on post pages, "17 Aug 2026" on lens); compact dates on cards/terminal feed are ISO (`toISOString().slice(0, 10)`). Never `en-US` — grep for it before adding a new date formatter.
+- **A `{/* comment */}` placed inside `{cond && ( … )}` next to the element breaks `astro check`** ("Expected corresponding JSX closing tag", three errors pointing at the END of the file, not at the comment) — the parenthesised expression then has two siblings. Put the comment above the conditional. And because the build chain stops there, `dist/` and any `pnpm preview` screenshot still show the previous build (bit the journal-grid change 2026-11-16: the first "after" screenshot was the old layout).
 - **Do not import `react-icons` (or any React component) into `.astro` templates** — there is no React in this project, and even if there were, `react-icons` triggers SSR hook-call warnings. Inline SVGs instead (see how `SocialMedia.astro` does it).
 - **Two unused leftovers were removed during the Astro migration**: any reference to `public/assets/index.js`, `next-themes`, or `react-magic-motion` is stale.
 - **Tailwind arbitrary-value classes with CSS variables work** (e.g., `text-[var(--brand)]`). Used in `SocialMedia.astro` for per-icon hover colors.
