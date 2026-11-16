@@ -8,7 +8,9 @@ interface Props {
 
 const { seeAllHref } = Astro.props;
 
-const HOME_CAP = 6;
+// 5, not 6: with the featured card spanning two columns the lg grid fills
+// cleanly at 2, 5 or 8 cards — a sixth sits alone in its own row.
+const HOME_CAP = 5;
 const all = await getAllProjects();
 const visible = all.slice(0, HOME_CAP);
 const hasOverflow = all.length > HOME_CAP;

@@ -103,6 +103,9 @@ const projectsCollection = defineCollection({
   schema: z.object({
     title: z.string(),
     subtitle: z.string(),
+    // Optional shorter title for the cards (homepage + /work); the case-study
+    // page keeps the full `title`.
+    cardTitle: z.string().optional(),
     publishedAt: z.coerce.date(),
     featured: z.boolean().default(false),
     // `cloud: true` ⇒ `src` is a Cloudinary public_id (rendered via CloudPhoto).
@@ -129,6 +132,9 @@ const projectsCollection = defineCollection({
     order: z.number().optional(),
     exif: z.object({
       stack: z.string(),
+      // Optional card-only abbreviation of `stack`, so one long line doesn't
+      // make a card much taller than its neighbours.
+      stackShort: z.string().optional(),
       year: z.string(),
       status: z.enum(['live', 'archived', 'wip']),
       role: z.string().optional(),
