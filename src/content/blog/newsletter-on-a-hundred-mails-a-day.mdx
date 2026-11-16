@@ -2,6 +2,7 @@
 title: 'Groups of seventy-five: a members'' newsletter on a hundred mails a day'
 description: 'MaHalle''s weekly Kiez-Brief goes out on a free mail tier capped at 100 mails per UTC day, shared with login mails. The cap shaped the whole design: groups claimed in the database before a single send, a two-hour test copy, and a "view in browser" page that stores nothing.'
 publishedAt: 2026-10-21
+updatedAt: 2026-11-16
 author:
   name: Ercan Atak
   bio: Full-stack developer, photographer, and painter based in Berlin.
@@ -66,7 +67,7 @@ The reason the switch is in the profile, where everyone can see it, is that I un
 
 The provider's batch endpoint validates strictly by default: one malformed address rejects the whole batch. For a transactional mail that is the right default. For a newsletter it means one member's typo silences 74 neighbours. The batch call runs in permissive mode instead, with an idempotency key per group, and the refused addresses come back as a list that turns into one warning with a count. I also decided against the provider's hosted audience feature: it would copy every member's address into a second processor's contact store, for an unsubscribe page I can serve myself.
 
-What the design deliberately does not have: a tracking pixel, so there are no open rates and never will be; bounce webhooks, so bounces are visible only in the provider's log for now; and any admin-written text, the issue is only ever what members and the team already published. When the recipient list passes two groups, a warning tells me it is time for the paid plan. Until then, 75 at a time.
+What the design deliberately does not have: a tracking pixel, so there are no open rates and never will be; and any admin-written text, the issue is only ever what members and the team already published. When this was first published it had no bounce webhooks either, and bounces were visible only in the provider's log. That changed on 2 November: a permanent bounce or a spam complaint, reported through a signed webhook, now switches the Kiez-Brief off for that address, and a member's own opt-out always outranks a bounce. When the recipient list passes two groups, a warning tells me it is time for the paid plan. Until then, 75 at a time.
 
 ---
 

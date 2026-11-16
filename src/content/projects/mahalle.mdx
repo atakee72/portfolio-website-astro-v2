@@ -114,6 +114,18 @@ from production, through an allowlist. The switch counts only
 together with a database whose name says it is not production, so
 production can never qualify.
 
+In November the blog opened a little further. A visitor without an
+account can now translate a blog post, because the blog is the public
+door and a reader arriving from a search engine should get the same
+toggle as a member. Visitors share one small daily budget of fresh
+translations, and cached ones are free. The first version looked at
+the budget and then charged it; the reservation is now one atomic
+increment taken right before the provider call, and a failed call
+stays charged. The blog index also turned out to be invisible: it is
+a client-only island, so its HTML held no link to any post, and
+Search Console listed eight posts as discovered but not indexed. A
+server-rendered link list now fills the island's fallback.
+
 ## Architecture
 
 Multilingual AI moderation (TR/EN/DE + leetspeak filters) gates all
@@ -154,6 +166,27 @@ and anonymised names vanish from old issues for free. The first issue
 reached 59 members on 4 October; the design is written up
 [on the blog](/blog/newsletter-on-a-hundred-mails-a-day).
 
+Since 2 November a dead address switches the Kiez-Brief off by
+itself. The mail provider reports through a signed webhook, and only
+two events count: a permanent bounce and a spam complaint. The hard
+part was precedence. A member's own opt-out outranks a bounce and is
+written unconditionally; a bounce is a compare-and-swap on the state
+it read and yields if that state has moved. A confirmed new address
+switches the mail back on only when a bounce had switched it off,
+never after a deliberate no. The member sees a banner, the admin sees
+the reason. Three review rounds on this feature were one question:
+which reason wins.
+
+Since 31 October every link in a moderated submission is also looked
+up in Google Safe Browsing, in parallel with the AI check. The links
+come from the same tokenizer the page renders with, so a link the
+page would show is a link that gets checked. A hit queues the post
+with an admin chip. A failed lookup never holds content: it approves
+as before and raises one warning. Wiring the check through every
+caller showed what the callers had drifted into: edits of
+announcements and recommendations ran no moderation at all, and
+listings were checked on a different text than the page renders.
+
 Handles arrived from one question — is there a uniqueness check on
 names? There wasn't; two members already shared one. Names may repeat,
 the handle is the identity, and a mention is resolved when the text is
@@ -167,7 +200,7 @@ moderation queue, mentions, reporting and strikes reused unchanged.
 Photos are shrunk in the browser to 1600 px before upload, because
 raw phone photos died at the edge with a 413 before any function
 could log it; every image route shares one 4 MB cap. The pure
-modules carry 70 test files.
+modules carry 84 test files.
 
 ## Reflection
 
@@ -202,7 +235,9 @@ but the first request on a fresh instance cost 1.2–2.9 s, because Node
 resolved and compiled about a thousand small files — Sentry and
 OpenTelemetry, a date-fns barrel import, the auth library. Bundling
 them into the server chunks brought the landing's cold start to
-0.43 s, measured locally. The bill was cold starts, not traffic; the
+0.43 s, measured locally. The fix had a sequel: the same bundling
+list broke every page of the dev server, and now applies at build
+time only. The bill was cold starts, not traffic; the
 [full story](/blog/serverless-cold-starts-were-the-bill) is on the blog.
 
 The security audits had a blind spot of their own: they followed the
@@ -223,6 +258,26 @@ cookie is pasted into the other one. A scanner found the new host
 within the hour and probed unknown auth paths into a 500 apiece; the
 middleware now answers 404. A fresh public host is scanned within the
 hour, so budget for it.
+
+That 404 became the next silent failure. The gate matched on a path
+prefix, and the app's own sign-up, password-reset and confirmation
+routes live under the same prefix. For three days from the evening of
+27 October nobody could register, reset a password or confirm an
+address, and two newcomers gave up. Nothing reported it, because a 404
+is not an exception. The gate now answers only for requests the router
+handed to the auth library's catch-all, and a test pins every route
+file under that prefix. Two sensors followed. A probe sends fifteen
+fixed requests at production every half hour, writes nothing, and
+messages me after one failed retry. And the auth forms report any
+answer they do not expect as one static message; the first draft
+reported a healthy login as broken, because Safari rejects fetches in
+the middle of a navigation, and a review caught that. Error reports
+now drop query strings, since a report from the reset page would have
+carried a still-valid token. A gate on a path prefix gets probed
+against your own routes under it: the happy path, not only the
+blocked one. In November a lock file left by an interrupted run
+blocked the off-site code backup for twelve days while the hook only
+warned; it now clears a lock older than an hour.
 
 The platform launched for real in September: two Saturdays at an info
 stand on the Schillermarkt. Readiness was sized to the room, not the
