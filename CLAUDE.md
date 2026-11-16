@@ -241,7 +241,7 @@ If you ever need to bypass the hook (rare — usually means rotating the secret 
 The homepage (`src/pages/index.astro`) deliberately caps each section to keep the page from growing unboundedly as content lands:
 
 - **Contact sheet** (`ContactSheet.astro`) — **hardcoded 9 cells** in `src/data/contactSheet.ts`. Curated highlight area, not a feed. Current composition: 3 photo + 2 paint (both showing album covers) + 3 code + 1 link (website-museum tile). Photo cells take `slug: '<roll>'`, paint cells take `album: '<slug>'` (or `painting: '<id>'` for a single work) — all auto-resolve cover images and add lightbox CTAs.
-- **Blog** — capped at **6 most recent** posts (`BLOG_HOME_CAP` in `index.astro`). Overflow goes to `/blog/index.astro`. Signpost link "see all entries →" appears in the section header only when there's actual overflow (`hasMore` prop).
+- **Blog** — capped at **5 most recent** posts (`BLOG_HOME_CAP` in `index.astro`; lowered from 6 on 2026-11-16 to mirror the work section: the newest post is a wide lead card via `md:col-span-2` in `Blog.astro`, and the grid is `items-start` so cards keep their natural, uneven heights — descriptions are already `line-clamp-3`, which keeps the spread small. `/blog` itself is unchanged). Overflow goes to `/blog/index.astro`. Signpost link "see all entries →" appears in the section header only when there's actual overflow (`hasMore` prop).
 - **Work** — capped at **5** projects (`HOME_CAP` in `ExifWork.astro`; lowered from 6 on 2026-11-16 — with the featured card spanning two columns the `lg` grid fills cleanly at 2, 5 or 8 cards, a sixth sat alone in its own row). Overflow goes to `/work/index.astro`. Same signpost pattern.
 
 ### Project order on the homepage and `/work`

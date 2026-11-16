@@ -73,9 +73,13 @@ const featuredIsLinkpost = !!featuredPost?.data.externalUrl;
       <p class="text-[12px] text-mute-2 font-mono">// no entries yet</p>
     )}
 
+    {/* Mirrors the work section: newest post is the wide lead card, cards keep
+        their natural (uneven) heights. Five cards fill both the 2- and 3-col grid. */}
     {gridPosts.length > 0 && (
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {gridPosts.map((post) => <BlogPostCard post={post} />)}
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
+        {gridPosts.map((post, i) => (
+          <BlogPostCard post={post} class={i === 0 ? 'md:col-span-2' : undefined} />
+        ))}
       </div>
     )}
   </section>

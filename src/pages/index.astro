@@ -10,7 +10,9 @@ import Footer from '@/components/Footer.astro';
 import { getAllBlogPosts, getAllTestimonials } from '@/lib/content';
 import { FEATURES } from '@/lib/config';
 
-const BLOG_HOME_CAP = 6;
+// 5, not 6: the newest post spans two columns (see Blog.astro), so five
+// cards fill the grid; a sixth would sit alone.
+const BLOG_HOME_CAP = 5;
 const allPosts = await getAllBlogPosts();
 const posts = allPosts.slice(0, BLOG_HOME_CAP);
 const hasMorePosts = allPosts.length > BLOG_HOME_CAP;
