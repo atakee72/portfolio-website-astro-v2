@@ -1,20 +1,26 @@
 ---
 title: Okay Übersetzungen
-subtitle: Berlin translation office · bilingual site with in-browser voice AI
+subtitle: Berlin translation office · bilingual site with voice and chat assistants
 publishedAt: 2026-06-23
 featured: false
 order: 2
 cover:
   src: /assets/projects/okay-uebersetzungen-cover.webp
-  alt: Okay Übersetzungen — bilingual marketing site with consent-gated voice assistant
+  alt: German home page of Okay Übersetzungen — logo, serif headline over a sepia photo of a hand writing, and the call and chat buttons in the corner
   cloud: false
-screenshots: []
+screenshots:
+  - src: /assets/projects/okay-uebersetzungen-tr.webp
+    alt: Turkish home page with the same layout and its own headline
+    caption: The Turkish home page.
+  - src: /assets/projects/okay-uebersetzungen-glossar.webp
+    alt: Glossary page with short entries such as apostille and sworn interpreter
+    caption: The glossary.
 exif:
   stack: Astro 6 + Tailwind 4 + Svelte 5 + Gemini Live + Cloudflare Pages/R2/KV/Turnstile + Sentry (EU)
   stackShort: Astro + Svelte + Gemini Live + Cloudflare
   year: '2026'
   status: live
-  role: full-stack · i18n · voice-AI
+  role: full-stack · i18n · voice and chat AI
   tags:
     - client-work
     - fullstack
@@ -23,15 +29,15 @@ exif:
     - bilingual
     - gdpr
 links:
-  live: https://test.okay-uebersetzungen.de
+  live: https://www.okay-uebersetzungen.de
 draft: false
 ---
 
 ## Problem
 
 A Berlin translation office — German ↔ Turkish specialty, interpreter
-practice since 1971, GmbH since 1984, sworn "vom Original" translations
-handed over in person — needed a real site that read as expert and
+practice since 1971, GmbH since 1984, sworn translations made from
+the original document — needed a real site that read as expert and
 intake-ready, in both languages, without falling into the usual
 GDPR-shortcut traps: no Google Fonts CDN, no third-party trackers
 loaded up front, no consent banner covering up a privacy mess.
@@ -40,14 +46,17 @@ loaded up front, no consent banner covering up a privacy mess.
 
 Static Astro 6 with Tailwind 4 (tokens in `@theme`, no config file) and
 Svelte 5 islands for the stateful pieces — FAQ accordion, document
-register, contact wizard, voice assistant. The whole site is bilingual
+register, contact wizard, voice assistant and, since November, a text
+chat. The whole site is bilingual
 DE / TR: shared UI-string dictionary for chrome, separate Turkish
 pages under `/tr/` for long-form copy, route-aware language switcher
 with `hreflang` alternates — now covering nearly every page.
 
 The intake flow is a single OrderWizard (service → languages →
-document description with file upload → quote-vs-order toggle →
-phone-validated contact via `libphonenumber-js`). Documents go through
+document description with file upload → phone-validated contact via
+`libphonenumber-js`). It used to end in a quote-or-order toggle; at
+the owner's request there is now one path, an order, with a mandatory
+acknowledgement of when work starts. Documents go through
 **Cloudflare R2** — EU bucket, 14-day signed links, 30-day auto-delete
 (the old Web3Forms direct-upload path was capped, returning HTTP 400
 on real files). The submit endpoint is gated by
@@ -58,6 +67,17 @@ needed. Uploads carry magic-byte validation and per-IP rate limits in
 The office map is a self-hosted PNG stitched from OSM tiles, not a
 live embed, so the contact page transfers zero data to a tile
 provider.
+
+The site went live on the office's real domain on 3 November. DNS and
+mail stayed with the existing provider, so `www` is a CNAME and the
+bare domain forwards. The old site's `.htm` pages got redirects once
+Search Console showed them still being crawled.
+
+Then the owner corrected the Turkish, page by page. The first rounds
+arrived as Word tables of old and new text. For the rest I built him
+a bookmarklet: it makes the live page editable in his own browser,
+records each change with the texts around it, and exports one table
+for all pages visited. Nothing leaves his browser.
 
 ## Architecture
 
@@ -70,12 +90,26 @@ under that:
   Function mints an ephemeral Gemini Live token (`GEMINI_API_KEY` stays
   server-side), the `@google/genai` SDK lazy-loads, and a native-audio
   session opens. The agent stays general-info only, refuses PII,
-  routes real orders into the OrderWizard, stores nothing. Firefox
+  routes real orders into the OrderWizard, and stores no transcript and
+  no audio. Each conversation ends in one anonymous record —
+  categories, counts, the hour — kept 90 days for a daily digest. Firefox
   stuttered on streaming playback, Chrome didn't, and a bigger jitter
   cushion didn't help — which was the tell: the bug was in the audio
   pipeline, not in chunk timing. The cause was a forced sample rate on
   the output `AudioContext`; Firefox now runs it at the device's
-  native rate.
+  native rate. Mobile stutter is better, not closed. And when a phone
+  dropped mid-call, the provider kept the dead connection and refused
+  every resume; the client now backs off, then opens a fresh session
+  and tells the model the history is gone.
+- **Text chat** is the fallback when voice fails, behind the same
+  consent gate. It calls the model from a server function, so the
+  visitor's browser never talks to the provider. It survives page
+  changes through tab-only session storage — the site's only browser
+  storage, written after consent and named in the privacy policy.
+  Both assistants read one shared block of rules and facts, guarded by
+  tests, so an owner's correction reaches the pages and both
+  assistants in one pass. These endpoints spend money, so their
+  limiter fails closed, unlike the form's.
 - **Observability** is Sentry, **EU-region** — but shaped to the
   privacy story. Server-side (Pages Functions) is unconditional and
   invisible to visitors. The browser-side reporter is **custom,
@@ -86,7 +120,9 @@ under that:
 Testing grew alongside the feature set — **Vitest**, Testing Library,
 jsdom, **Playwright**, an axe-core audit — plus **GitHub Actions CI**
 running install, `astro check`, tests, build on every PR and push,
-with **Dependabot** enabled.
+with **Dependabot** enabled. Thirty test files now, plus a harness
+outside CI that feeds synthetic speech into a fake microphone,
+records the assistant's reply and transcribes it.
 
 Self-hosted Inter / Manrope / Instrument Serif / Homemade Apple
 (woff2, preloaded above the fold). Cookie-less Cloudflare Web
@@ -99,7 +135,7 @@ disables `getUserMedia` across the whole site. It has to be
 `ProfessionalService` — a `LocalBusiness` subtype — plus `Person`,
 `FaqPage` and `DefinedTerm`, with fields emitted only where the data
 actually exists: `foundingDate` is there now that 1984 is confirmed,
-`vatID` stays out until there's a number to put in it. `llms.txt` and
+`vatID` stays out because the company has none. `llms.txt` and
 freshness signals round out the SEO/GEO program.
 
 ## Reflection
@@ -124,6 +160,16 @@ worked fine, masking it. The fix is a habit now: extend `connect-src`
 in the same commit as any new browser-side endpoint. A consent gate
 decides whether a request gets made; the policy decides whether it
 arrives, and neither knows anything about the other.
+
+The chat produced two more of the same family. A length limit meant
+for visitors' messages was also applied to the model's replies when
+they came back as history, so one long first answer made every later
+request of that chat fail. And a prompt that said "always add" the
+owner's reassurance sentence got it pasted into every price answer;
+the rule is now once per conversation. A third was plain operations:
+one unescaped apostrophe in a Turkish string broke two deploys for
+twenty minutes while the site kept serving the previous build,
+because the host's failed builds send no mail.
 
 Privacy isn't a constraint you route around — it's a design that
 keeps working as the feature list grows, provided you can tell when
