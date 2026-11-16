@@ -5,10 +5,22 @@ publishedAt: 2026-06-09
 featured: false
 order: 6
 cover:
-  src: /assets/projects/digiscrape-dashboard.png
-  alt: DigiScrape — Data Terminal dashboard with leads funnel + capture trend + platform mix
+  src: /assets/projects/digiscrape-dashboard.webp
+  alt: DigiScrape dashboard in the dark Data Terminal design — captured leads, average score, daily actions over fourteen days, sales funnel and data coverage
   cloud: false
-screenshots: []
+screenshots:
+  - src: /assets/projects/digiscrape-leads.webp
+    alt: Lead table with a score per company, source badges, city, tax id and the team member each lead is assigned to
+    caption: Lead table with score and source per row. All data in these screenshots is seeded demo data.
+  - src: /assets/projects/digiscrape-ai-analysis.webp
+    alt: Lead detail page with a tag next to each contact field naming its source, a score breakdown and an AI site analysis with opportunities, strengths and a call opener in Turkish
+    caption: Lead detail. Each field is tagged with its source; the site analysis drafts a call opener.
+  - src: /assets/projects/digiscrape-monitors.webp
+    alt: Monitors list with three scheduled searches, their source, interval, number of new leads and last run
+    caption: Monitors. Saved searches re-run on a schedule.
+  - src: /assets/projects/digiscrape-team.webp
+    alt: Team performance tab with assigned, won and unassigned lead counts and a conversion rate per team member
+    caption: Team performance per member.
 exif:
   stack: Astro + Svelte 5 + Tailwind v4 + Flask + Supabase Postgres + Playwright + iyzico + OpenRouter
   stackShort: Astro + Svelte + Flask + Supabase + Playwright
@@ -45,16 +57,40 @@ Joined as a collaborator and led the rebuild end-to-end:
   tokens** via JWKS, onboard team members through the Supabase Admin API,
   email confirmation flow through Supabase + Resend custom SMTP.
 - **Payments:** recurring iyzico subscriptions in TRY (Stripe doesn't
-  onboard Turkish businesses) — 3 tiers, webhook signature verification,
-  quota-on-read.
+  onboard Turkish businesses). The three tiers live on the server, so the
+  browser sends only a tier id; quota resets lazily on read instead of by
+  a scheduler; the webhook rejects anything unsigned. A review pass caught
+  that an earlier version of that check failed open.
 - **AI Site Analysis:** OpenRouter-fronted LLM call with model fallbacks
   (Claude Sonnet 4.6 → GPT-4o-mini → Gemini), produces a 0–100 site
   score, strengths/weaknesses, a call-opener, and a pre-drafted outreach
-  email.
+  email. Signals are first extracted from the HTML by plain code and
+  handed over as verified facts, the page text is wrapped as untrusted
+  data, and the model is told not to invent speed, traffic or revenue. A
+  second pass rewrites the email into native Turkish and keeps the
+  original if it fails. A person reviews before anything is sent.
+- **Sources:** after launch the local-business search moved from a
+  browser scraper to a paid business-data API. In my test it returned
+  five enriched businesses in about 3.5 seconds, where the browser path
+  took about seven seconds per business and found no email address. Each
+  tenant brings its own API key, because a shared key would spend one
+  account's quota for everyone; the scraper stays as the no-key fallback.
+  A public registry of licensed travel agencies was added as a source.
+- **Dedup and provenance:** the same company found in two sources is
+  merged only on hard identifiers — tax number, full phone number,
+  website domain — never on a similar name. Every field carries a tag for
+  where it came from, sources are ranked by trust, and a value somebody
+  typed in by hand is never overwritten by a later run.
+- **Monitors:** saved searches re-run on a schedule and report only the
+  leads that are new since the last run.
+- **Outreach guardrails:** an opt-out list with a public unsubscribe
+  link, a disclosure footer, a frequency cap and a
+  do-not-contact switch on each lead.
 - **Frontend:** rebuilt as an Astro + Svelte 5 + Tailwind v4 SPA against
   a Pencil "Data Terminal" handoff. View Transitions for SPA-style
   navigation, persisted rail/banner/toast across nav, dashboard charts
-  (funnel, capture trend, coverage, platform mix).
+  (funnel, capture trend, coverage, platform mix), team screens for lead
+  assignment and per-member performance, an email hub.
 - **Deploy:** Dockerized Oracle Cloud Always-Free ARM VM (Frankfurt),
   Caddy for auto-HTTPS, Gunicorn (1 worker × 8 threads — scrapes run as
   in-process daemons), session-persistence volume for headful scrapers
@@ -72,6 +108,13 @@ Pre-deploy security pass: untracked leaked scraper-session JWTs, fixed
 Postgres double-quoted SQL literals that were raising `UndefinedColumn`,
 plugged a connection-pool leak that drained after ~10 errored requests.
 
+The single Gunicorn worker is a constraint, not a default. Scrape jobs
+are threads inside that one process, so a second worker would not see
+them, and anything a job holds has to be kept apart per user. The
+monitor scheduler follows from the same shape: the container's start
+script runs the app's bootstrap in a throwaway process, so the scheduler
+starts lazily on the first request instead.
+
 ## Reflection
 
 The owner's prototype proved the demand; the rebuild was about earning
@@ -79,3 +122,19 @@ the right to charge for it. The most satisfying piece wasn't any one
 feature — it was the moment the failing-quietly bugs (pool drain, JWT
 sign-out race, post-nav locale flash) stopped, and the app started
 behaving like a product instead of a script.
+
+The pool drain is the one I'd tell again. It never showed up as an
+error: every page loaded forever, a restart cured it, and then it came
+back. A handler that raised before closing its connection leaked one,
+and a pool blocks when it is empty, it does not throw. The fix was not
+to chase handlers but to return every connection at the end of the
+request, whatever happened, and to make closing twice harmless.
+
+Running your own VM has the same quiet character. In October a batch of
+vendor security mails made me check the server. None applied, but the
+check found the real gap: automatic updates had installed patches for
+twenty weeks without ever rebooting into them, and the Docker packages
+sat outside their reach. The reboot cost about 25 seconds of downtime.
+
+There are no automated tests. Features were verified with seeded rows
+and requests against the API.
